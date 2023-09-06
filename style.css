@@ -1,0 +1,67 @@
+/* 스타일 시트 예시 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
+
+header h1 {
+    margin: 0;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #333;
+    color: #fff;
+}
+
+.image-container img
+{
+    transition: all 0.2s linear;
+}
+.image-container:hover img
+{
+    transform: scale(1.4);
+}
+.image-container
+{
+    width: 220px;
+    height: 220px;
+    margin:0px auto;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+}
+
