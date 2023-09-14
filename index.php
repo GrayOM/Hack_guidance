@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>워게임 사이트</title>
+    <title>Hack guidence</title>
     <link rel="stylesheet" href="style.css"> <!-- 스타일 시트 파일 -->
 </head>
 <body>
     <header>
-        <h1>워게임 사이트(이름지어야함)</h1>
         <nav>
-            <ul>
-                <li><a href="index.php">홈</a></li>
-                <li><a href="about.php">게임 정보</a></li>
-                <li><a href="leaderboard.php">리더보드(미완성)</a></li>
-                <li><a href="contact.php">문의하기(미완성)</a></li>
+            <ul class="font_menu">
+                <li><a href="index.php">Home</a></li>
+                <li><a href="about.php">Challenge</a></li>
+                <li><a href="leaderboard.php">Ranking(미완성)</a></li>
+                <li><a href="contact.php">Contact(미완성)</a></li>
             </ul>
         </nav>
     </header>
@@ -29,7 +28,7 @@
         </section>
     </main>
     <footer>
-        <p>&copy; 캡스톤디자인</p>
+        <strong><p>&copy;Hack guidence</p></strong>
     </footer>
 </body>
 </html>
