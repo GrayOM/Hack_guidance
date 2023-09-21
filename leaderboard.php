@@ -1,38 +1,71 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>워게임 사이트</title>
-    <link rel="stylesheet" href="style.css"> <!-- 스타일 시트 파일 -->
+    <link rel="stylesheet" href="styletest.css"> <!-- 스타일 시트 파일 -->
 </head>
 <body>
     <header>
         <nav>
             <ul class="font_menu">
-                <li><a href="index.php">Home</a></li>
+                 <li><a href="index.php">Home</a></li>
                 <li><a href="about.php">Challenge</a></li>
                 <li><a href="leaderboard.php">Ranking(미완성)</a></li>
                 <li><a href="contact.php">Contact(미완성)</a></li>
             </ul>
         </nav>
     </header>
+            <aside class="sidebar-left">
+                <ul>
+                    <li><a href="#">test</a></li>
+                    <li><a href="#">test</a></li>
+                
+                </ul>
+            </aside>
+
+            <aside class="sidebar-right">
+                <ul>
+                    <li><a href="#">test</a></li>
+                    <li><a href="#">test</a></li>
+                </ul>
+</aside>
     <main>
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li><a href="#">메뉴1</a></li>
-                <li><a href="#">메뉴2</a></li>
-                <li><a href="#">메뉴3</a></li>
-                <li><a href="#">메뉴4</a></li>
-                <li><a href="#">메뉴5</a></li>
-            </ul>
-        </aside>
+            <table class="table-wh" border="0">
+                    <tr> 
+                        <td><a href="questions\questions1\questions1.php"><div class="image-container"><img src="image\testquestions1.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions2\questions2.php"><div class="image-container"><img src="image\testquestions2.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions3.php"><div class="image-container"><img src="image\testquestions3.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions4.php"><div class="image-container"><img src="image\testquestions4.jpg" alt="image"></div></a></td>
+                        
+                    </tr>
+
+                    <tr>
+                        
+                        <td><a href="questions\questions5.php"><div class="image-container"><img src="image\testquestions5.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions6.php"><div class="image-container"><img src="image\testquestions6.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions7.php"><div class="image-container"><img src="image\testquestions7.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions8.php"><div class="image-container"><img src="image\testquestions8.jpg" alt="image"></div></a></td>
+                    </tr>
+
+                    <tr>
+                        <td><a href="questions\questions9.php"><div class="image-container"><img src="image\testquestions9.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions10.php"><div class="image-container"><img src="image\testquestions10.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions11.php"><div class="image-container"><img src="image\testquestions11.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions12.php"><div class="image-container"><img src="image\testquestions12.jpg" alt="image"></div></a></td>
+                    </tr>
+
+            </table>
+        </section>
         <section>
-            <!-- 본문 내용 추가 -->
+            
+       
+
         </section>
     </main>
     <footer>
-        <p>&copy; Hack guidance</p>
+        <p>&copy;Hack guidence</p>
     </footer>
 </body>
 </html>

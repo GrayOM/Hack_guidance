@@ -1,79 +1,89 @@
-/* style.css */
-
-/* 전체 페이지 스타일 */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    background-color: #1a1a1a;
 }
 
-/* 헤더 스타일 */
 header {
-    background-color: #333;
-    color: #fff;
+    background-color: #111;
+    color: #00FF00;
     text-align: left;
     padding: 20px;
 }
 
-/* 내비게이션 메뉴 스타일 */
-.font_menu {
+nav ul {
     list-style: none;
     padding: 0;
-    margin: 0;
 }
 
-.font_menu li {
+nav ul li {
     display: inline;
     margin-right: 20px;
 }
 
-.font_menu li a {
-    color: #fff;
+nav ul li a {
+    color: #00FF00;
     text-decoration: none;
 }
 
-/* 메인과 사이드바 스타일 */
 main {
-    display: flex;
-    flex-direction: row; /* 가로로 나란히 배치 */
-}
-
-.sidebar {
-    width: 250px;
-    background-color: #333;
-    color: #fff;
     padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* main 요소의 마진을 줄입니다. */
-main {
-    margin: 20px;
-}
-
-/* 사이드바 메뉴 스타일 */
-.sidebar-menu {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar-menu li {
-    margin-bottom: 15px;
-}
-
-.sidebar-menu li a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-/* 푸터 스타일 */
 footer {
     text-align: center;
     padding: 10px 0;
-    background-color: #333;
-    color: #fff;
+    background-color: #1a1a1a;
+    color: #00FF00;
+}
+
+.table-wh
+{
+    width: 1039px;
+    height: 1045px;
+  
+}
+
+.image-container img
+{
+    transition: all 0.2s linear;
+}
+.image-container:hover img
+{
+    transform: scale(1.4);
+}
+.image-container
+{
+    width: 220px;
+    height: 220px;
+    margin:0px auto;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+}
+
+.font_menu
+{
+    font-family:math;
+    font-size:large;
+}
+.sidebar-left {
+    width: 180px;
+    background-color: #656565;
+    color: #00FF00;
+    padding: 20px;
+    height: 1045px;
+    float: left; /* 왼쪽에 배치 */
+}
+
+.sidebar-right {
+    width: 180px;
+    background-color: #656565;
+    color: #00FF00;
+    padding: 20px;
+    height: 1045px;
+    float: right; /* 오른쪽에 배치 */
 }

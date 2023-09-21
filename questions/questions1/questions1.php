@@ -1,111 +1,49 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="utf-8">
-  <title>LOGIN</title>
-  <style>
-    body {
-      background-color: black;
-      color: green;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .loginForm {
-      background-color: black;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0px 0px 10px 0px green;
-      text-align: center;
-      padding-right: 35px;
-
-    }
-
-    .idForm, .passForm {
-      margin-bottom: 10px;
-    }
-
-    .id, .pw {
-     
-      padding: 10px;
-      border: 1px solid green;
-      border-radius: 5px;
-      background-color: black;
-      color: green;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
-      background-color: green;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .btn:hover {
-      background-color: darkgreen;
-    }
-
-    .bottomText {
-      text-align: center;
-    }
-
-    a {
-      color: green;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+    <title>script_login_page</title>
+    <style>
+        /* CSS 스타일링 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center; /* 가로 중앙 정렬 */
+            align-items: center; /* 세로 중앙 정렬 */
+            height: 100vh; /* 화면 전체 높이만큼 설정 */
+            margin: 0;
+        }
+        .login-container {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
-  <form method="post" action="" class="loginForm">
-    <h2>Login</h2>
-    <div class="idForm">
-      <input type="text" name="id" class="id" placeholder="Username">
+    <div class="login-container">
+        <h2>로그인</h2>
+        <form id="login-form">
+            <label for="username">사용자 이름:</label>
+            <input type="text" id="username" name="username" required><br><br>
+            <label for="password">비밀번호:</label>
+            <input type="password" id="password" name="password" required><br><br>
+            <input type="submit" value="로그인">
+        </form>
     </div>
-    <div class="passForm">
-      <input type="password" name="pw" class="pw" placeholder="Password">
-    </div>
-    <button type="submit" class="btn" name="login">
-      LOGIN
-    </button>
-    <div class="bottomText">
-      <a href="?download=true">questions1.php download</a>
-    </div>
-  </form>
 
-  <?php
-  if (isset($_POST["login"])) {
-    
-      $username = $_POST["id"];
-      $password = $_POST["pw"];
-
-     
-      $validUsername = "haaaaackckck";
-      $validPassword = "errrrsssssss";
-
-
-      if ($username == $validUsername && $password == $validPassword) {
-          echo "<script>alert('Flag:245360283758230587935');</script>";
-      } else {
-          echo "<script>alert('떙.');</script>";
-      }
-  }
-
-  if (isset($_GET["download"])) {
-      $file_content = file_get_contents("questions1.php");
-      header("Content-disposition: attachment; filename=questions1.php");
-      header("Content-type: application/php");
-      echo $file_content;
-  }
-  ?>
+    <script>
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault(); 
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            if (username === "hackguidence" && password === "2984075230948324") {
+                alert("Flag:10965869438953485");
+            } else {
+                alert("로그인 실패. 사용자명과 비밀번호를 확인하세요.");
+            }
+        });
+    </script>
 </body>
 </html>
