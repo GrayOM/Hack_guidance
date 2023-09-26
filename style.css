@@ -6,8 +6,8 @@ body {
 }
 
 header {
-    background-color: #333;
-    color: #fff;
+    background-color: #111;
+    color: #00FF00;
     text-align: left;
     padding: 20px;
 }
@@ -23,32 +23,35 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #fff;
+    color: #00FF00;
     text-decoration: none;
 }
 
 main {
     padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #000000;
+    box-shadow: 0 0 10px rgb(255, 255, 255);
 }
 
 footer {
     text-align: center;
     padding: 10px 0;
-    background-color: #333;
-    color: #fff;
+    background-color: #111;
+    color: #00FF00;
+    box-shadow: 0 0 10px rgb(255, 255, 255);
 }
 
 .table-wh
 {
-    width:800px;
+    width: 1240px;
     height: 1045px;
 }
 
 .image-container img
 {
     transition: all 0.2s linear;
+    width: 100%;
+    height: auto;
 }
 .image-container:hover img
 {
@@ -62,6 +65,8 @@ footer {
     overflow: hidden;
     display: flex;
     justify-content: space-between;
+    border:4px solid #00FF00;
+    border-radius: 30px;
 }
 
 .font_menu
@@ -72,11 +77,24 @@ footer {
 
 .sidebar {
     width: 180px; /* 사이드바 너비 조정 */
-    background-color: #4b4646; /* 배경색 설정 */
+    margin-top:10px;
+    background-color: #000000; /* 배경색 설정 */
     color: white; /* 글자색 설정 */
     padding: 20px; /* 여백 설정 */
-    height: 1045px;
+    height: 1016px;
     float: left; /* 왼쪽으로 붙이기 */
+    border:3px solid rgb(121 126 124);
+    border-radius:15px;
+}
+
+.sidebar_right
+{
+    width: 180px; /* 사이드바 너비 조정 */
+    background-color: #000000; /* 배경색 설정 */
+    color: white; /* 글자색 설정 */
+    padding: 20px; /* 여백 설정 */
+    height: 1039px;
+    float: right; /* 왼쪽으로 붙이기 */
 }
 
 .sidebar h2 {
@@ -94,5 +112,5 @@ footer {
 
 .sidebar a {
     text-decoration: none;
-    color: white;
+    color: #00FF00;
 }

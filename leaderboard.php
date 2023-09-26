@@ -17,20 +17,21 @@
             </ul>
         </nav>
     </header>
-            <aside class="sidebar-left">
+            <aside class="sidebar">
                 <ul>
-                    <li><a href="#">test</a></li>
-                    <li><a href="#">test</a></li>
+                    <li><a href="#">로그인</a></li>
+                    <li><a href="#">회원가입</a></li>
                 
                 </ul>
             </aside>
 
-            <aside class="sidebar-right">
+            <aside class="sidebar_right">
                 <ul>
-                    <li><a href="#">test</a></li>
-                    <li><a href="#">test</a></li>
+                    <li>
+
+                    </li>
                 </ul>
-</aside>
+            </aside>
     <main>
             <table class="table-wh" border="0">
                     <tr> 
@@ -38,11 +39,9 @@
                         <td><a href="questions\questions2\questions2.php"><div class="image-container"><img src="image\testquestions2.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions3.php"><div class="image-container"><img src="image\testquestions3.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions4.php"><div class="image-container"><img src="image\testquestions4.jpg" alt="image"></div></a></td>
-                        
                     </tr>
 
                     <tr>
-                        
                         <td><a href="questions\questions5.php"><div class="image-container"><img src="image\testquestions5.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions6.php"><div class="image-container"><img src="image\testquestions6.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions7.php"><div class="image-container"><img src="image\testquestions7.jpg" alt="image"></div></a></td>
@@ -54,6 +53,12 @@
                         <td><a href="questions\questions10.php"><div class="image-container"><img src="image\testquestions10.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions11.php"><div class="image-container"><img src="image\testquestions11.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions12.php"><div class="image-container"><img src="image\testquestions12.jpg" alt="image"></div></a></td>
+                    </tr>
+
+                    <tr>
+                        <td><a href="questions\questions13.php"><div class="image-container"><img src="image\testquestions13.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions14.php"><div class="image-container"><img src="image\testquestions14.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions15.php"><div class="image-container"><img src="image\testquestions15.jpg" alt="image"></div></a></td>
                     </tr>
 
             </table>
