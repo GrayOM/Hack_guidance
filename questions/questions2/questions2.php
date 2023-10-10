@@ -80,6 +80,7 @@
         <div class="bottomText">
           <a href="?download=true">2번문제 다운로드</a>
         </div>
+        <a href="questions2_help.php">HELP!!</a>
       </form>
 
   <?php

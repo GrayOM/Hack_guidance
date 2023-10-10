@@ -9,9 +9,10 @@
             display: flex;
             justify-content: center; /* 가로 중앙 정렬 */
             align-items: center; /* 세로 중앙 정렬 */
-            height: 100vh; /* 화면 전체 높이만큼 설정 */
+            height: 87vh; /* 화면 전체 높이만큼 설정 */
             margin: 0;
-        }
+            flex-direction: column;
+                }
         .login-container {
             width: 300px;
             padding: 20px;
@@ -32,6 +33,7 @@
             <input type="submit" value="로그인">
         </form>
     </div>
+        <a href="questions1_help.php">HELP!!</a>
 
     <script>
         document.getElementById("login-form").addEventListener("submit", function(event) {

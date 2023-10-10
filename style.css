@@ -12,6 +12,11 @@ header {
     padding: 20px;
 }
 
+.index_section
+{
+    color:white;
+}
+
 nav ul {
     list-style: none;
     padding: 0;
