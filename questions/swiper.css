@@ -1,8 +1,29 @@
-img {
-    padding: 20px;
+body
+{
+    height: 894px;
+    background-color: black;
+}
+
+.main-jpg {
+    padding-bottom: 20px;
+    padding-top : 20px;
     margin:0 auto;
     display: block;
-    width: 1013px;
+    width: 1300px;
+    height: 760px;
+    border-radius:75px;
+ }
+
+ .help-image
+ {
+    border-radius: 40px;
+    padding : 20px;
+    width: 45%;
+    height: 90%;
+    float:right;
+    position: absolute;
+    right: 20px;
+    top:20px;
  }
 
 .swiper-container
@@ -10,8 +31,8 @@ img {
     position: relative;
     margin: auto;
     width:100%;
-    max-width: 1230px;
-    padding: 30px 20px;
+    max-width: 1550px;
+    padding: 30px 0px;
     overflow-x: hidden;
  }
 
@@ -20,9 +41,11 @@ img {
     width:100%;
     background-color: #eee;
     height: 800px;
+    border-radius:10px;
+    box-shadow: 0px 5px 8px rgb(255, 255, 255);
  }
 
-.text-wrap
+.main-text-wrap
 {
     position: absolute;
     top:35%;
@@ -36,17 +59,43 @@ img {
     z-index: 1;
 }
 
-.text-wrap h2{
+.main-text-wrap h2{
     color:#fff;
-    font-size: 48px;
+    font-size: 44px;
     line-height: 1.25;
     font-weight: bold;
     margin-bottom: 16px;
 }
 
-.text-wrap p{
+.main-text-wrap p{
     color:#fff;
     font-size:20px;
+}
+
+.help-text p
+{
+    width:50%;
+    padding: 15px;
+    margin:0;
+    word-break: break-word;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.help-text h2
+{
+    word-break: break-word;
+    width: 50%;
+    margin:0;
+    padding:15px;
+    font-size:30px;
+}
+
+.help-text hr
+{
+    border: none;
+    border-top: 1px solid black; /* 가로선 스타일 설정 */
+    width: 50%; /* 가로선의 너비 조절 */
+    margin: 0; /* 가로선의 상단과 하단 마진 제거 */
 }
 
 .swiper-pagination-bullet-active
@@ -89,8 +138,8 @@ img {
 .swiper-button-next:hover,
 .swiper-button-prev:hover
 {
-    background-color: #004ff0;
-    box-shadow: 0 4px 12px rgba(0, 79, 255, 0.4);
+    background-color: #000000;
+    box-shadow: 0 4px 12px rgb(166, 190, 243);
 }
 
 .swiper-button-prev
