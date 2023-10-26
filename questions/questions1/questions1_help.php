@@ -50,9 +50,9 @@
                     <div class="help-text">
                         <h2>요소 검사 (Elements Tab)</h2><br>
                         <hr size="5">
-                        <p>첫 번째 문제는 '요소 검사 (Elements Tab)'를 통해 문제를 풀어보도록 하겠습니다.</p><br>
-                        <p>먼저 단축키 'F12'를 눌러 개발자 도구를 불러냅니다 버튼을 누르면 옆에 있는 이미지와 똑같이 나옵니다.</p>
-
+                        <p>첫 번째 문제는 '요소 검사 (Elements Tab)'를 통해 문제를 풀어보도록 하겠습니다.</p>
+                        <p>먼저 단축키 'F12'를 눌러 개발자 도구를 불러냅니다 버튼을 누르면 옆에 있는 이미지와 똑같이 나옵니다.</p><br>
+                        
                     </div>
                     <img class="help-image" src ="..\q_images\q1_help_image2.jpg" alt="">
             </div>
@@ -64,15 +64,12 @@
                     </div>
             </div>
     </div>
-
-
         <!-- If we need pagination -->
         <div class="swiper-pagination"></div>
 
         <!-- If we need navigation buttons -->
-        <div class="swiper-button-prev"><</div>
-        <div class="swiper-button-next">></div>
-
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
     <script src="../questions.js"></script>
 </body>
 

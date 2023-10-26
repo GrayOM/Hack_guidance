@@ -109,12 +109,43 @@ body
     opacity:0;
 }
 
-.swiper-button-next,
-.swiper-button-prev
-{
-    width:40px;
+.swiper-button-prev {
+    width: 40px;
     height: 40px;
-    background-color: rgba(240, 240, 0, 7);
+    background-size: 18px;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 2;
+    border-radius: 50%;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+    position: absolute;
+    cursor: pointer;
+    color: white; /* ">" 아이콘의 색상 설정 */
+    font-size: 0px; /* ">" 아이콘의 크기 설정 */
+}
+
+
+/* ">" 아이콘 추가 (아이콘은 여기에서는 텍스트로 표현) */
+.swiper-button-next::before
+ {
+    content: '>';
+    visibility: visible; /* ">" 아이콘을 보이도록 설정 */
+    margin-top: -8px
+}
+
+.swiper-button-prev::before
+{
+    content: '<';
+    visibility: visible; /* ">" 아이콘을 보이도록 설정 */
+    margin-top: -8px
+
+}
+
+.swiper-button-next {
+    width: 40px;
+    height: 40px;
+    background-color: #000000; /* 배경색을 투명으로 설정 */
     backdrop-filter: blur(3px);
     background-size: 18px;
     background-position: center;
@@ -124,8 +155,10 @@ body
     -webkit-transition: 0.4s;
     transition: 0.4s;
     position: absolute;
+    cursor: pointer;
+    color: white; /* ">" 아이콘의 색상 설정 */
+    font-size: 38px; /* ">" 아이콘의 크기 설정 */
 }
-
 
 .swiper-button-prev:after,
 .swiper-rtl .swiper-button-next:after,
@@ -135,12 +168,22 @@ body
     display: none;
 }
 
-.swiper-button-next:hover,
-.swiper-button-prev:hover
+.swiper-button-next:hover
 {
     background-color: #000000;
     box-shadow: 0 4px 12px rgb(166, 190, 243);
 }
+
+.swiper-button-prev:hover
+{
+    background-color: #000000; /* 배경색을 투명으로 설정 */
+    backdrop-filter: blur(3px);
+    font-size: 38px;
+}
+
+
+
+
 
 .swiper-button-prev
 {
