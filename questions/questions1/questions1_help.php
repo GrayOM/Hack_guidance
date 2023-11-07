@@ -52,16 +52,26 @@
                         <hr size="5">
                         <p>첫 번째 문제는 '요소 검사 (Elements Tab)'를 통해 문제를 풀어보도록 하겠습니다.</p>
                         <p>먼저 단축키 'F12'를 눌러 개발자 도구를 불러냅니다 버튼을 누르면 옆에 있는 이미지와 똑같이 나옵니다.</p><br>
-                        
+                        <p>겁먹지 마세요 코드를 전부 다 아는 것도 좋지만 중심에 있는 코드 일부분만 알아도 충분히 풀 수 있습니다.</p>
+                        <p> 여기서 main code는 script 라는 태그 안에 있는 function(event) 함수입니다.</p>
+                        <p> 누가 봐도 'var username'에는 아이디를 입력하는 것이고 , 'var password'에는 비밀번호를 입력하는 칸이라는 건 아실 겁니다.</p>
+                        <p> 그렇다면 그 밑에 있는 'if~ ' , 'else ~' 코드를 확인해 보겠습니다 if, else는 아시다시피 조건문에 해당됩니다. 먼저 if문을 보면 username과 password 가 정해진 값이 맞다면 Flag를 말하게 되어있습니다 반대로 else는 정해진 username, password 가 틀렸기 때문에 '로그인 실패~'라고 출력이 되는 겁니다.</p>
+                        <p> 이 코드를 다 읽으시면 아시겠지만 Flag 값도 동시에 노출되어 있습니다</p>
                     </div>
                     <img class="help-image" src ="..\q_images\q1_help_image2.jpg" alt="">
             </div>
 
             <div class="swiper-slide">
-                    <div class="text-wrap">
-                        <h2>텍스트</h2><br>
-                        <p>텍스트</p>
+                    <div class="help-text">
+                        <h2>해킹하고 무슨 상관?</h2><br>
+                        <hr size="5">
+                        <p>처음 해내신 해킹 축하드립니다.</p>
+                        <p>물론 요소 검사 가지고 해킹을 시도할 수 있는 사이트는 거의 없습니다 그래도 재밌지 않으셨나요? </p>
+                        <p>방금 문제를 푸는 행위는 일종의 데이터 조작이라고 이야기할 수 있습니다. </p>
+                        <p>웹 페이지의 내용을 변경을 함으로써 문제를 푸셨으니까요 물론 플래그가 노출되어 내용변경까지도 필요 없었지만요</p>
+                        <p>하지만 전혀 무의미한 행동을 한건 아닙니다 미흡한 입력 검증에 대한 우회 공격은 지금도 통할 수 있으니까요.</p>
                     </div>
+                    <img class="help-image" src ="../q_images/q1_help_image3.jpg" alt="">
             </div>
     </div>
         <!-- If we need pagination -->

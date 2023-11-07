@@ -25,7 +25,7 @@
             </ul>
         </nav>
     </header>
-    <main>
+    <main id="index-main">
         <canvas id="canv"></canvas>
         <section class="index_section">
             <h2>게임 소개</h2>

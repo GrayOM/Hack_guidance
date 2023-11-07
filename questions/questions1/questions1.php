@@ -33,15 +33,14 @@
             <input type="submit" value="로그인">
         </form>
     </div>
-        <a href="questions1_help.php">HELP!!</a>
-
+        <a href="questions1_help.php" target="_blank">HELP!!</a>
     <script>
         document.getElementById("login-form").addEventListener("submit", function(event) {
             event.preventDefault(); 
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
             if (username === "hackguidence" && password === "2984075230948324") {
-                alert("Flag:10965869438953485");
+                alert("DH{mhn8vyc9RirWDQVsmux8pD%pf4xHdZcw}");
             } else {
                 alert("로그인 실패. 사용자명과 비밀번호를 확인하세요.");
             }
