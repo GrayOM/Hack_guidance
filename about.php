@@ -28,7 +28,7 @@
                     <tr> 
                         <td><a href="questions\questions1\questions1.php"><div class="image-container"><img src="image\testquestions1.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions2\questions2.php"><div class="image-container"><img src="image\testquestions2.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions3.php"><div class="image-container"><img src="image\testquestions3.jpg" alt="image"></div></a></td>
+                        <td><a href="questions\questions3\questions3.php"><div class="image-container"><img src="image\testquestions3.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions4.php"><div class="image-container"><img src="image\testquestions4.jpg" alt="image"></div></a></td>
                         <td><a href="questions\questions5.php"><div class="image-container"><img src="image\testquestions5.jpg" alt="image"></div></a></td>
                     </tr>

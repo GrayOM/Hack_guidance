@@ -73,7 +73,8 @@
                     </div>
                     <img class="help-image" src ="../q_images/q1_help_image3.jpg" alt="">
             </div>
-    </div>
+        </div>
+
         <!-- If we need pagination -->
         <div class="swiper-pagination"></div>
 

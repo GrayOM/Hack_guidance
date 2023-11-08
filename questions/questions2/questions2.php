@@ -109,7 +109,7 @@
         <span>다운로드 완료</span>
       <?php } ?>
     </div>
-    <a href="questions2_help.php">HELP!!</a>
+    <a href="questions2_help.php" target="_blank">HELP!!</a>
   </form>
 
   <?php
