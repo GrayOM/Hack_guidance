@@ -20,7 +20,7 @@
             <ul class="font_menu">
                 <li><a href="about.php">Challenge</a></li>
                 <li><a href="leaderboard.php">Ranking(미완성)</a></li>
-                <li><a href="contact.php">Contact(미완성)</a></li>
+                <li><a href="https://grayom.tistory.com/">Contact</a></li>
                 <t></t>
             </ul>
         </nav>

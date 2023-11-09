@@ -40,7 +40,7 @@
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
             if (username === "hackguidence" && password === "2984075230948324") {
-                alert("DH{mhn8vyc9RirWDQVsmux8pD%pf4xHdZcw}");
+                alert("DH{정답입니다!}");
             } else {
                 alert("로그인 실패. 사용자명과 비밀번호를 확인하세요.");
             }

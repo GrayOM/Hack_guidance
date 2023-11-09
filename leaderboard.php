@@ -1,76 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>워게임 사이트</title>
-    <link rel="stylesheet" href="styletest.css"> <!-- 스타일 시트 파일 -->
+<style>
+  body {
+    height: 100vh;
+    width: 100vw;
+    background-image: url('./cookies.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  form {
+    background: rgba(255, 255, 255, 0.8);
+    padding-right: 50px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    padding-left: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: white;
+    margin-left: 30px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  h1 {
+    text-align: center;
+    color: white; /* 원하는 색상으로 설정하세요 */
+  }
+
+  a {
+    margin-left: 30px;
+    text-decoration: none;
+    color: brown;
+  }
+</style>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul class="font_menu">
-                 <li><a href="index.php">Home</a></li>
-                <li><a href="about.php">Challenge</a></li>
-                <li><a href="leaderboard.php">Ranking(미완성)</a></li>
-                <li><a href="contact.php">Contact(미완성)</a></li>
-            </ul>
-        </nav>
-    </header>
-            <aside class="sidebar">
-                <ul>
-                    <li><a href="#">로그인</a></li>
-                    <li><a href="#">회원가입</a></li>
-                
-                </ul>
-            </aside>
+  
+<?php
+$accessKey = "DH{flag}"; // 액세스 키를 여기에 입력하세요
+$accessEntered = false;
 
-            <aside class="sidebar_right">
-                <ul>
-                    <li>
+if (isset($_POST['access_key'])) {
+    $enteredKey = $_POST['access_key'];
 
-                    </li>
-                </ul>
-            </aside>
-    <main>
-            <table class="table-wh" border="0">
-                    <tr> 
-                        <td><a href="questions\questions1\questions1.php"><div class="image-container"><img src="image\testquestions1.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions2\questions2.php"><div class="image-container"><img src="image\testquestions2.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions3.php"><div class="image-container"><img src="image\testquestions3.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions4.php"><div class="image-container"><img src="image\testquestions4.jpg" alt="image"></div></a></td>
-                    </tr>
+    if ($enteredKey === $accessKey) {
+        $accessEntered = true;
+    }
+}
+?>
 
-                    <tr>
-                        <td><a href="questions\questions5.php"><div class="image-container"><img src="image\testquestions5.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions6.php"><div class="image-container"><img src="image\testquestions6.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions7.php"><div class="image-container"><img src="image\testquestions7.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions8.php"><div class="image-container"><img src="image\testquestions8.jpg" alt="image"></div></a></td>
-                    </tr>
+<?php
+if ($accessEntered) {
+    if (isset($_POST['login'])) {
+        $user = $_POST['user'];
+        $password = $_POST['password'];
+        if ($user === 'guest' && $password === 'guest' || $user === 'admin' && $password === ')(@%#*)(#UT)JV@M(R*M#*@V(R#@U*(RV#*(@MRU#(*@MVM*#(@RM') {
+            setcookie('user', $user, time() + 100);
+        }
+    }
 
-                    <tr>
-                        <td><a href="questions\questions9.php"><div class="image-container"><img src="image\testquestions9.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions10.php"><div class="image-container"><img src="image\testquestions10.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions11.php"><div class="image-container"><img src="image\testquestions11.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions12.php"><div class="image-container"><img src="image\testquestions12.jpg" alt="image"></div></a></td>
-                    </tr>
+    if (isset($_COOKIE['user'])) {
+        if ($_COOKIE['user'] === 'admin') {
+            echo "<script>alert('You are admin');</script>";
+            echo "<h1>DH{xGl6oNREW@hvlA@W1BiQl%W0FObhVD4p}</h1>";
+        } else {
+            echo "<h1>You are Guest not admin</h1>";
+        }
+    }
+} else {
+    // 액세스 키를 입력하도록 하는 부분
+    ?>
 
-                    <tr>
-                        <td><a href="questions\questions13.php"><div class="image-container"><img src="image\testquestions13.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions14.php"><div class="image-container"><img src="image\testquestions14.jpg" alt="image"></div></a></td>
-                        <td><a href="questions\questions15.php"><div class="image-container"><img src="image\testquestions15.jpg" alt="image"></div></a></td>
-                    </tr>
-
-            </table>
-        </section>
-        <section>
-            
-       
-
-        </section>
-    </main>
-    <footer>
-        <p>&copy;Hack guidence</p>
-    </footer>
+    <form method="post">
+      <label for="access_key">액세스 키: </label>
+      <input type="password" id="access_key" name="access_key" placeholder="액세스 키를 입력하세요"><br>
+      <button type="submit" name="access_check">액세스 키 확인</button><br><br>
+    </form>
+<?php
+}
+?>
 </body>
 </html>
