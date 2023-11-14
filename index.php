@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="./questions/questions.js"></script>
 </head>
-<body>
+<body style="overflow-y: hidden">
     <header>
         <div class="button-container">
             <a href="" title="Button-2" class="button btnBorder btnBlueGreen">로그인</a>

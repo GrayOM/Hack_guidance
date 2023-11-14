@@ -26,64 +26,64 @@
     <main>
             <table class="table-wh" border="0">
                     <tr> 
-                        <td><a href="questions\questions1\questions1.php">
+                        <td><a href="questions\questions1\questions1.php" target="_blank">
                             <div class="text-container">Developer Tools
-                                <div class="sub-text">개발자 도구</div>
+                                <div class="sub-text">Tools elements</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions2\questions2.php">
+                        <td><a href="questions\questions2\questions2.php" target="_blank">
                             <div class="text-container">Source Code Editor
                                 <div class="sub-text">Reading code</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions3\questions3.php">
+                        <td><a href="questions\questions3\questions3.php" target="_blank">
                             <div class="text-container">Cookies
                                 <div class="sub-text">Cookie</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions4\questions4.php">
+                        <td><a href="questions\questions4\questions4.php" target="_blank">
                             <div class="text-container">Base64
                                 <div class="sub-text">encoding and decoding</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions5.php">
-                            <div class="text-container">incomplete
-                                <div class="sub-text">incomplete</div>
+                        <td><a href="questions\questions5\questions5.php" target="_blank">
+                            <div class="text-container">Regular expression
+                                <div class="sub-text">regexp</div>
                             </div>
                             </a>
                         </td>
                     </tr>
 
                     <tr> 
-                        <td><a href="questions\questions6\questions6.php">
+                        <td><a href="questions\questions6\questions6.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">Sub Text</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions7\questions7.php">
+                        <td><a href="questions\questions7\questions7.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions8\questions8.php">
+                        <td><a href="questions\questions8\questions8.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions9\questions9.php">
+                        <td><a href="questions\questions9\questions9.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions10\questions10.php">
+                        <td><a href="questions\questions10\questions10.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
@@ -92,31 +92,31 @@
                     </tr>
 
                     <tr> 
-                        <td><a href="questions\questions11\questions11.php">
+                        <td><a href="questions\questions11\questions11.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions12\questions12.php">
+                        <td><a href="questions\questions12\questions12.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions13\questions13.php">
+                        <td><a href="questions\questions13\questions13.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions14\questions14.php">
+                        <td><a href="questions\questions14\questions14.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>
                             </a>
                         </td>
-                        <td><a href="questions\questions15\questions15.php">
+                        <td><a href="questions\questions15\questions15.php" target="_blank">
                             <div class="text-container">incomplete
                                 <div class="sub-text">incomplete</div>
                             </div>

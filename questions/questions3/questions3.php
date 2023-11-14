@@ -86,7 +86,7 @@
       <label for="password">비밀번호: </label>
       <input type="text" id="password" name="password" value="guest"><br>
       <button type="submit" name="login">로그인</button><br><br>
-      <a href="questions3_help.php">Help!</a>
+      <a href="questions3_help.php" target="_blank">Help!</a>
     </form>
     <?php
     }
