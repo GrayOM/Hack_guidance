@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<title>cookies</title>
 <style>
   body {
     height: 100vh;
