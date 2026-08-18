@@ -175,3 +175,98 @@
     }
   }
 }
+@@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Design reminder — Signal Room Console: restrained charcoal, Signal Teal, precise data surfaces. */
+:root {
+  --radius: 0.65rem;
+  --background: oklch(0.12 0.012 205);
+  --foreground: oklch(0.93 0.008 188);
+  --card: oklch(0.155 0.014 205);
+  --card-foreground: oklch(0.93 0.008 188);
+  --popover: oklch(0.17 0.014 205);
+  --popover-foreground: oklch(0.93 0.008 188);
+  --primary: oklch(0.84 0.105 174);
+  --primary-foreground: oklch(0.14 0.014 205);
+  --secondary: oklch(0.215 0.016 205);
+  --secondary-foreground: oklch(0.82 0.012 188);
+  --muted: oklch(0.19 0.014 205);
+  --muted-foreground: oklch(0.67 0.018 190);
+  --accent: oklch(0.22 0.027 184);
+  --accent-foreground: oklch(0.92 0.015 182);
+  --destructive: oklch(0.68 0.18 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.016 205);
+  --input: oklch(0.25 0.016 205);
+  --ring: oklch(0.84 0.105 174);
+  --sidebar: oklch(0.105 0.012 205);
+  --sidebar-foreground: oklch(0.89 0.01 188);
+  --sidebar-primary: oklch(0.84 0.105 174);
+  --sidebar-primary-foreground: oklch(0.14 0.014 205);
+  --sidebar-accent: oklch(0.17 0.018 205);
+  --sidebar-accent-foreground: oklch(0.95 0.008 188);
+  --sidebar-border: oklch(0.25 0.016 205);
+  --sidebar-ring: oklch(0.84 0.105 174);
+}
+
+.dark { color-scheme: dark; }
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { background: #0a1013; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "IBM Plex Sans KR", sans-serif;
+    background-image: radial-gradient(circle at 78% -10%, rgba(67, 230, 193, 0.09), transparent 30%), linear-gradient(180deg, #0d1519 0%, #091014 100%);
+  }
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [type="button"]:not(:disabled), [type="submit"]:not(:disabled), [type="reset"]:not(:disabled), a[href], select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { @apply cursor-pointer; }
+}
+
+@layer components {
+  .font-mono-ui { font-family: "IBM Plex Mono", monospace; }
+  .console-grid {
+    background-image: linear-gradient(rgba(115, 214, 192, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(115, 214, 192, 0.055) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .signal-line { box-shadow: 0 0 18px rgba(67, 230, 193, 0.35); }
+  .panel-surface { background: linear-gradient(145deg, rgba(29, 44, 48, 0.93), rgba(15, 24, 28, 0.93)); }
+  .dot-grid { background-image: radial-gradient(rgba(120, 169, 163, 0.24) 0.75px, transparent 0.75px); background-size: 12px 12px; }
+}
