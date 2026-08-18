@@ -139,4 +139,13 @@ export const problems: LabProblem[] = plannedTitles.flatMap((titles, levelIndex)
   }),
 );
 
+export function getUniqueProblems() {
+  return Array.from(new Map(problems.map(problem => [problem.id, problem])).values()).sort((a, b) => a.id - b.id);
+}
+
+export function filterProblemDirectory({ sector = "all", query = "" }: { sector?: number | "all"; query?: string } = {}) {
+  const normalizedQuery = query.toLowerCase();
+  return getUniqueProblems().filter(problem => (sector === "all" || problem.level === sector) && `${problem.title} ${problem.category}`.toLowerCase().includes(normalizedQuery));
+}
+
 export const getProblem = (id: number) => problems.find((problem) => problem.id === id) ?? problems[0];
