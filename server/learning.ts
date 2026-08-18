@@ -1,5 +1,5 @@
 import { and, asc, count, desc, eq, isNotNull, max } from "drizzle-orm";
-import { courseCertificates, learningProgress, levelAssessments, users } from "../drizzle/schema";
+import { courseCertificates, learningProgress, users } from "../drizzle/schema";
 import { challengeById } from "../shared/learning";
 import { getDb } from "./db";
 
@@ -35,15 +35,13 @@ export function getCourseEligibility(completedModules: number) {
 export async function getLearnerDashboard(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
-  const [progressRows, assessmentRows, certificateRows] = await Promise.all([
+  const [progressRows, certificateRows] = await Promise.all([
     db.select().from(learningProgress).where(eq(learningProgress.userId, userId)),
-    db.select().from(levelAssessments).where(eq(levelAssessments.userId, userId)),
     db.select().from(courseCertificates).where(eq(courseCertificates.userId, userId)),
   ]);
   return {
     completedIds: progressRows.filter(row => row.completedAt).map(row => row.problemId),
     defenseReviewedIds: progressRows.filter(row => row.defenseReviewed).map(row => row.problemId),
-    passedLevels: assessmentRows.map(row => row.level),
     certificate: certificateRows[0] ?? null,
   };
 }

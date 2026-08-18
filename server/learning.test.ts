@@ -15,6 +15,7 @@ describe("flag validation", () => {
   it("provides a safe flag-validated node for every problem from 1 through 50", () => {
     expect(learningChallenges).toHaveLength(50);
     expect(new Set(learningChallenges.map(challenge => challenge.id)).size).toBe(50);
+    expect(learningChallenges.every(challenge => !("options" in challenge) && !("correct" in challenge) && !("distractors" in challenge))).toBe(true);
     expect(evaluateFlagSubmission(20, getExpectedFlag(20)!)).toEqual({ supported: true, correct: true });
     expect(evaluateFlagSubmission(50, getExpectedFlag(50)!)).toEqual({ supported: true, correct: true });
   });

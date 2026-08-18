@@ -24,7 +24,7 @@ function createAuthContext(): TrpcContext {
 describe("flag challenge router", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    learningMocks.getLearnerDashboard.mockResolvedValue({ completedIds: [], defenseReviewedIds: [], passedLevels: [], certificate: null });
+    learningMocks.getLearnerDashboard.mockResolvedValue({ completedIds: [], defenseReviewedIds: [], certificate: null });
     learningMocks.getLearnerRecord.mockResolvedValue([]);
     learningMocks.getPublicRanking.mockResolvedValue([]);
     learningMocks.evaluateFlagSubmission.mockReturnValue({ supported: true, correct: true });
