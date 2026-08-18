@@ -177,9 +177,9 @@
 
 # GitHub main 교체
 
-- [ ] 기존 GitHub main 커밋을 복구용 브랜치로 보관한다.
-- [ ] 현재 Hack Guidance 프로젝트 이력을 GitHub main 브랜치에 강제 푸시한다.
-- [ ] main 브랜치의 최신 커밋·파일 구성을 확인한다.
+- [x] 기존 GitHub main 커밋을 복구용 브랜치로 보관한다.
+- [x] 현재 Hack Guidance 프로젝트 이력을 GitHub main 브랜치에 강제 푸시한다.
+- [x] main 브랜치의 최신 커밋·파일 구성을 확인한다.
 
 # 기존 main 아이디어 반영
 
