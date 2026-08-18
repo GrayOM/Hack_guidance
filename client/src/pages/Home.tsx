@@ -3,6 +3,11 @@
  * Use precise panels, concrete observations, and restrained Signal Teal feedback.
  */
 import { useMemo, useState } from "react";
+import { useLocation } from "wouter";
+import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
+import { trpc } from "@/lib/trpc";
 import {
   Activity,
   ArrowUpRight,
@@ -38,10 +43,18 @@ const badgeTone: Record<string, string> = {
 };
 
 export default function Home() {
+  // The useAuth hook provides authentication state.
+  // To implement login/logout, call logout(), or start login from an event
+  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
+  // startLogin() during render (no href={startLogin()}) — it mints a one-time
+  // nonce cookie and must run only at the moment of navigation.
+  const { user, loading, isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
+  const dashboard = trpc.learning.dashboard.useQuery(undefined, { enabled: isAuthenticated, retry: false });
+
   const [activeLevel, setActiveLevel] = useState(1);
   const [selectedId, setSelectedId] = useState(1);
   const [hintStep, setHintStep] = useState(0);
-  const [completed, setCompleted] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -50,9 +63,12 @@ export default function Home() {
     () => problems.filter((problem) => problem.level === activeLevel && problem.title.toLowerCase().includes(query.toLowerCase())),
     [activeLevel, query],
   );
+  const completed = dashboard.data?.completedIds ?? [];
   const completeCount = completed.length;
   const activeComplete = completed.filter((id) => getProblem(id).level === activeLevel).length;
   const overallPercent = Math.round((completeCount / 50) * 100);
+  const assessmentCount = dashboard.data?.passedLevels.length ?? 0;
+  const defenseCount = dashboard.data?.defenseReviewedIds.length ?? 0;
 
   function chooseProblem(id: number) {
     setSelectedId(id);
@@ -61,8 +77,12 @@ export default function Home() {
     setActiveLevel(getProblem(id).level);
   }
 
-  function markComplete() {
-    setCompleted((current) => (current.includes(selected.id) ? current : [...current, selected.id]));
+  function openSelectedLab() {
+    if (!isAuthenticated) {
+      startLogin();
+      return;
+    }
+    setLocation(`/lab/${selected.id}`);
   }
 
   return (
@@ -83,7 +103,7 @@ export default function Home() {
             <div className="h-7 w-px bg-[#294146]" />
             <div className="text-right"><p className="font-mono-ui text-[10px] tracking-wider text-slate-500">COURSE PROGRESS</p><p className="mt-0.5 text-sm font-semibold text-teal-200">{completeCount} <span className="font-normal text-slate-500">/ 50</span></p></div>
           </div>
-          <button className="flex items-center gap-2 rounded-md border border-[#31545a] bg-[#132226] px-2.5 py-1.5 text-xs text-slate-200 transition hover:border-teal-300/60 hover:text-teal-100"><span className="grid h-5 w-5 place-items-center rounded bg-teal-300/15 font-mono-ui text-[10px] text-teal-200">HG</span><span className="hidden sm:inline">학습자</span></button>
+          {isAuthenticated ? <button onClick={() => void logout()} className="flex items-center gap-2 rounded-md border border-[#31545a] bg-[#132226] px-2.5 py-1.5 text-xs text-slate-200 transition hover:border-teal-300/60 hover:text-teal-100"><span className="grid h-5 w-5 place-items-center rounded bg-teal-300/15 font-mono-ui text-[10px] text-teal-200">HG</span><span className="hidden sm:inline">{user?.name ?? "학습자"} · 로그아웃</span></button> : <button onClick={startLogin} className="flex items-center gap-2 rounded-md border border-[#31545a] bg-[#132226] px-2.5 py-1.5 text-xs text-slate-200 transition hover:border-teal-300/60 hover:text-teal-100"><span className="grid h-5 w-5 place-items-center rounded bg-teal-300/15 font-mono-ui text-[10px] text-teal-200">HG</span><span className="hidden sm:inline">로그인하여 시작</span></button>}
         </div>
       </header>
 
@@ -109,7 +129,7 @@ export default function Home() {
             </nav>
             <div className="mt-auto border-t border-[#294247] pt-4">
               <a href="#request-inspector" className="flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><BookOpen className="h-4 w-4 text-teal-300" />분석 레코드</a>
-              <a href="#completion-track" className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><GraduationCap className="h-4 w-4 text-teal-300" />수료 기준</a>
+              <button onClick={() => setLocation("/certificate")} className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><GraduationCap className="h-4 w-4 text-teal-300" />수료 기준</button>
             </div>
           </div>
         </aside>
@@ -132,7 +152,7 @@ export default function Home() {
           <section className="mt-5 grid gap-3 sm:grid-cols-3">
             <Metric icon={<Layers3 className="h-4 w-4" />} label="학습 경로" value="5 Levels" note="Foundation → Applied" />
             <Metric icon={<ClipboardCheck className="h-4 w-4" />} label="완료한 실습" value={`${completeCount} / 50`} note={completeCount ? "분석 기록이 저장됨" : "첫 문제를 시작하세요"} />
-            <Metric icon={<Award className="h-4 w-4" />} label="수료 요건" value="0 / 5" note="레벨 평가 통과 필요" />
+            <Metric icon={<Award className="h-4 w-4" />} label="수료 요건" value={`${assessmentCount} / 5`} note="레벨 평가 통과 필요" />
           </section>
 
           <section className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_350px]">
@@ -153,13 +173,13 @@ export default function Home() {
               <div className="mt-4"><p className="font-mono-ui text-[10px] tracking-[0.15em] text-slate-500">LEARNING GOAL</p><p className="mt-2 text-sm leading-6 text-slate-200">{selected.goal}</p></div>
               <div className="mt-4 border-t border-[#294247] pt-4"><div className="flex items-center justify-between"><p className="font-mono-ui text-[10px] tracking-[0.15em] text-slate-500">OBSERVATION POINTS</p><PanelRightOpen className="h-3.5 w-3.5 text-slate-500" /></div><ul className="mt-2.5 space-y-2">{selected.observation.map((item) => <li key={item} className="flex gap-2 text-xs leading-5 text-slate-300"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-teal-300" />{item}</li>)}</ul></div>
               <div className="mt-4 border-t border-[#294247] pt-4"><div className="flex items-center justify-between"><p className="font-mono-ui text-[10px] tracking-[0.15em] text-slate-500">GUIDED HINTS</p><span className="font-mono-ui text-[10px] text-slate-500">{hintStep}/3</span></div>{hintStep > 0 ? <p className="mt-2.5 rounded-md border border-amber-200/15 bg-amber-100/[0.06] p-2.5 text-xs leading-5 text-amber-100/90">{selected.hints[hintStep - 1]}</p> : <p className="mt-2 text-xs leading-5 text-slate-500">힌트는 관찰 방향을 제시합니다. 정답을 직접 공개하지 않습니다.</p>}<button disabled={hintStep >= 3} onClick={() => setHintStep((step) => Math.min(step + 1, 3))} className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-teal-200 transition hover:text-teal-100 disabled:cursor-not-allowed disabled:text-slate-600"><CircleHelp className="h-3.5 w-3.5" />{hintStep ? "다음 관찰 힌트" : "첫 번째 힌트 보기"}</button></div>
-              <div className="mt-5 flex gap-2"><a href="#request-inspector" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-[#3b5c60] bg-[#16292d] px-3 py-2.5 text-xs font-medium text-teal-100 transition hover:border-teal-300/70 hover:bg-[#193237]"><Play className="h-3.5 w-3.5" />분석 화면 보기</a><button onClick={markComplete} className="flex items-center justify-center gap-2 rounded-md bg-teal-300 px-3 py-2.5 text-xs font-semibold text-[#092024] transition hover:bg-teal-200 active:scale-[0.98]" disabled={completed.includes(selected.id)}>{completed.includes(selected.id) ? <><Check className="h-3.5 w-3.5" />완료됨</> : <><ShieldCheck className="h-3.5 w-3.5" />완료로 표시</>}</button></div>
+              <div className="mt-5 flex gap-2"><a href="#request-inspector" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-[#3b5c60] bg-[#16292d] px-3 py-2.5 text-xs font-medium text-teal-100 transition hover:border-teal-300/70 hover:bg-[#193237]"><Play className="h-3.5 w-3.5" />분석 예시 보기</a><button onClick={openSelectedLab} className="flex items-center justify-center gap-2 rounded-md bg-teal-300 px-3 py-2.5 text-xs font-semibold text-[#092024] transition hover:bg-teal-200 active:scale-[0.98]">{completed.includes(selected.id) ? <><Check className="h-3.5 w-3.5" />완료 기록 확인</> : <><ShieldCheck className="h-3.5 w-3.5" />실습 시작</>}</button></div>
             </aside>
           </section>
 
           <section className="mt-7 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
             <div id="request-inspector" className="overflow-hidden rounded-xl border border-[#2e494f] bg-[#101b1e]"><div className="flex items-center justify-between border-b border-[#294247] px-5 py-3.5"><div className="flex items-center gap-2"><TerminalSquare className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">REQUEST INSPECTOR</span></div><span className="font-mono-ui text-[10px] text-slate-500">READ-ONLY LEARNING VIEW</span></div><div className="grid gap-5 p-5 sm:grid-cols-2"><div><p className="font-mono-ui text-[10px] text-slate-500">REQUEST</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-teal-200">POST</span> /lab/{String(selected.id).padStart(2, "0")}/analyze{`\n`}Content-Type: application/x-www-form-urlencoded{`\n`}session=learning-lab{`\n`}status=inspect</pre></div><div><p className="font-mono-ui text-[10px] text-slate-500">RESPONSE</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-sky-200">HTTP/1.1 200 OK</span>{`\n`}X-Lab-Mode: sandbox{`\n`}X-Observation: available{`\n`}Hint-Policy: guided</pre></div></div></div>
-            <div id="completion-track" className="relative overflow-hidden rounded-xl border border-[#335158] bg-[#101b1e] p-5"><img src="/manus-storage/hg-certificate-mark_099b5170.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.08] mix-blend-screen" /><div className="relative"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">COMPLETION TRACK</span></div><span className="rounded border border-[#35555a] px-2 py-1 font-mono-ui text-[9px] text-slate-400">50 MODULES</span></div><h3 className="mt-5 text-lg font-semibold text-white">수료 여부는 실습 완료 기록과 평가 결과를 함께 반영합니다.</h3><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">모든 학습 문제를 완료하고 레벨 평가를 통과하면, 개인 인증번호가 포함된 웹 보안 기초 과정 수료증을 발급할 수 있습니다.</p><div className="mt-5 grid grid-cols-3 gap-3"><CertificateMetric label="MODULES" value={`${completeCount}/50`} /><CertificateMetric label="ASSESSMENTS" value="0/5" /><CertificateMetric label="DEFENSE NOTES" value="0/5" /></div><a href="#completion-track" className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-teal-200 transition hover:text-teal-100"><FileCode2 className="h-3.5 w-3.5" />수료 기준 자세히 보기 <ArrowUpRight className="h-3.5 w-3.5" /></a></div></div>
+            <div id="completion-track" className="relative overflow-hidden rounded-xl border border-[#335158] bg-[#101b1e] p-5"><img src="/manus-storage/hg-certificate-mark_099b5170.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.08] mix-blend-screen" /><div className="relative"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">COMPLETION TRACK</span></div><span className="rounded border border-[#35555a] px-2 py-1 font-mono-ui text-[9px] text-slate-400">50 MODULES</span></div><h3 className="mt-5 text-lg font-semibold text-white">수료 여부는 실습 완료 기록과 평가 결과를 함께 반영합니다.</h3><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">모든 학습 문제를 완료하고 레벨 평가를 통과하면, 개인 인증번호가 포함된 웹 보안 기초 과정 수료증을 발급할 수 있습니다.</p><div className="mt-5 grid grid-cols-3 gap-3"><CertificateMetric label="MODULES" value={`${completeCount}/50`} /><CertificateMetric label="ASSESSMENTS" value={`${assessmentCount}/5`} /><CertificateMetric label="DEFENSE NOTES" value={`${defenseCount}/50`} /></div><button onClick={() => setLocation("/certificate")} className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-teal-200 transition hover:text-teal-100"><FileCode2 className="h-3.5 w-3.5" />수료 기준 자세히 보기 <ArrowUpRight className="h-3.5 w-3.5" /></button></div></div>
           </section>
         </main>
       </div>

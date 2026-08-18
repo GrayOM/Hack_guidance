@@ -5,14 +5,19 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Lab from "./pages/Lab";
+import Certificate from "./pages/Certificate";
 
 /**
  * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
  */
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/lab/:id" component={Lab} />
+      <Route path="/certificate" component={Certificate} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
