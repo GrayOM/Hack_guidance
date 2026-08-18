@@ -55,3 +55,9 @@ Submitting the issued code through the public verification terminal opened the p
 After verification, the `development-admin` user was deleted. Database foreign-key cascade removed its temporary completion and certificate records, and the temporary development login route, UI, and tests were removed from the application source.
 
 The post-cleanup source scan found no development-only login route, administrator identifier, or temporary-auth UI under `client/src` or `server`. TypeScript checking, the 15 remaining unit tests, and the production build all passed after the cleanup.
+
+## 2026-08-18 — Legacy main idea mapping
+
+The legacy PHP branch was reviewed through its README, initial landing page, challenge board script, and representative help flow. Its five core beginner topics are already represented by current problems `#01` through `#05`; the concise challenge board and the staged-help concept are represented by the 50-node directory and three Intel Drops. The completed mapping is recorded in `LEGACY_IDEA_MAPPING.md`, while insecure hardcoded answers, full solution walkthroughs, and game-like Matrix rain are intentionally excluded.
+
+After adding the mapping record, `pnpm check`, all 15 Vitest tests, and `pnpm build` passed again.
