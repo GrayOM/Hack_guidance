@@ -9,6 +9,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { challengeById } from "@shared/learning";
+import { SignalLockOverlay } from "@/components/SignalLockOverlay";
 
 export default function Lab() {
   const [, params] = useRoute("/lab/:id");
@@ -62,6 +63,7 @@ export default function Lab() {
 
   return (
     <div className="hacknet-shell min-h-screen bg-[#060b0d] text-[#e7f2ef] selection:bg-teal-300/30">
+      <SignalLockOverlay active={isCorrect} nodeId={challenge.id} />
       <div className="pointer-events-none fixed inset-0 console-grid opacity-45" />
       <header className="hnet-header sticky top-0 z-30 border-b border-[#294247] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6">

@@ -9,3 +9,7 @@
 ## 2026-08-18 — Pointer-reactive console motion
 
 At desktop width, the pointer layer displays a compact crosshair, low-intensity radial glow, and coordinate readout without intercepting page interactions. Initial narrow-viewport verification showed that an emulated fine pointer could still activate the HUD, so the motion layer is explicitly disabled below 640px in addition to coarse-pointer and reduced-motion conditions. This keeps the mobile problem directory static and readable.
+
+## 2026-08-18 — Event-driven ranking feedback
+
+The desktop ranking view retains a quiet table layout with a 15-second live-sync indicator and no global pointer reticle. The mobile ranking view preserves the active operator card and sync status without adding animated stream graphics; the stream is intentionally reduced to a static status message on narrow screens.
