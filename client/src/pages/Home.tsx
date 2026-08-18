@@ -69,6 +69,7 @@ export default function Home() {
   const overallPercent = Math.round((completeCount / 50) * 100);
   const assessmentCount = dashboard.data?.passedLevels.length ?? 0;
   const defenseCount = dashboard.data?.defenseReviewedIds.length ?? 0;
+  const passedLevels = dashboard.data?.passedLevels ?? [];
 
   function chooseProblem(id: number) {
     setSelectedId(id);
@@ -78,6 +79,10 @@ export default function Home() {
   }
 
   function openSelectedLab() {
+    if (selected.level > 1 && !passedLevels.includes(selected.level - 1)) {
+      toast.message(`Level ${selected.level - 1} 평가를 통과하면 이 실습을 시작할 수 있습니다.`);
+      return;
+    }
     if (!isAuthenticated) {
       startLogin();
       return;
@@ -120,15 +125,16 @@ export default function Home() {
               {levels.map((level) => {
                 const selectedLevel = level.id === activeLevel;
                 const levelDone = completed.filter((id) => getProblem(id).level === level.id).length;
-                return <button key={level.id} onClick={() => setActiveLevel(level.id)} className={`group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition ${selectedLevel ? "border-teal-300/45 bg-teal-300/[0.09]" : "border-transparent hover:border-[#294247] hover:bg-white/[0.025]"}`}>
+                const locked = level.id > 1 && !passedLevels.includes(level.id - 1);
+                return <button key={level.id} onClick={() => locked ? toast.message(`Level ${level.id - 1} 평가를 통과하면 다음 레벨이 열립니다.`) : setActiveLevel(level.id)} className={`group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition ${selectedLevel ? "border-teal-300/45 bg-teal-300/[0.09]" : "border-transparent hover:border-[#294247] hover:bg-white/[0.025]"} ${locked ? "opacity-60" : ""}`}>
                   <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border font-mono-ui text-xs ${selectedLevel ? "border-teal-300/60 bg-teal-300/15 text-teal-100" : "border-[#30484d] bg-[#132124] text-slate-400"}`}>{String(level.id).padStart(2, "0")}</span>
-                  <span className="min-w-0 flex-1"><span className={`block truncate text-sm font-medium ${selectedLevel ? "text-teal-50" : "text-slate-300"}`}>{level.label}</span><span className="mt-0.5 block font-mono-ui text-[10px] text-slate-500">LEVEL {level.range} · {levelDone}/10</span></span>
-                  <ChevronRight className={`h-4 w-4 shrink-0 ${selectedLevel ? "text-teal-200" : "text-slate-600 group-hover:text-slate-400"}`} />
+                  <span className="min-w-0 flex-1"><span className={`block truncate text-sm font-medium ${selectedLevel ? "text-teal-50" : "text-slate-300"}`}>{level.label}</span><span className="mt-0.5 block font-mono-ui text-[10px] text-slate-500">LEVEL {level.range} · {levelDone}/10 {locked ? "· LOCKED" : ""}</span></span>
+                  {locked ? <LockKeyhole className="h-4 w-4 shrink-0 text-slate-600" /> : <ChevronRight className={`h-4 w-4 shrink-0 ${selectedLevel ? "text-teal-200" : "text-slate-600 group-hover:text-slate-400"}`} />}
                 </button>;
               })}
             </nav>
             <div className="mt-auto border-t border-[#294247] pt-4">
-              <a href="#request-inspector" className="flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><BookOpen className="h-4 w-4 text-teal-300" />분석 레코드</a>
+              <button onClick={() => setLocation("/records")} className="flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><BookOpen className="h-4 w-4 text-teal-300" />분석 레코드</button>
               <button onClick={() => setLocation("/certificate")} className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><GraduationCap className="h-4 w-4 text-teal-300" />수료 기준</button>
             </div>
           </div>

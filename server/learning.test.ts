@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateLearningAnswer, getCourseEligibility } from "./learning";
+import { canAccessLevel, canSubmitAssessment, evaluateLearningAnswer, getCourseEligibility } from "./learning";
 import { getChallengeAnswerId, learningChallenges } from "../shared/learning";
 
 describe("Level 1 answer validation", () => {
@@ -25,5 +25,19 @@ describe("Level 1 answer validation", () => {
   it("allows certificate issuance only after all three completion requirements are met", () => {
     expect(getCourseEligibility(50, 50, 5)).toBe(true);
     expect(getCourseEligibility(50, 49, 5)).toBe(false);
+  });
+
+  it("keeps later levels locked until the previous level assessment is passed", () => {
+    expect(canAccessLevel(1, [])).toBe(true);
+    expect(canAccessLevel(2, [])).toBe(false);
+    expect(canAccessLevel(2, [1])).toBe(true);
+    expect(canAccessLevel(5, [1, 2, 3])).toBe(false);
+    expect(canAccessLevel(5, [1, 2, 3, 4])).toBe(true);
+  });
+
+  it("allows a level assessment only after the earlier nine modules are completed", () => {
+    expect(canSubmitAssessment(10, [1, 2, 3, 4, 5, 6, 7, 8, 9])).toBe(true);
+    expect(canSubmitAssessment(10, [1, 2, 3, 4, 5, 6, 7, 8])).toBe(false);
+    expect(canSubmitAssessment(12, [11])).toBe(true);
   });
 });
