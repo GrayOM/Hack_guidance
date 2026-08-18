@@ -18,6 +18,10 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
+    const isExternalDomMutation = error.name === "NotFoundError" && error.message.includes("removeChild") && error.message.includes("not a child of this node");
+    if (isExternalDomMutation) {
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 

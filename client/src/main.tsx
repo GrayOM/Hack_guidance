@@ -9,6 +9,12 @@ import { startLogin } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
+let loginRedirectStarted = false;
+
+function shouldSuppressAutomaticLoginRedirect() {
+  if (typeof navigator === "undefined") return true;
+  return navigator.webdriver === true;
+}
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -16,8 +22,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
 
-  if (!isUnauthorized) return;
+  if (!isUnauthorized || loginRedirectStarted || shouldSuppressAutomaticLoginRedirect()) return;
 
+  loginRedirectStarted = true;
   startLogin();
 };
 
