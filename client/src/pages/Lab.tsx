@@ -60,9 +60,9 @@ export default function Lab() {
   };
 
   return (
-    <div className="min-h-screen bg-[#091014] text-[#e7f2ef] selection:bg-teal-300/30">
+    <div className="hacknet-shell min-h-screen bg-[#060b0d] text-[#e7f2ef] selection:bg-teal-300/30">
       <div className="pointer-events-none fixed inset-0 console-grid opacity-45" />
-      <header className="sticky top-0 z-30 border-b border-[#294247] bg-[#0b1316]/90 backdrop-blur-xl">
+      <header className="hnet-header sticky top-0 z-30 border-b border-[#294247] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6">
           <button onClick={() => setLocation("/")} className="inline-flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-teal-100"><ArrowLeft className="h-4 w-4" />학습 대시보드</button>
           <div className="flex items-center gap-3"><span className="hidden font-mono-ui text-[10px] tracking-[0.16em] text-slate-500 sm:block">LEVEL {challenge.level} / MODULE {String(challenge.id).padStart(2, "0")}</span><span className="rounded border border-teal-300/25 bg-teal-300/10 px-2 py-1 font-mono-ui text-[10px] text-teal-100">SAFE LAB</span></div>

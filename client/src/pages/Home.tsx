@@ -91,9 +91,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#091014] text-[#e7f2ef] selection:bg-teal-300/30">
+    <div className="hacknet-shell min-h-screen bg-[#060b0d] text-[#e7f2ef] selection:bg-teal-300/30">
       <div className="pointer-events-none fixed inset-0 console-grid opacity-50" />
-      <header className="sticky top-0 z-40 h-16 border-b border-[#284045]/80 bg-[#0b1316]/90 backdrop-blur-xl">
+      <header className="hnet-header sticky top-0 z-40 h-16 border-b border-[#284045]/80 backdrop-blur-xl">
         <div className="flex h-full items-center justify-between px-4 lg:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="rounded-md p-2 text-slate-300 hover:bg-white/5 lg:hidden" aria-label="학습 경로 열기"><Menu className="h-5 w-5" /></button>
@@ -113,7 +113,7 @@ export default function Home() {
       </header>
 
       <div className="relative mx-auto flex max-w-[1600px]">
-        <aside className={`fixed inset-y-0 left-0 z-50 w-[284px] border-r border-[#294247] bg-[#0c1518] pt-4 transition-transform duration-200 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <aside className={`hnet-sidebar fixed inset-y-0 left-0 z-50 w-[284px] border-r border-[#294247] pt-4 transition-transform duration-200 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="flex items-center justify-between px-5 lg:hidden"><span className="font-mono-ui text-xs text-teal-200">LEARNING PATH</span><button onClick={() => setSidebarOpen(false)} className="p-1 text-slate-400"><X className="h-5 w-5" /></button></div>
           <div className="flex h-full flex-col overflow-y-auto px-4 pb-5 pt-3 lg:pt-1">
             <div className="mb-5 rounded-lg border border-[#294247] bg-[#111d20] p-3.5">
@@ -142,9 +142,10 @@ export default function Home() {
         {sidebarOpen && <button onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/60 lg:hidden" aria-label="학습 경로 닫기" />}
 
         <main className="min-w-0 flex-1 px-4 py-5 lg:px-6 lg:py-7">
-          <section className="relative overflow-hidden rounded-xl border border-[#34535a] bg-[#111d20]">
+          <section className="hnet-panel hnet-hero relative overflow-hidden rounded-lg border border-[#34535a]">
             <img src="/manus-storage/hg-console-hero_47c504c4.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-45 mix-blend-screen" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#101d20] via-[#101d20]/90 to-[#101d20]/35" />
+            <div className="hnet-node-map absolute inset-0 opacity-75" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#061316] via-[#0a2425]/90 to-[#061316]/45" />
             <div className="relative grid min-h-[205px] gap-6 px-5 py-6 sm:px-7 lg:grid-cols-[1fr_auto] lg:items-end lg:px-9 lg:py-8">
               <div className="max-w-2xl">
                 <div className="mb-3 flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-teal-300 signal-line" /><span className="font-mono-ui text-[10px] tracking-[0.2em] text-teal-200">ACTIVE LEARNING PATH</span></div>
