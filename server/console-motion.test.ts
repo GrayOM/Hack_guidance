@@ -10,11 +10,15 @@ const signalLockSource = readFileSync(new URL("../client/src/components/SignalLo
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
-  it("removes global pointer tracking and limits success feedback to correct submissions", () => {
+  it("keeps only ambient pointer response and limits success feedback to correct submissions", () => {
+    expect(appSource).toContain("PointerAmbient");
     expect(appSource).not.toContain("ConsoleMotion");
     expect(labSource).toContain('import { SignalLockOverlay } from "@/components/SignalLockOverlay"');
     expect(labSource).toContain("<SignalLockOverlay active={isCorrect} nodeId={challenge.id} />");
     expect(styles).toContain(".signal-lock");
+    expect(styles).toContain(".pointer-ambient");
+    expect(styles).not.toContain("pointer-ambient__reticle");
+    expect(styles).not.toContain("POINTER LINK");
     expect(shouldStartSignalLock(false, true)).toBe(true);
     expect(shouldStartSignalLock(true, true)).toBe(false);
     expect(SIGNAL_LOCK_DURATION_MS).toBe(1_800);
@@ -26,7 +30,7 @@ describe("event-driven console feedback", () => {
     expect(rankingSource).toContain("ranking-stream");
     expect(rankingSource).toContain("RANK");
     expect(styles).toContain("ranking-data-rain");
-    expect(styles).toContain("@media (max-width: 639px), (prefers-reduced-motion: reduce)");
+    expect(styles).toContain("@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)");
   });
 
   it("creates stream events only when ranking data changes and identifies user rank movement", () => {

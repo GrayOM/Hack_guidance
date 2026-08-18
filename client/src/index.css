@@ -172,3 +172,28 @@
 @keyframes ranking-data-rain { from { transform: translateY(-32%); } to { transform: translateY(32%); } }
 @keyframes ranking-stream-fade { 0% { opacity: 0; } 18%, 70% { opacity: 1; } 100% { opacity: 0; } }
 @media (max-width: 639px), (prefers-reduced-motion: reduce) { .ranking-stream, .ranking-stream__rain { animation: none; } .ranking-stream__rain { display: none; } }
+
+/* Pointer ambience intentionally contains no reticle, coordinate readout, or cursor-attached label. */
+.pointer-ambient {
+  --ambient-pointer-x: 50vw;
+  --ambient-pointer-y: 50vh;
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+  background: radial-gradient(300px circle at var(--ambient-pointer-x) var(--ambient-pointer-y), rgba(27, 255, 190, 0.075), rgba(27, 255, 190, 0.018) 31%, transparent 68%);
+  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.pointer-ambient[data-active="true"] { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .hnet-panel { overflow: hidden; transition: border-color 180ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .hnet-panel:hover { border-color: rgba(94, 255, 204, 0.46); box-shadow: inset 0 0 0 1px rgba(129, 255, 217, 0.05), 0 12px 30px rgba(0, 255, 182, 0.07); }
+  .hnet-panel:hover::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, transparent 0%, rgba(74, 255, 198, 0.10) 48%, transparent 100%); animation: hnet-panel-scan 780ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @keyframes hnet-panel-scan { from { transform: translateY(-115%); opacity: 0; } 22% { opacity: 1; } to { transform: translateY(115%); opacity: 0; } }
+}
+
+@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .pointer-ambient { display: none; } }

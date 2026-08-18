@@ -13,3 +13,7 @@ At desktop width, the pointer layer displays a compact crosshair, low-intensity 
 ## 2026-08-18 — Event-driven ranking feedback
 
 The desktop ranking view retains a quiet table layout with a 15-second live-sync indicator and no global pointer reticle. The mobile ranking view preserves the active operator card and sync status without adding animated stream graphics; the stream is intentionally reduced to a static status message on narrow screens.
+
+## 2026-08-18 — Ambient pointer response without HUD
+
+At desktop width, the problem directory retains only a low-intensity pointer-following background glow; no crosshair, coordinate text, or `POINTER LINK` label is present. At 375px, the ambient layer is hidden and the filter grid and stacked challenge rows remain static and readable.

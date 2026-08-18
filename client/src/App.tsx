@@ -12,6 +12,7 @@ import Records from "./pages/Records";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
+import { PointerAmbient } from "./components/PointerAmbient";
 
 /**
  * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
@@ -39,6 +40,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
+          <PointerAmbient />
           <Toaster />
           <Router />
         </TooltipProvider>
