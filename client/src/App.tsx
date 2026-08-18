@@ -10,6 +10,7 @@ import Certificate from "./pages/Certificate";
 import CertificatePrint from "./pages/CertificatePrint";
 import Records from "./pages/Records";
 import VerifyCertificate from "./pages/VerifyCertificate";
+import Ranking from "./pages/Ranking";
 
 /**
  * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/certificate/print/:code" component={CertificatePrint} />
       <Route path="/records" component={Records} />
       <Route path="/verify" component={VerifyCertificate} />
+      <Route path="/ranking" component={Ranking} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

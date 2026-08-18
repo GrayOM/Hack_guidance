@@ -1,44 +1,48 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, max } from "drizzle-orm";
 import { courseCertificates, learningProgress, levelAssessments, users } from "../drizzle/schema";
-import { challengeById, getChallengeAnswerId } from "../shared/learning";
+import { challengeById } from "../shared/learning";
 import { getDb } from "./db";
 
-export function evaluateLearningAnswer(problemId: number, answer: string) {
+const flagTokens = [
+  "SERVER_AUTH", "ALLOWLIST_FILES", "SERVER_AUTHZ", "OUTPUT_CONTEXT", "SERVER_VALIDATION",
+  "VALIDATE_INPUT", "INTERNAL_REDIRECT", "PRIVATE_CACHE", "ACCESS_NOT_ROBOTS", "TRUST_BOUNDARIES",
+  "QUERY_VALIDATION", "POST_IS_INPUT", "AUTH_NOT_AUTHZ", "SESSION_POLICY", "SERVER_GUARD",
+  "NORMALIZE_FILENAME", "CONTENT_NOT_EXTENSION", "RULES_AND_RIGHTS", "SAFE_ERROR_CODE", "REQUEST_GATE",
+  "ENCODE_BY_CONTEXT", "TEXT_NOT_CODE", "PARAMETERIZED_QUERY", "ALLOWLIST_STRUCTURE", "MAP_FILE_ID",
+  "NONEXEC_STORAGE", "SAFE_REQUEST_ID", "TOKEN_EXPOSURE", "VALIDATE_EACH_BOUNDARY", "DEFENSE_IN_DEPTH",
+  "OBJECT_AUTHZ", "EVERY_ENDPOINT", "AUTH_THEN_AUTHZ", "FRESH_ROLE_CHECK", "VERIFY_TOKEN",
+  "MINIMUM_RESPONSE", "MEANINGFUL_LIMITS", "AUDIT_MINIMUM", "DEFAULT_DENY", "SERVER_BOUNDARIES",
+  "EVIDENCE_FIRST", "IMPACT_AND_PROOF", "PER_REQUEST_AUTHZ", "CONTEXTUAL_OUTPUT", "FILE_LIFECYCLE",
+  "API_CONTRACT", "REPORT_WITH_PROOF", "LAYERED_DEFENSE", "SCOPE_AND_EVIDENCE", "FINAL_GRID_CLEAR",
+] as const;
+
+export function getExpectedFlag(problemId: number) {
+  const token = flagTokens[problemId - 1];
+  return token ? `HG{${token}}` : null;
+}
+
+export function evaluateFlagSubmission(problemId: number, flag: string) {
   const challenge = challengeById(problemId);
   if (!challenge) return { supported: false, correct: false } as const;
-  const expected = getChallengeAnswerId(problemId);
-  return { supported: true, correct: expected === answer.trim().toLowerCase() } as const;
+  const submitted = flag.trim().replace(/\s/g, "").toUpperCase();
+  return { supported: true, correct: getExpectedFlag(problemId) === submitted } as const;
 }
 
-export function getCourseEligibility(completedModules: number, defenseReviewCount: number, passedAssessments: number) {
-  return completedModules >= 50 && defenseReviewCount >= 50 && passedAssessments >= 5;
-}
-
-export function canAccessLevel(level: number, passedLevels: number[]) {
-  return level === 1 || passedLevels.includes(level - 1);
-}
-
-export function canSubmitAssessment(problemId: number, completedProblemIds: number[]) {
-  if (problemId % 10 !== 0) return true;
-  const firstProblemId = problemId - 9;
-  return Array.from({ length: 9 }, (_, index) => firstProblemId + index).every(id => completedProblemIds.includes(id));
+export function getCourseEligibility(completedModules: number) {
+  return completedModules >= 50;
 }
 
 export async function getLearnerDashboard(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("학습 기록 데이터베이스에 연결할 수 없습니다.");
-
+  if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
   const [progressRows, assessmentRows, certificateRows] = await Promise.all([
     db.select().from(learningProgress).where(eq(learningProgress.userId, userId)),
     db.select().from(levelAssessments).where(eq(levelAssessments.userId, userId)),
     db.select().from(courseCertificates).where(eq(courseCertificates.userId, userId)),
   ]);
-
-  const completedIds = progressRows.filter(row => row.completedAt).map(row => row.problemId);
-  const defenseReviewedIds = progressRows.filter(row => row.defenseReviewed).map(row => row.problemId);
   return {
-    completedIds,
-    defenseReviewedIds,
+    completedIds: progressRows.filter(row => row.completedAt).map(row => row.problemId),
+    defenseReviewedIds: progressRows.filter(row => row.defenseReviewed).map(row => row.problemId),
     passedLevels: assessmentRows.map(row => row.level),
     certificate: certificateRows[0] ?? null,
   };
@@ -46,7 +50,7 @@ export async function getLearnerDashboard(userId: number) {
 
 export async function getLearnerRecord(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("학습 기록 데이터베이스에 연결할 수 없습니다.");
+  if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
   return db.select({
     problemId: learningProgress.problemId,
     level: learningProgress.level,
@@ -57,15 +61,23 @@ export async function getLearnerRecord(userId: number) {
   }).from(learningProgress).where(eq(learningProgress.userId, userId)).orderBy(learningProgress.level, learningProgress.problemId);
 }
 
+export async function getPublicRanking() {
+  const db = await getDb();
+  if (!db) throw new Error("랭킹 데이터베이스에 연결할 수 없습니다.");
+  const solvedCount = count(learningProgress.problemId);
+  const lastSolvedAt = max(learningProgress.completedAt);
+  return db.select({ userId: users.id, name: users.name, solvedCount, lastSolvedAt })
+    .from(users)
+    .leftJoin(learningProgress, and(eq(learningProgress.userId, users.id), isNotNull(learningProgress.completedAt)))
+    .groupBy(users.id, users.name)
+    .orderBy(desc(solvedCount), asc(lastSolvedAt))
+    .limit(100);
+}
+
 export async function saveCompletedProblem(input: { userId: number; problemId: number; level: number; hintCount: number }) {
   const db = await getDb();
-  if (!db) throw new Error("학습 기록 데이터베이스에 연결할 수 없습니다.");
+  if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
   const now = new Date();
-  if (input.problemId % 10 === 0) {
-    const levelProgress = await db.select().from(learningProgress).where(and(eq(learningProgress.userId, input.userId), eq(learningProgress.level, input.level)));
-    const completedIds = levelProgress.filter(row => row.completedAt).map(row => row.problemId);
-    if (!canSubmitAssessment(input.problemId, completedIds)) return { assessmentPassed: false, assessmentLocked: true };
-  }
   await db.insert(learningProgress).values({
     userId: input.userId,
     problemId: input.problemId,
@@ -73,21 +85,14 @@ export async function saveCompletedProblem(input: { userId: number; problemId: n
     hintCount: input.hintCount,
     completedAt: now,
   }).onDuplicateKeyUpdate({ set: { completedAt: now, hintCount: input.hintCount, updatedAt: now } });
-
-  let assessmentPassed = false;
-  if (input.problemId % 10 === 0) {
-    assessmentPassed = true;
-    await db.insert(levelAssessments).values({ userId: input.userId, level: input.level, score: 100, passedAt: now })
-      .onDuplicateKeyUpdate({ set: { score: 100, passedAt: now } });
-  }
-  return { assessmentPassed, assessmentLocked: false };
+  return { solvedAt: now };
 }
 
 export async function saveDefenseReview(input: { userId: number; problemId: number; level: number }) {
   const db = await getDb();
-  if (!db) throw new Error("학습 기록 데이터베이스에 연결할 수 없습니다.");
+  if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
   const completed = await db.select().from(learningProgress).where(and(eq(learningProgress.userId, input.userId), eq(learningProgress.problemId, input.problemId))).limit(1);
-  if (!completed[0]?.completedAt) throw new Error("문제 분석을 완료한 뒤 방어 기준을 기록할 수 있습니다.");
+  if (!completed[0]?.completedAt) throw new Error("문제를 해결한 뒤 대응 노트를 확인할 수 있습니다.");
   const now = new Date();
   await db.insert(learningProgress).values({ userId: input.userId, problemId: input.problemId, level: input.level, defenseReviewed: true })
     .onDuplicateKeyUpdate({ set: { defenseReviewed: true, updatedAt: now } });
@@ -95,18 +100,12 @@ export async function saveDefenseReview(input: { userId: number; problemId: numb
 
 export async function issueCertificateIfEligible(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("학습 기록 데이터베이스에 연결할 수 없습니다.");
-  const [completedRows, defenseRows, assessments] = await Promise.all([
-    db.select().from(learningProgress).where(and(eq(learningProgress.userId, userId), isNotNull(learningProgress.completedAt))),
-    db.select().from(learningProgress).where(and(eq(learningProgress.userId, userId), eq(learningProgress.defenseReviewed, true))),
-    db.select().from(levelAssessments).where(eq(levelAssessments.userId, userId)),
-  ]);
-  const eligible = getCourseEligibility(completedRows.length, defenseRows.length, assessments.length);
-  if (!eligible) return { issued: false, remaining: { modules: Math.max(0, 50 - completedRows.length), defense: Math.max(0, 50 - defenseRows.length), assessments: Math.max(0, 5 - assessments.length) } };
-
+  if (!db) throw new Error("수료 기록 데이터베이스에 연결할 수 없습니다.");
+  const completedRows = await db.select().from(learningProgress).where(and(eq(learningProgress.userId, userId), isNotNull(learningProgress.completedAt)));
+  if (!getCourseEligibility(completedRows.length)) return { issued: false, remaining: { modules: Math.max(0, 50 - completedRows.length) } };
   const code = `HG-WSF-${new Date().getFullYear()}-${String(userId).padStart(6, "0")}`;
-  await db.insert(courseCertificates).values({ userId, courseCode: "web-security-fundamentals", certificateCode: code, completedModules: completedRows.length, defenseReviewCount: defenseRows.length, passedAssessments: assessments.length })
-    .onDuplicateKeyUpdate({ set: { completedModules: completedRows.length, defenseReviewCount: defenseRows.length, passedAssessments: assessments.length } });
+  await db.insert(courseCertificates).values({ userId, courseCode: "hack-guidance-50-node-clearance", certificateCode: code, completedModules: completedRows.length, defenseReviewCount: 0, passedAssessments: 0 })
+    .onDuplicateKeyUpdate({ set: { completedModules: completedRows.length, defenseReviewCount: 0, passedAssessments: 0 } });
   return { issued: true, certificateCode: code };
 }
 

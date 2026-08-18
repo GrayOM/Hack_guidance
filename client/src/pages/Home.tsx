@@ -30,6 +30,7 @@ import {
   Search,
   ShieldCheck,
   TerminalSquare,
+  Trophy,
   X,
 } from "lucide-react";
 import { SignalLogo } from "@/components/SignalLogo";
@@ -39,7 +40,7 @@ const badgeTone: Record<string, string> = {
   Foundation: "border-teal-300/25 bg-teal-300/10 text-teal-200",
   Core: "border-sky-300/25 bg-sky-300/10 text-sky-200",
   Practice: "border-amber-300/25 bg-amber-300/10 text-amber-200",
-  Assessment: "border-violet-300/25 bg-violet-300/10 text-violet-200",
+  Final: "border-violet-300/25 bg-violet-300/10 text-violet-200",
 };
 
 const sectorLabels = ["SURFACE SCAN", "ACCESS VECTOR", "INPUT VECTOR", "PRIVILEGE PATH", "FINAL GRID"];
@@ -70,9 +71,6 @@ export default function Home() {
   const completeCount = completed.length;
   const activeComplete = completed.filter((id) => getProblem(id).level === activeLevel).length;
   const overallPercent = Math.round((completeCount / 50) * 100);
-  const assessmentCount = dashboard.data?.passedLevels.length ?? 0;
-  const defenseCount = dashboard.data?.defenseReviewedIds.length ?? 0;
-  const passedLevels = dashboard.data?.passedLevels ?? [];
 
   function chooseProblem(id: number) {
     setSelectedId(id);
@@ -82,10 +80,6 @@ export default function Home() {
   }
 
   function openSelectedLab() {
-    if (selected.level > 1 && !passedLevels.includes(selected.level - 1)) {
-      toast.message(`Level ${selected.level - 1} 평가를 통과하면 이 실습을 시작할 수 있습니다.`);
-      return;
-    }
     if (!isAuthenticated) {
       startLogin();
       return;
@@ -128,17 +122,17 @@ export default function Home() {
               {levels.map((level) => {
                 const selectedLevel = level.id === activeLevel;
                 const levelDone = completed.filter((id) => getProblem(id).level === level.id).length;
-                const locked = level.id > 1 && !passedLevels.includes(level.id - 1);
-                return <button key={level.id} onClick={() => locked ? toast.message(`이전 구역의 최종 문제를 해결하면 다음 구역이 열립니다.`) : setActiveLevel(level.id)} className={`group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition ${selectedLevel ? "border-teal-300/45 bg-teal-300/[0.09]" : "border-transparent hover:border-[#294247] hover:bg-white/[0.025]"} ${locked ? "opacity-60" : ""}`}>
+                return <button key={level.id} onClick={() => setActiveLevel(level.id)} className={`group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition ${selectedLevel ? "border-teal-300/45 bg-teal-300/[0.09]" : "border-transparent hover:border-[#294247] hover:bg-white/[0.025]"}`}>
                   <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border font-mono-ui text-xs ${selectedLevel ? "border-teal-300/60 bg-teal-300/15 text-teal-100" : "border-[#30484d] bg-[#132124] text-slate-400"}`}>{String(level.id).padStart(2, "0")}</span>
-                  <span className="min-w-0 flex-1"><span className={`block truncate text-sm font-medium ${selectedLevel ? "text-teal-50" : "text-slate-300"}`}>{sectorLabels[level.id - 1]}</span><span className="mt-0.5 block font-mono-ui text-[10px] text-slate-500">NODES {level.range} · {levelDone}/10 {locked ? "· LOCKED" : ""}</span></span>
-                  {locked ? <LockKeyhole className="h-4 w-4 shrink-0 text-slate-600" /> : <ChevronRight className={`h-4 w-4 shrink-0 ${selectedLevel ? "text-teal-200" : "text-slate-600 group-hover:text-slate-400"}`} />}
+                  <span className="min-w-0 flex-1"><span className={`block truncate text-sm font-medium ${selectedLevel ? "text-teal-50" : "text-slate-300"}`}>{sectorLabels[level.id - 1]}</span><span className="mt-0.5 block font-mono-ui text-[10px] text-slate-500">NODES {level.range} · {levelDone}/10 · OPEN</span></span>
+                  <ChevronRight className={`h-4 w-4 shrink-0 ${selectedLevel ? "text-teal-200" : "text-slate-600 group-hover:text-slate-400"}`} />
                 </button>;
               })}
             </nav>
             <div className="mt-auto border-t border-[#294247] pt-4">
               <button onClick={() => setLocation("/records")} className="flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><BookOpen className="h-4 w-4 text-teal-300" />해결 기록</button>
-              <button onClick={() => setLocation("/certificate")} className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><GraduationCap className="h-4 w-4 text-teal-300" />클리어런스 기록</button>
+              <button onClick={() => setLocation("/ranking")} className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"><Trophy className="h-4 w-4 text-amber-200" />공개 랭킹</button>
+              {completeCount >= 50 ? <button onClick={() => setLocation("/certificate")} className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm text-teal-100 transition hover:bg-white/[0.04]"><GraduationCap className="h-4 w-4 text-teal-300" />클리어런스 기록</button> : <div className="mt-1 flex w-full items-center gap-3 rounded-lg p-2 text-sm text-slate-600"><LockKeyhole className="h-4 w-4" />최종 기록 잠김</div>}
             </div>
           </div>
         </aside>
@@ -162,7 +156,7 @@ export default function Home() {
           <section className="mt-5 grid gap-3 sm:grid-cols-3">
             <Metric icon={<Layers3 className="h-4 w-4" />} label="문제 구역" value="5 Sectors" note="Surface → Final Grid" />
             <Metric icon={<ClipboardCheck className="h-4 w-4" />} label="해결한 문제" value={`${completeCount} / 50`} note={completeCount ? "해결 기록 저장됨" : "첫 번째 노드를 선택하세요"} />
-            <Metric icon={<Award className="h-4 w-4" />} label="구역 클리어" value={`${assessmentCount} / 5`} note="최종 노드 해결 필요" />
+            <Metric icon={<Flag className="h-4 w-4" />} label="플래그 검증" value="50 Nodes" note="모든 노드 즉시 접근 가능" />
           </section>
 
           <section className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_350px]">
@@ -188,8 +182,8 @@ export default function Home() {
           </section>
 
           <section className="mt-7 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-            <div id="request-inspector" className="overflow-hidden rounded-xl border border-[#2e494f] bg-[#101b1e]"><div className="flex items-center justify-between border-b border-[#294247] px-5 py-3.5"><div className="flex items-center gap-2"><TerminalSquare className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">REQUEST INSPECTOR</span></div><span className="font-mono-ui text-[10px] text-slate-500">READ-ONLY LEARNING VIEW</span></div><div className="grid gap-5 p-5 sm:grid-cols-2"><div><p className="font-mono-ui text-[10px] text-slate-500">REQUEST</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-teal-200">POST</span> /lab/{String(selected.id).padStart(2, "0")}/analyze{`\n`}Content-Type: application/x-www-form-urlencoded{`\n`}session=learning-lab{`\n`}status=inspect</pre></div><div><p className="font-mono-ui text-[10px] text-slate-500">RESPONSE</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-sky-200">HTTP/1.1 200 OK</span>{`\n`}X-Lab-Mode: sandbox{`\n`}X-Observation: available{`\n`}Hint-Policy: guided</pre></div></div></div>
-            <div id="completion-track" className="relative overflow-hidden rounded-xl border border-[#335158] bg-[#101b1e] p-5"><img src="/manus-storage/hg-certificate-mark_099b5170.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.08] mix-blend-screen" /><div className="relative"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">COMPLETION TRACK</span></div><span className="rounded border border-[#35555a] px-2 py-1 font-mono-ui text-[9px] text-slate-400">50 MODULES</span></div><h3 className="mt-5 text-lg font-semibold text-white">수료 여부는 실습 완료 기록과 평가 결과를 함께 반영합니다.</h3><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">모든 학습 문제를 완료하고 레벨 평가를 통과하면, 개인 인증번호가 포함된 웹 보안 기초 과정 수료증을 발급할 수 있습니다.</p><div className="mt-5 grid grid-cols-3 gap-3"><CertificateMetric label="MODULES" value={`${completeCount}/50`} /><CertificateMetric label="ASSESSMENTS" value={`${assessmentCount}/5`} /><CertificateMetric label="DEFENSE NOTES" value={`${defenseCount}/50`} /></div><button onClick={() => setLocation("/certificate")} className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-teal-200 transition hover:text-teal-100"><FileCode2 className="h-3.5 w-3.5" />수료 기준 자세히 보기 <ArrowUpRight className="h-3.5 w-3.5" /></button></div></div>
+            <div id="request-inspector" className="overflow-hidden rounded-xl border border-[#2e494f] bg-[#101b1e]"><div className="flex items-center justify-between border-b border-[#294247] px-5 py-3.5"><div className="flex items-center gap-2"><TerminalSquare className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">REQUEST INSPECTOR</span></div><span className="font-mono-ui text-[10px] text-slate-500">SAFE TRACE VIEW</span></div><div className="grid gap-5 p-5 sm:grid-cols-2"><div><p className="font-mono-ui text-[10px] text-slate-500">REQUEST</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-teal-200">POST</span> /node/{String(selected.id).padStart(2, "0")}/trace{`\n`}Content-Type: application/x-www-form-urlencoded{`\n`}session=challenge-grid{`\n`}status=inspect</pre></div><div><p className="font-mono-ui text-[10px] text-slate-500">RESPONSE</p><pre className="mt-2 overflow-x-auto text-xs leading-6 text-slate-300"><span className="text-sky-200">HTTP/1.1 200 OK</span>{`\n`}X-Node-Mode: sandbox{`\n`}X-Evidence: available{`\n`}Hint-Policy: three-step</pre></div></div></div>
+            <div id="completion-track" className="relative overflow-hidden rounded-xl border border-[#335158] bg-[#101b1e] p-5"><img src="/manus-storage/hg-certificate-mark_099b5170.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.08] mix-blend-screen" /><div className="relative"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-teal-300" /><span className="font-mono-ui text-xs tracking-[0.12em] text-slate-300">FINAL CLEARANCE</span></div><span className="rounded border border-[#35555a] px-2 py-1 font-mono-ui text-[9px] text-slate-400">50 FLAGS</span></div><h3 className="mt-5 text-lg font-semibold text-white">모든 플래그를 확보하면 최종 기록이 열립니다.</h3><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">클리어런스 기록은 50개 문제를 모두 해결한 분석자에게만 표시됩니다.</p><div className="mt-5 grid grid-cols-2 gap-3"><CertificateMetric label="SOLVED NODES" value={`${completeCount}/50`} /><CertificateMetric label="STATUS" value={completeCount >= 50 ? "UNLOCKED" : "LOCKED"} /></div>{completeCount >= 50 ? <button onClick={() => setLocation("/certificate")} className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-teal-200 transition hover:text-teal-100"><FileCode2 className="h-3.5 w-3.5" />최종 기록 열기 <ArrowUpRight className="h-3.5 w-3.5" /></button> : null}</div></div>
           </section>
         </main>
       </div>

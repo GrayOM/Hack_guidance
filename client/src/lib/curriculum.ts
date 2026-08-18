@@ -1,6 +1,5 @@
 /**
- * Design reminder — Signal Room Console: structured, non-gamified learning data.
- * Every label should teach the learner what to observe, not role-play an attack.
+ * Design reminder — Signal Room Console: problem-board metadata, not a curriculum.
  */
 export type ProblemStatus = "available" | "locked" | "complete";
 
@@ -10,7 +9,7 @@ export type LabProblem = {
   title: string;
   shortTitle: string;
   category: string;
-  difficulty: "Foundation" | "Core" | "Practice" | "Assessment";
+  difficulty: "Foundation" | "Core" | "Practice" | "Final";
   duration: string;
   goal: string;
   observation: string[];
@@ -53,11 +52,11 @@ const levelContent = [
 ];
 
 const plannedTitles = [
-  ["페이지 주석 찾기", "숨은 입력값 확인", "주소에 담긴 값", "쿠키의 역할", "응답 헤더 읽기", "폼 데이터 비교", "리디렉션 추적", "캐시의 흔적", "robots.txt 확인", "Level 1 평가"],
-  ["GET 요청 분석", "POST 요청 분석", "인증 상태 구분", "세션 유지 시간", "권한 검증이 빠진 화면", "다운로드 응답 분석", "파일 이름 검증", "입력 형식 검증", "오류 응답 읽기", "Level 2 평가"],
-  ["출력 위치와 문맥", "안전한 인코딩", "검색 요청 구조", "질의 조건식", "파일 경로 처리", "업로드 검증", "오류 정보 노출", "브라우저 저장소", "입력 흐름 검토", "Level 3 평가"],
-  ["리소스 식별자 확인", "사용자별 데이터", "권한 검증 흐름", "세션 상태 재확인", "토큰 구조 읽기", "API 응답 필드", "요청 빈도 제한", "감사 로그", "접근 정책 검토", "Level 4 평가"],
-  ["정보 수집 정리", "단서 우선순위", "인증 흐름 검토", "입력과 출력 연결", "파일 처리 검토", "API 경계 분석", "권한 검증 결과 보고", "방어 방법 비교", "최종 분석 준비", "Level 5 평가"],
+  ["페이지 주석 찾기", "숨은 입력값 확인", "주소에 담긴 값", "쿠키의 역할", "응답 헤더 읽기", "폼 데이터 비교", "리디렉션 추적", "캐시의 흔적", "robots.txt 확인", "Surface Scan Final"],
+  ["GET 요청 분석", "POST 요청 분석", "인증 상태 구분", "세션 유지 시간", "권한 검증이 빠진 화면", "다운로드 응답 분석", "파일 이름 검증", "입력 형식 검증", "오류 응답 읽기", "Access Vector Final"],
+  ["출력 위치와 문맥", "안전한 인코딩", "검색 요청 구조", "질의 조건식", "파일 경로 처리", "업로드 검증", "오류 정보 노출", "브라우저 저장소", "입력 흐름 검토", "Input Vector Final"],
+  ["리소스 식별자 확인", "사용자별 데이터", "권한 검증 흐름", "세션 상태 재확인", "토큰 구조 읽기", "API 응답 필드", "요청 빈도 제한", "감사 로그", "접근 정책 검토", "Privilege Path Final"],
+  ["정보 수집 정리", "단서 우선순위", "인증 흐름 검토", "입력과 출력 연결", "파일 처리 검토", "API 경계 분석", "권한 검증 결과 보고", "방어 방법 비교", "최종 분석 준비", "Final Grid Clear"],
 ];
 
 const existing: Record<number, Partial<LabProblem>> = {
@@ -122,15 +121,15 @@ export const levels = levelContent.map((level, index) => ({
 export const problems: LabProblem[] = plannedTitles.flatMap((titles, levelIndex) =>
   titles.map((title, problemIndex) => {
     const id = levelIndex * 10 + problemIndex + 1;
-    const isAssessment = problemIndex === 9;
+    const isFinalNode = problemIndex === 9;
     const base = {
       id,
       level: levelIndex + 1,
       title,
       shortTitle: title,
       category: levelContent[levelIndex].categories[Math.min(problemIndex, 4)],
-      difficulty: isAssessment ? "Assessment" : problemIndex > 5 ? "Practice" : problemIndex > 2 ? "Core" : "Foundation",
-      duration: isAssessment ? "20 min" : problemIndex > 5 ? "15 min" : "10 min",
+      difficulty: isFinalNode ? "Final" : problemIndex > 5 ? "Practice" : problemIndex > 2 ? "Core" : "Foundation",
+      duration: isFinalNode ? "20 min" : problemIndex > 5 ? "15 min" : "10 min",
       goal: `${levelContent[levelIndex].label}에서 필요한 관찰 흐름을 연습합니다.`,
       observation: ["화면에 드러난 정보", "요청과 응답의 변화", "서버가 신뢰하는 값"],
       hints: ["우선 화면에서 제공되는 정보를 분류해 보세요.", "값이 이동하는 경로를 비교해 보세요.", "안전한 설계라면 서버가 무엇을 검증해야 하는지 생각해 보세요."],
