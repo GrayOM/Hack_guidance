@@ -169,6 +169,8 @@
 .ranking-stream span { position: relative; z-index: 1; border: 1px solid rgba(100, 255, 209, 0.62); background: rgba(4, 27, 29, 0.94); padding: 0.6rem 0.75rem; font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.14em; color: #b1ffe3; box-shadow: 0 0 26px rgba(0, 255, 188, 0.22); }
 .ranking-stream__rain { position: absolute; inset: -100% 0; background-image: repeating-linear-gradient(90deg, transparent 0 17px, rgba(74, 255, 198, 0.12) 18px 19px, transparent 20px 42px), repeating-linear-gradient(180deg, transparent 0 8px, rgba(111, 255, 216, 0.20) 9px 10px, transparent 11px 20px); mask-image: linear-gradient(90deg, transparent, #000 15% 85%, transparent); animation: ranking-data-rain 720ms linear both; }
 .ranking-stream--rank-change span { color: #fff0bc; border-color: rgba(255, 207, 107, 0.7); box-shadow: 0 0 26px rgba(255, 186, 72, 0.24); }
+.ranking-stream--preview { animation: none; opacity: 1; }
+.ranking-stream--preview .ranking-stream__rain { animation: ranking-data-rain 720ms linear infinite; }
 @keyframes ranking-data-rain { from { transform: translateY(-32%); } to { transform: translateY(32%); } }
 @keyframes ranking-stream-fade { 0% { opacity: 0; } 18%, 70% { opacity: 1; } 100% { opacity: 0; } }
 @media (max-width: 639px), (prefers-reduced-motion: reduce) { .ranking-stream, .ranking-stream__rain { animation: none; } .ranking-stream__rain { display: none; } }
