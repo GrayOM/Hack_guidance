@@ -107,3 +107,18 @@
   .signal-line { animation: hnet-pulse 2.8s ease-in-out infinite; }
   @keyframes hnet-pulse { 50% { box-shadow: 0 0 0 1px rgba(52, 255, 190, 0.26), 0 0 26px rgba(0, 239, 174, 0.72); } }
 }
+
+/* Mobile terminal layout: keep navigation and dense console panels usable on narrow screens. */
+@media (max-width: 639px) {
+  .hacknet-shell { overflow-x: clip; }
+  .hnet-header { backdrop-filter: blur(16px); }
+  .hnet-header nav { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .hnet-header nav::-webkit-scrollbar { display: none; }
+  .hnet-panel::before { left: 12px; right: 18%; }
+  input, select, textarea { font-size: 16px; }
+}
+
+@media (max-width: 399px) {
+  .hnet-header > div { column-gap: 0.75rem; }
+  .hnet-header nav { margin-inline: -0.25rem; padding-inline: 0.25rem; }
+}

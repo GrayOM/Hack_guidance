@@ -8,5 +8,6 @@ describe("client HTML entrypoint", () => {
     expect((indexHtml.match(/id="root"/g) ?? [])).toHaveLength(1);
     expect((indexHtml.match(/src="\/src\/main\.tsx"/g) ?? [])).toHaveLength(1);
     expect((indexHtml.match(/<!doctype html>/gi) ?? [])).toHaveLength(1);
+    expect(indexHtml).toContain('<meta name="author" content="GrayOM" />');
   });
 });
