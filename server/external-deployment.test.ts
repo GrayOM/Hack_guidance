@@ -71,6 +71,8 @@ describe("external free-tier deployment pack", () => {
     expect(platformAuth).toContain("이메일 또는 비밀번호가 올바르지 않습니다.");
 
     expect(homePage).toContain("useLearningDashboard");
+    expect(homePage).toContain("문제를 풀고");
+    expect(homePage).toContain("Hack Guidance는 보안 단서를 분석해 플래그를 확보하는 문제 풀이 보드입니다.");
     expect(problemsPage).toContain("useLearningDashboard");
     expect(labPage).toContain("useSubmitFlag");
     expect(labPage).toContain("useReviewDefense");
