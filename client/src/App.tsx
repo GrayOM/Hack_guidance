@@ -13,6 +13,7 @@ import VerifyCertificate from "./pages/VerifyCertificate";
 import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
 import { PointerAmbient } from "./components/PointerAmbient";
+import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
 /**
  * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
@@ -40,6 +41,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
+          <SecurityBackdrop />
           <PointerAmbient />
           <Toaster />
           <WouterRouter base={import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "")}>
