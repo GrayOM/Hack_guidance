@@ -1,35 +1,59 @@
 import { and, asc, count, desc, eq, isNotNull, max } from "drizzle-orm";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { courseCertificates, learningProgress, users } from "../drizzle/schema";
 import { challengeById } from "../shared/learning";
 import { getDb } from "./db";
+import { ENV } from "./_core/env";
 
-const flagTokens = [
-  "SERVER_AUTH", "ALLOWLIST_FILES", "SERVER_AUTHZ", "OUTPUT_CONTEXT", "SERVER_VALIDATION",
-  "VALIDATE_INPUT", "INTERNAL_REDIRECT", "PRIVATE_CACHE", "ACCESS_NOT_ROBOTS", "TRUST_BOUNDARIES",
-  "QUERY_VALIDATION", "POST_IS_INPUT", "AUTH_NOT_AUTHZ", "SESSION_POLICY", "SERVER_GUARD",
-  "NORMALIZE_FILENAME", "CONTENT_NOT_EXTENSION", "RULES_AND_RIGHTS", "SAFE_ERROR_CODE", "REQUEST_GATE",
-  "ENCODE_BY_CONTEXT", "TEXT_NOT_CODE", "PARAMETERIZED_QUERY", "ALLOWLIST_STRUCTURE", "MAP_FILE_ID",
-  "NONEXEC_STORAGE", "SAFE_REQUEST_ID", "TOKEN_EXPOSURE", "VALIDATE_EACH_BOUNDARY", "DEFENSE_IN_DEPTH",
-  "OBJECT_AUTHZ", "EVERY_ENDPOINT", "AUTH_THEN_AUTHZ", "FRESH_ROLE_CHECK", "VERIFY_TOKEN",
-  "MINIMUM_RESPONSE", "MEANINGFUL_LIMITS", "AUDIT_MINIMUM", "DEFAULT_DENY", "SERVER_BOUNDARIES",
-  "EVIDENCE_FIRST", "IMPACT_AND_PROOF", "PER_REQUEST_AUTHZ", "CONTEXTUAL_OUTPUT", "FILE_LIFECYCLE",
-  "API_CONTRACT", "REPORT_WITH_PROOF", "LAYERED_DEFENSE", "SCOPE_AND_EVIDENCE", "FINAL_GRID_CLEAR",
-] as const;
+type FlagMap = Record<string, string>;
+export type PublicRankingEntry = { userId: number; name: string | null; solvedCount: number; lastSolvedAt: Date | null };
+
+function buildTestFlagMap() {
+  return Object.fromEntries(Array.from({ length: 50 }, (_, index) => [String(index + 1), `HG{TEST_NODE_${String(index + 1).padStart(2, "0")}}`]));
+}
+
+function loadFlagMap(): FlagMap {
+  if (!ENV.learningFlagMap && process.env.NODE_ENV === "test") return buildTestFlagMap();
+  if (!ENV.learningFlagMap) return {};
+  try {
+    const parsed = JSON.parse(ENV.learningFlagMap) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed).filter(([id, flag]) => /^([1-9]|[1-4][0-9]|50)$/.test(id) && typeof flag === "string" && /^HG\{[A-Za-z0-9_\-]{4,80}\}$/.test(flag)));
+  } catch {
+    return {};
+  }
+}
+
+const flagMap = loadFlagMap();
 
 export function getExpectedFlag(problemId: number) {
-  const token = flagTokens[problemId - 1];
-  return token ? `HG{${token}}` : null;
+  return flagMap[String(problemId)] ?? null;
 }
 
 export function evaluateFlagSubmission(problemId: number, flag: string) {
   const challenge = challengeById(problemId);
   if (!challenge) return { supported: false, correct: false } as const;
-  const submitted = flag.trim().replace(/\s/g, "").toUpperCase();
-  return { supported: true, correct: getExpectedFlag(problemId) === submitted } as const;
+  const submitted = flag.trim().replace(/\s/g, "");
+  const expected = getExpectedFlag(problemId);
+  const correct = Boolean(expected) && submitted.length === expected.length && timingSafeEqual(Buffer.from(expected), Buffer.from(submitted));
+  return { supported: true, correct } as const;
 }
 
 export function getCourseEligibility(completedModules: number) {
   return completedModules >= 50;
+}
+
+export function sortPublicRanking<T extends PublicRankingEntry>(entries: T[]) {
+  return [...entries].sort((left, right) => {
+    if (left.solvedCount !== right.solvedCount) return right.solvedCount - left.solvedCount;
+    const leftSolvedAt = left.lastSolvedAt?.getTime() ?? Number.POSITIVE_INFINITY;
+    const rightSolvedAt = right.lastSolvedAt?.getTime() ?? Number.POSITIVE_INFINITY;
+    return leftSolvedAt - rightSolvedAt;
+  });
+}
+
+export function createCertificateCode(now = new Date()) {
+  return `HG-WSF-${now.getUTCFullYear()}-${randomUUID().replaceAll("-", "").slice(0, 18).toUpperCase()}`;
 }
 
 export async function getLearnerDashboard(userId: number) {
@@ -64,17 +88,21 @@ export async function getPublicRanking() {
   if (!db) throw new Error("랭킹 데이터베이스에 연결할 수 없습니다.");
   const solvedCount = count(learningProgress.problemId);
   const lastSolvedAt = max(learningProgress.completedAt);
-  return db.select({ userId: users.id, name: users.name, solvedCount, lastSolvedAt })
+  const rows = await db.select({ userId: users.id, name: users.name, solvedCount, lastSolvedAt })
     .from(users)
     .leftJoin(learningProgress, and(eq(learningProgress.userId, users.id), isNotNull(learningProgress.completedAt)))
     .groupBy(users.id, users.name)
     .orderBy(desc(solvedCount), asc(lastSolvedAt))
     .limit(100);
+  return sortPublicRanking(rows);
 }
 
 export async function saveCompletedProblem(input: { userId: number; problemId: number; level: number; hintCount: number }) {
   const db = await getDb();
   if (!db) throw new Error("풀이 기록 데이터베이스에 연결할 수 없습니다.");
+  const existing = await db.select({ completedAt: learningProgress.completedAt }).from(learningProgress)
+    .where(and(eq(learningProgress.userId, input.userId), eq(learningProgress.problemId, input.problemId))).limit(1);
+  if (existing[0]?.completedAt) return { solvedAt: existing[0].completedAt, alreadyCompleted: true };
   const now = new Date();
   await db.insert(learningProgress).values({
     userId: input.userId,
@@ -82,8 +110,8 @@ export async function saveCompletedProblem(input: { userId: number; problemId: n
     level: input.level,
     hintCount: input.hintCount,
     completedAt: now,
-  }).onDuplicateKeyUpdate({ set: { completedAt: now, hintCount: input.hintCount, updatedAt: now } });
-  return { solvedAt: now };
+  }).onDuplicateKeyUpdate({ set: { updatedAt: now } });
+  return { solvedAt: now, alreadyCompleted: false };
 }
 
 export async function saveDefenseReview(input: { userId: number; problemId: number; level: number }) {
@@ -101,9 +129,12 @@ export async function issueCertificateIfEligible(userId: number) {
   if (!db) throw new Error("수료 기록 데이터베이스에 연결할 수 없습니다.");
   const completedRows = await db.select().from(learningProgress).where(and(eq(learningProgress.userId, userId), isNotNull(learningProgress.completedAt)));
   if (!getCourseEligibility(completedRows.length)) return { issued: false, remaining: { modules: Math.max(0, 50 - completedRows.length) } };
-  const code = `HG-WSF-${new Date().getFullYear()}-${String(userId).padStart(6, "0")}`;
-  await db.insert(courseCertificates).values({ userId, courseCode: "hack-guidance-50-node-clearance", certificateCode: code, completedModules: completedRows.length, defenseReviewCount: 0, passedAssessments: 0 })
-    .onDuplicateKeyUpdate({ set: { completedModules: completedRows.length, defenseReviewCount: 0, passedAssessments: 0 } });
+  const courseCode = "hack-guidance-50-node-clearance";
+  const existing = await db.select({ certificateCode: courseCertificates.certificateCode }).from(courseCertificates)
+    .where(and(eq(courseCertificates.userId, userId), eq(courseCertificates.courseCode, courseCode))).limit(1);
+  if (existing[0]) return { issued: true, certificateCode: existing[0].certificateCode };
+  const code = createCertificateCode();
+  await db.insert(courseCertificates).values({ userId, courseCode, certificateCode: code, completedModules: completedRows.length, defenseReviewCount: 0, passedAssessments: 0 });
   return { issued: true, certificateCode: code };
 }
 
