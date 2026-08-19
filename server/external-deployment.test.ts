@@ -5,9 +5,10 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo] = await Promise.all([
+    const [migration, hardeningMigration, adminMigration, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
+      readFile(new URL("supabase/migrations/20260819000002_add_hg_admin_role.sql", root), "utf8"),
       readFile(new URL("supabase/functions/learning/index.ts", root), "utf8"),
       readFile(new URL("client/public/_redirects", root), "utf8"),
       readFile(new URL("client/src/pages/VerifyCertificate.tsx", root), "utf8"),
@@ -37,6 +38,9 @@ describe("external free-tier deployment pack", () => {
     expect(hardeningMigration).toContain("revoke all on function public.hg_consume_submission_slot(uuid) from public, anon, authenticated");
     expect(hardeningMigration).toContain("security_invoker = true");
     expect(hardeningMigration).not.toMatch(/HG\{N\d{2}_[A-Za-z0-9_-]{24}\}/);
+    expect(adminMigration).toContain("is_admin boolean not null default false");
+    expect(adminMigration).toContain("where p.is_admin = false");
+    expect(adminMigration).toContain("grant select on table public.hg_public_ranking to service_role");
     expect(edgeFunction).toContain('Deno.env.get("LEARNING_FLAG_MAP")');
     expect(edgeFunction).toContain("hg_consume_submission_slot");
     expect(edgeFunction).toContain("hg_issue_clearance_certificate");
@@ -72,6 +76,7 @@ describe("external free-tier deployment pack", () => {
     expect(consoleNav).toContain("Hack Guidance 자체 계정");
     expect(consoleNav).toContain("PUBLIC ANALYST NAME");
     expect(consoleNav).toContain("계정 만들기");
+    expect(consoleNav).toContain("/>로그인</button>");
     expect(consoleNav).toContain("로그아웃");
     expect(consoleNav).toContain("registerSupabaseAccount");
     expect(signalLogo).toContain("<svg");

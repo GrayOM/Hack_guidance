@@ -7,6 +7,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.hg_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null check (char_length(display_name) between 1 and 80),
+  is_admin boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -183,9 +184,11 @@ select
   dense_rank() over (order by count(lp.problem_id) desc, max(lp.completed_at) asc nulls last) as rank,
   p.display_name,
   count(lp.problem_id)::integer as solved_count,
-  max(lp.completed_at) as last_solved_at
+  max(lp.completed_at) as last_solved_at,
+  p.id as user_id
 from public.hg_profiles p
 left join public.hg_learning_progress lp on lp.user_id = p.id and lp.completed_at is not null
+where p.is_admin = false
 group by p.id, p.display_name
 order by solved_count desc, last_solved_at asc nulls last;
 
@@ -195,9 +198,11 @@ select
   c.course_code,
   c.completed_modules,
   c.issued_at,
-  p.display_name
+  p.display_name,
+  p.id as user_id
 from public.hg_course_certificates c
-join public.hg_profiles p on p.id = c.user_id;
+join public.hg_profiles p on p.id = c.user_id
+where p.is_admin = false;
 
 alter table public.hg_profiles enable row level security;
 alter table public.hg_learning_progress enable row level security;
