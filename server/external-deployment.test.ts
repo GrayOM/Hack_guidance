@@ -5,7 +5,7 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav] = await Promise.all([
+    const [migration, hardeningMigration, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/functions/learning/index.ts", root), "utf8"),
@@ -22,6 +22,7 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/pages/Ranking.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Certificate.tsx", root), "utf8"),
       readFile(new URL("client/src/components/ConsoleNav.tsx", root), "utf8"),
+      readFile(new URL("client/src/components/SignalLogo.tsx", root), "utf8"),
     ]);
 
     expect(migration).toContain("enable row level security");
@@ -61,6 +62,12 @@ describe("external free-tier deployment pack", () => {
     expect(rankingPage).toContain("useLearningRanking");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
+    expect(consoleNav).toContain("이메일 매직 링크 로그인");
+    expect(consoleNav).toContain("로그아웃");
+    expect(consoleNav).toContain("sendSupabaseMagicLink");
+    expect(signalLogo).toContain("<svg");
+    expect(signalLogo).not.toContain("manus-storage");
+    expect(signalLogo).not.toContain("<img");
     for (const page of [homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, certificatePrint, verifyPage, consoleNav]) {
       expect(page).not.toContain("trpc.learning");
     }
