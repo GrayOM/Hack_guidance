@@ -94,7 +94,12 @@ describe("external free-tier deployment pack", () => {
     expect(signalLogo).not.toContain("<img");
     expect(appShell).toContain("<SecurityBackdrop />");
     expect(securityBackdrop).toContain("security-backdrop__matrix");
+    expect(securityBackdrop).toContain("focusByPath");
+    expect(securityBackdrop).toContain("CORE-00");
+    expect(securityBackdrop).toContain("security-backdrop__node-code");
     expect(globalCss).toContain("security-scan-sweep");
+    expect(globalCss).toContain("security-backdrop__link--e-c");
+    expect(globalCss).toContain("security-section-focus");
     expect(globalCss).toContain("prefers-reduced-motion: reduce");
     for (const page of [homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, certificatePrint, verifyPage, consoleNav]) {
       expect(page).not.toContain("trpc.learning");
