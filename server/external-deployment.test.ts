@@ -75,8 +75,9 @@ describe("external free-tier deployment pack", () => {
     expect(rankingPage).not.toContain("이메일로 간편 시작하면");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
-    expect(consoleNav).toContain("Hack Guidance 자체 계정");
-    expect(consoleNav).toContain("PUBLIC ANALYST NAME");
+    expect(consoleNav).not.toContain("Hack Guidance 자체 계정");
+    expect(consoleNav).not.toContain("PUBLIC ANALYST NAME");
+    expect(consoleNav).toContain(">NAME</span>");
     expect(consoleNav).toContain("계정 만들기");
     expect(consoleNav).toContain("/>로그인</button>");
     expect(consoleNav).toContain("로그아웃");
