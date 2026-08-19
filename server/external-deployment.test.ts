@@ -47,12 +47,14 @@ describe("external free-tier deployment pack", () => {
     expect(redirects.trim()).toBe("/* /index.html 200");
     expect(verifyPage).not.toContain("@/lib/trpc");
     expect(certificatePrint).toContain("useVerifyCertificate");
-    expect(externalClient).toContain('VITE_EXTERNAL_SUPABASE === "true"');
+    expect(externalClient).toContain("const configured = Boolean(url && publishableKey)");
     expect(pagesWorkflow).toContain("pnpm build:github-pages");
     expect(pagesWorkflow).toContain("actions/deploy-pages@v4");
     expect(platformAuth).toContain("signInWithPassword");
     expect(platformAuth).toContain("auth.signUp");
     expect(platformAuth).not.toContain("signInWithOAuth");
+    expect(platformAuth).not.toContain("useManusAuth");
+    expect(platformAuth).not.toContain("startManusLogin");
     expect(platformAuth).toContain("이메일 주소 형식을 확인해 주세요.");
     expect(platformAuth).toContain("회원가입과 로그인이 완료되었습니다.");
     expect(platformAuth).toContain("이메일 또는 비밀번호가 올바르지 않습니다.");

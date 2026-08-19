@@ -31,7 +31,7 @@ Hack Guidance에는 **GitHub Pages의 정적 프런트엔드**와 **Supabase Fre
 
 ### 1. Supabase 프로젝트 만들기
 
-Supabase Auth 설정에서 Site URL을 `https://grayom.github.io/Hack_guidance/`로 지정하고, Redirect URL에 `https://grayom.github.io/Hack_guidance/**`를 추가합니다. 기본 로그인 방식은 별도 OAuth 앱 등록이 필요 없는 **이메일 매직 링크**입니다. GitHub·Google OAuth를 추가로 활성화할 때만 해당 제공자의 OAuth 앱과 Redirect URL을 별도로 등록합니다.
+Supabase Auth 설정에서 Site URL을 `https://grayom.github.io/Hack_guidance/`로 지정하고, Redirect URL에 `https://grayom.github.io/Hack_guidance/**`를 추가합니다. 기본 인증 방식은 **이메일·비밀번호 기반 독립 계정**입니다. GitHub·Google·Manus OAuth는 Hack Guidance 외부 배포에서 사용하지 않습니다.
 
 Supabase CLI로 이 저장소를 연결하고 스키마를 적용합니다.
 
@@ -60,7 +60,6 @@ GitHub 저장소 `GrayOM/Hack_guidance`의 **Settings → Pages → Build and de
 ```text
 VITE_SUPABASE_URL=https://xouowashfoyobgcdtagt.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<SUPABASE_PUBLISHABLE_KEY>
-VITE_SUPABASE_AUTH_PROVIDER=email
 ```
 
 Supabase Publishable Key는 RLS가 적용된 브라우저용 공개 키이며, 정적 번들에 포함되어도 됩니다. `SUPABASE_SERVICE_ROLE_KEY`·`LEARNING_FLAG_MAP`는 Function 서버에만 남겨야 합니다.
@@ -87,9 +86,9 @@ Render Free Web Service와 Supabase를 결합하면 기존 Express/tRPC 화면�
 
 인증된 `dashboard`·`records`·`issueCertificate`의 **성공 응답**은 실제 이메일 매직 링크 세션으로만 완전 종단간 검증할 수 있습니다. 배포된 함수 소스와 프로젝트 회귀 테스트는 해당 계약을 검증하지만, 운영 데이터를 만들지 않고 개인 브라우저 연결도 사용하지 않는 현재 원칙에 따라 이 마지막 시나리오는 최초 실제 사용자의 로그인 이후에 확인합니다. 이 검증은 플래그·서비스 역할 키·개인 학습 데이터를 노출하지 않는 범위에서 수행해야 합니다.
 
-매직 링크 로그인은 정적 빌드에서 Supabase 클라이언트의 `detectSessionInUrl` 옵션으로 콜백 URL의 세션을 처리하도록 구성되어 있습니다. 잘못된 이메일 차단, `signInWithOtp` 호출 값, Supabase 오류, 네트워크 오류 및 성공 안내는 자동화 단위 테스트로 검증했습니다. 2026-08-19에는 전용 테스트 사서함으로 실제 매직 링크를 발송하고 링크를 연 뒤 Supabase Auth의 이메일 확인·로그인 시각이 생성된 것을 확인했습니다. 이는 메일 발송과 Supabase Auth의 링크 검증·세션 발급까지의 실제 인증 흐름이 완료됐다는 근거입니다.
+독립 계정 화면은 `auth.signUp`과 `signInWithPassword`만 사용합니다. 회원가입 시에는 공개 분석자명·이메일·비밀번호를 받아 Supabase Auth에 전달하며, 비밀번호는 브라우저 번들·랭킹·학습 데이터에 저장하지 않습니다. Auth 사용자 생성 트리거는 공개 분석자명 프로필을 만들고, 해결 수 0개부터 공개 랭킹에 포함합니다. 가입 확인 이메일을 활성화한 Supabase 프로젝트에서는 확인을 완료해야 세션이 발급됩니다.
 
-관리형 브라우저와 사용자가 링크를 연 브라우저의 세션 저장소는 격리되어 있습니다. 따라서 현재 환경에서는 발급된 사용자 토큰을 복사하지 않고도 인증 성공을 확인할 수 있었지만, GitHub Pages로 돌아온 콜백 URL과 클라이언트의 로그인 UI·세션 저장은 직접 관찰하지 못했습니다. 같은 인증 토큰으로 `dashboard`·`records`·`issueCertificate`를 호출하는 Edge Function 성공 응답도 아직 별도로 검증할 수 없습니다. 이 두 확인은 사용자가 개인 브라우저 연결을 명시적으로 허용하거나, 별도의 전용 테스트 사서함을 관리형 브라우저에서 직접 열 수 있을 때 수행합니다.
+관리형 브라우저와 사용자의 브라우저 세션 저장소는 격리되어 있습니다. 따라서 인증된 `dashboard`·`records`·`issueCertificate` Edge Function 성공 응답은 독립 계정으로 실제 로그인한 사용자 세션에서 추가 확인해야 합니다. 이 검증은 사용자 토큰·비밀번호·플래그를 노출하지 않는 범위에서 수행합니다.
 
 ## References
 

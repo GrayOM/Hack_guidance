@@ -1,5 +1,3 @@
-import { useAuth as useManusAuth } from "@/_core/hooks/useAuth";
-import { startLogin as startManusLogin } from "@/const";
 import { isExternalSupabaseDeployment, supabase } from "@/lib/external-supabase";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -137,15 +135,11 @@ function useSupabaseAuth() {
   }, logout }), [error, loading, logout, user]);
 }
 
-/** Stable auth contract that selects Manus OAuth locally and Supabase Auth in a static external build. */
+/** Stable auth contract for Hack Guidance's independent Supabase account system. */
 export function usePlatformAuth() {
-  return isExternalSupabaseDeployment ? useSupabaseAuth() : useManusAuth();
+  return useSupabaseAuth();
 }
 
 export function startPlatformLogin() {
-  if (!isExternalSupabaseDeployment) {
-    startManusLogin();
-    return;
-  }
   window.dispatchEvent(new Event("hack-guidance:open-auth"));
 }

@@ -1,9 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-const externalBuild = import.meta.env.VITE_EXTERNAL_SUPABASE === "true";
 const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "https://xouowashfoyobgcdtagt.supabase.co";
 const publishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "sb_publishable_3hgnIxSMX-B5D_C8Y8Eh_Q_hUtC9qnl";
-const configured = externalBuild && Boolean(url && publishableKey);
+const configured = Boolean(url && publishableKey);
 
 export const isExternalSupabaseDeployment = configured;
 
