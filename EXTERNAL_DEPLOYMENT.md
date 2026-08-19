@@ -81,6 +81,14 @@ Supabase Publishable Key는 RLS가 적용된 브라우저용 공개 키이며, �
 
 Render Free Web Service와 Supabase를 결합하면 기존 Express/tRPC 화면을 더 적게 수정할 수 있습니다. 다만 Render의 무료 웹 서비스는 월 750 인스턴스 시간 제한과 유휴 중지 특성이 있어, 첫 요청이 느릴 수 있고 한도 소진 시 다음 달까지 중지될 수 있습니다.[3] 따라서 비용 0원과 응답 일관성을 우선할 때는 GitHub Pages + Supabase 전환을 기본안으로, 빠른 호환성 검증에는 Render를 보조안으로 둡니다.
 
+## 2026-08-19 배포 검증 현황
+
+현재 `https://grayom.github.io/Hack_guidance/`의 GitHub Pages 배포는 GitHub Actions 실행 성공 상태로 확인되었습니다. 홈페이지와 `/problems` 직접 경로에서 50개 고유 문제 노드가 렌더링되며, `/ranking`은 배포된 Edge Function의 빈 랭킹 응답을 정상적으로 표시합니다. Edge Function에 대한 관리형 검증에서는 `ranking`이 `200 { ranking: [] }`, 존재하지 않는 수료 코드의 `verifyCertificate`가 `200 { certificate: null }`, 비인증 `dashboard`가 `401 { error: "Please sign in" }` JSON 계약을 반환했습니다.
+
+인증된 `dashboard`·`records`·`issueCertificate`의 **성공 응답**은 실제 이메일 매직 링크 세션으로만 완전 종단간 검증할 수 있습니다. 배포된 함수 소스와 프로젝트 회귀 테스트는 해당 계약을 검증하지만, 운영 데이터를 만들지 않고 개인 브라우저 연결도 사용하지 않는 현재 원칙에 따라 이 마지막 시나리오는 최초 실제 사용자의 로그인 이후에 확인합니다. 이 검증은 플래그·서비스 역할 키·개인 학습 데이터를 노출하지 않는 범위에서 수행해야 합니다.
+
+매직 링크 로그인은 정적 빌드에서 Supabase 클라이언트의 `detectSessionInUrl` 옵션으로 콜백 URL의 세션을 처리하도록 구성되어 있습니다. 잘못된 이메일 차단, `signInWithOtp` 호출 값, Supabase 오류, 네트워크 오류 및 성공 안내는 자동화 단위 테스트로 검증했습니다. 다만 실제 메일 수신·링크 클릭·세션 반영은 이메일 소유권을 요구하므로, 개인 브라우저와 실사용자 데이터를 사용하지 않는 현재 검증 범위에서는 실행하지 않았습니다. 운영 확인 시에는 전용 테스트 사서함을 사용해 GitHub Pages 주소로 돌아온 직후 사용자 표시와 개인 진행 화면을 확인합니다.
+
 ## References
 
 [1]: https://supabase.com/pricing "Supabase pricing"

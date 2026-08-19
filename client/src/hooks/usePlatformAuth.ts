@@ -7,6 +7,48 @@ import { toast } from "sonner";
 
 type PlatformUser = { id: string; name?: string | null; email?: string | null };
 
+type MagicLinkClient = {
+  auth: {
+    signInWithOtp: (input: { email: string; options: { emailRedirectTo: string } }) => Promise<{ error: { message: string } | null }>;
+  };
+};
+
+export function isValidMagicLinkEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+export async function sendSupabaseMagicLink(
+  email: string,
+  client: MagicLinkClient | null = supabase,
+  emailRedirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`,
+) {
+  const normalizedEmail = email.trim();
+  if (!isValidMagicLinkEmail(normalizedEmail)) {
+    toast.error("이메일 주소 형식을 확인해 주세요.");
+    return "invalid" as const;
+  }
+  if (!client) {
+    toast.error("외부 인증 설정을 확인하지 못했습니다.");
+    return "failed" as const;
+  }
+
+  try {
+    const { error } = await client.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: { emailRedirectTo },
+    });
+    if (error) {
+      toast.error(`매직 링크를 전송하지 못했습니다: ${error.message}`);
+      return "failed" as const;
+    }
+    toast.success("매직 링크를 전송했습니다. 이메일에서 링크를 열어 로그인해 주세요.");
+    return "sent" as const;
+  } catch {
+    toast.error("매직 링크 전송 중 연결 오류가 발생했습니다.");
+    return "failed" as const;
+  }
+}
+
 function mapUser(user: User | null): PlatformUser | null {
   if (!user) return null;
   const metadataName = typeof user.user_metadata?.name === "string" ? user.user_metadata.name : null;
@@ -59,20 +101,7 @@ export function startPlatformLogin() {
   if (provider === "email") {
     const email = window.prompt("매직 링크를 받을 이메일을 입력하세요.")?.trim();
     if (!email) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("이메일 주소 형식을 확인해 주세요.");
-      return;
-    }
-    void supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}` },
-    }).then(({ error }) => {
-      if (error) {
-        toast.error(`매직 링크를 전송하지 못했습니다: ${error.message}`);
-        return;
-      }
-      toast.success("매직 링크를 전송했습니다. 이메일에서 링크를 열어 로그인해 주세요.");
-    }).catch(() => toast.error("매직 링크 전송 중 연결 오류가 발생했습니다."));
+    void sendSupabaseMagicLink(email);
     return;
   }
   void supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } });

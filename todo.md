@@ -174,22 +174,25 @@
 - [x] 외부 배포용 빌드·테스트·보안 비밀값 분리 절차를 검증한다.
 - [x] GrayOM's Project(xouowashfoyobgcdtagt)에 기존 리소스를 삭제하지 않고 Hack Guidance 전용 테이블·함수만 배포한다.
 - [x] GrayOM's Project의 기존 스키마·Edge Function과 분리된 상태를 재확인한다.
-- [ ] 개인 브라우저 연결 없이 관리형 작업 환경과 GitHub 기반 배포 절차만으로 외부 전환을 완료한다.
+- [x] 개인 브라우저 연결 없이 관리형 작업 환경과 GitHub 기반 배포 절차만으로 외부 전환을 완료한다.
 - [x] `hg_` 보안 정의 함수의 anon·authenticated 직접 실행 권한을 차단하고 Security Advisor 경고를 해소한다.
 - [x] 공개 랭킹·수료 검증 뷰의 보안 정의 경고를 안전한 서버 함수 경계로 전환한다.
-- [ ] Supabase Auth·Edge Function 기반의 정적 프런트엔드 클라이언트를 구현한다.
-- [ ] 기존 문제·기록·랭킹·수료 화면을 Supabase 클라이언트 API로 전환한다.
+- [x] Supabase Auth·Edge Function 기반의 정적 프런트엔드 클라이언트를 구현한다.
+- [x] 기존 문제·기록·랭킹·수료 화면을 Supabase 클라이언트 API로 전환한다.
 - [x] GitHub Pages 전용 빌드 명령과 환경 변수 검증을 추가한다.
 - [x] GitHub Pages의 저장소 공개 범위·무료 사용 조건을 확인하고 안전한 공개 방식으로 확정한다.
 - [x] GitHub Actions가 정적 산출물을 Pages에 배포하도록 워크플로를 추가한다.
 - [x] GitHub Pages 주소를 Supabase Auth Redirect URL에 등록하고 이메일 매직 링크 로그인을 설정한다.
-- [ ] 저장소 Settings → Pages에서 배포 Source를 GitHub Actions로 활성화한다.
+- [x] 저장소 Settings → Pages에서 배포 Source를 GitHub Actions로 활성화한다.
 - [x] VerifyCertificate 페이지와 수료 공개 검증 경로를 tRPC 없이 Supabase Edge Function으로 전환한다.
-- [ ] 배포된 `hg-learning` Edge Function의 ranking·verify·dashboard 응답이 JSON 계약을 반환하는지 통합 검증한다.
-- [ ] GitHub Pages 외부 빌드 기준으로 문제·기록·랭킹·수료·공개 검증 화면의 회귀 테스트를 추가한다.
-- [ ] 이메일 매직 링크 로그인에 입력 검증·전송 성공·실패 피드백을 추가하고 정적 외부 로그인 흐름을 검증한다.
+- [x] 배포된 `hg-learning` Edge Function의 ranking·verify·dashboard 응답이 JSON 계약을 반환하는지 통합 검증한다.
+- [x] GitHub Pages 외부 빌드 기준으로 문제·기록·랭킹·수료·공개 검증 화면의 회귀 테스트를 추가한다.
+- [x] 이메일 매직 링크 로그인에 입력 검증·전송 성공·실패 피드백을 추가하고, `signInWithOtp` 호출·성공·실패 분기를 자동화 테스트로 검증한다.
+- [ ] 실제 이메일 매직 링크 링크를 연 뒤 GitHub Pages의 리디렉션·Supabase 세션 반영을 운영 사용자 또는 전용 테스트 사서함으로 확인한다.
 - [ ] 인증된 Supabase 세션 기준으로 dashboard·records·certificate 성공 JSON 계약을 실제 `hg-learning` 엔드포인트에서 검증한다.
-- [ ] 문제·기록·랭킹·수료·공개 검증 화면이 tRPC 대신 외부 훅을 사용하는지 화면별 회귀 테스트를 추가한다.
+- [x] 문제·기록·랭킹·수료·공개 검증 화면이 tRPC 대신 외부 훅을 사용하는지 화면별 회귀 테스트를 추가한다.
+- [x] `signInWithOtp`의 잘못된 이메일·성공·실패 분기를 목킹한 외부 로그인 단위 테스트를 추가한다.
+- [x] 외부 정적 빌드의 Lab 화면에서 잔여 `trpc` 유틸리티 의존을 제거하고 화면별 외부 훅 회귀 테스트를 강화한다.
 
 # GitHub 저장소 동기화
 

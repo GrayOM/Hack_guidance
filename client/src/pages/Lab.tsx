@@ -7,7 +7,6 @@ import { ArrowLeft, Check, ChevronRight, CircleHelp, FileSearch, LockKeyhole, Sh
 import { toast } from "sonner";
 import { usePlatformAuth, startPlatformLogin } from "@/hooks/usePlatformAuth";
 import { useReviewDefense, useSubmitFlag } from "@/hooks/useLearningApi";
-import { trpc } from "@/lib/trpc";
 import { useQueryClient } from "@tanstack/react-query";
 import { challengeById } from "@shared/learning";
 import { SignalLockOverlay } from "@/components/SignalLockOverlay";
@@ -22,15 +21,13 @@ export default function Lab() {
   const [hintCount, setHintCount] = useState(0);
   const [isCorrect, setIsCorrect] = useState(false);
   const [defenseReviewed, setDefenseReviewed] = useState(false);
-  const utils = trpc.useUtils();
   const queryClient = useQueryClient();
   const submit = useSubmitFlag({
     onSuccess: result => {
       if (result.correct) {
         setIsCorrect(true);
         toast.success(result.message);
-        void utils.learning.dashboard.invalidate();
-        void queryClient.invalidateQueries({ queryKey: ["hg-external"] });
+        void queryClient.invalidateQueries();
       } else {
         toast.error(result.message);
       }
@@ -41,8 +38,7 @@ export default function Lab() {
     onSuccess: () => {
         setDefenseReviewed(true);
         toast.success("대응 노트 확인 기록을 저장했습니다.");
-        void utils.learning.dashboard.invalidate();
-        void queryClient.invalidateQueries({ queryKey: ["hg-external"] });
+        void queryClient.invalidateQueries();
     },
     onError: () => toast.error("방어 기준을 저장하지 못했습니다."),
   });

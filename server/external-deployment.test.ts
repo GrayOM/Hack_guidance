@@ -55,6 +55,8 @@ describe("external free-tier deployment pack", () => {
     expect(problemsPage).toContain("useLearningDashboard");
     expect(labPage).toContain("useSubmitFlag");
     expect(labPage).toContain("useReviewDefense");
+    expect(labPage).not.toContain("@/lib/trpc");
+    expect(labPage).not.toContain("trpc.");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
     expect(certificatePage).toContain("useIssueCertificate");
