@@ -50,10 +50,12 @@ describe("external free-tier deployment pack", () => {
     expect(externalClient).toContain('VITE_EXTERNAL_SUPABASE === "true"');
     expect(pagesWorkflow).toContain("pnpm build:github-pages");
     expect(pagesWorkflow).toContain("actions/deploy-pages@v4");
-    expect(platformAuth).toContain("signInWithOtp");
+    expect(platformAuth).toContain("signInWithPassword");
+    expect(platformAuth).toContain("auth.signUp");
+    expect(platformAuth).not.toContain("signInWithOAuth");
     expect(platformAuth).toContain("이메일 주소 형식을 확인해 주세요.");
-    expect(platformAuth).toContain("매직 링크를 전송했습니다.");
-    expect(platformAuth).toContain("매직 링크를 전송하지 못했습니다");
+    expect(platformAuth).toContain("회원가입과 로그인이 완료되었습니다.");
+    expect(platformAuth).toContain("이메일 또는 비밀번호가 올바르지 않습니다.");
 
     expect(homePage).toContain("useLearningDashboard");
     expect(problemsPage).toContain("useLearningDashboard");
@@ -65,11 +67,11 @@ describe("external free-tier deployment pack", () => {
     expect(rankingPage).toContain("useLearningRanking");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
-    expect(consoleNav).toContain("이메일로 간편 시작");
-    expect(consoleNav).toContain("처음 입력한 이메일은 계정을 만들고");
-    expect(platformAuth).toContain("shouldCreateUser: true");
+    expect(consoleNav).toContain("Hack Guidance 자체 계정");
+    expect(consoleNav).toContain("PUBLIC ANALYST NAME");
+    expect(consoleNav).toContain("계정 만들기");
     expect(consoleNav).toContain("로그아웃");
-    expect(consoleNav).toContain("sendSupabaseMagicLink");
+    expect(consoleNav).toContain("registerSupabaseAccount");
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
     expect(signalLogo).not.toContain("<img");

@@ -4,37 +4,41 @@ const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
 
 vi.mock("sonner", () => ({ toast }));
 
-import { isValidMagicLinkEmail, sendSupabaseMagicLink } from "../client/src/hooks/usePlatformAuth";
+import { isValidAccountEmail, isValidAccountPassword, isValidDisplayName, registerSupabaseAccount, signInSupabaseAccount } from "../client/src/hooks/usePlatformAuth";
 
-describe("Supabase email magic link", () => {
-  it("rejects malformed email before making an Auth request", async () => {
-    const signInWithOtp = vi.fn();
+describe("Supabase independent email and password account", () => {
+  it("rejects malformed registration input before making an Auth request", async () => {
+    const signUp = vi.fn();
 
-    await expect(sendSupabaseMagicLink("not-an-email", { auth: { signInWithOtp } }, "https://example.test/Hack_guidance/")).resolves.toBe("invalid");
-    expect(isValidMagicLinkEmail("not-an-email")).toBe(false);
-    expect(signInWithOtp).not.toHaveBeenCalled();
+    await expect(registerSupabaseAccount({ email: "not-an-email", password: "safe-password", displayName: "Analyst" }, { auth: { signUp, signInWithPassword: vi.fn() } }, "https://example.test/Hack_guidance/")).resolves.toBe("invalid");
+    expect(isValidAccountEmail("not-an-email")).toBe(false);
+    expect(isValidDisplayName("A")).toBe(false);
+    expect(isValidAccountPassword("short")).toBe(false);
+    expect(signUp).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalledWith("이메일 주소 형식을 확인해 주세요.");
   });
 
-  it("sends a normalized address and shows a success message", async () => {
-    const signInWithOtp = vi.fn().mockResolvedValue({ error: null });
+  it("creates a named account without exposing the password", async () => {
+    const signUp = vi.fn().mockResolvedValue({ data: { session: {} }, error: null });
 
-    await expect(sendSupabaseMagicLink(" analyst@example.test ", { auth: { signInWithOtp } }, "https://example.test/Hack_guidance/")).resolves.toBe("sent");
-    expect(signInWithOtp).toHaveBeenCalledWith({
+    await expect(registerSupabaseAccount({ email: " analyst@example.test ", password: "safe-password", displayName: " GrayOM Analyst " }, { auth: { signUp, signInWithPassword: vi.fn() } }, "https://example.test/Hack_guidance/")).resolves.toBe("signed-in");
+    expect(signUp).toHaveBeenCalledWith({
       email: "analyst@example.test",
-      options: { emailRedirectTo: "https://example.test/Hack_guidance/", shouldCreateUser: true },
+      password: "safe-password",
+      options: { data: { name: "GrayOM Analyst" }, emailRedirectTo: "https://example.test/Hack_guidance/" },
     });
-    expect(toast.success).toHaveBeenCalledWith("매직 링크를 전송했습니다. 이메일에서 링크를 열어 로그인해 주세요.");
+    expect(toast.success).toHaveBeenCalledWith("회원가입과 로그인이 완료되었습니다. 공개 랭킹에 등록했습니다.");
   });
 
-  it("reports Supabase and connection failures without exposing the email address", async () => {
-    const rejectedByAuth = vi.fn().mockResolvedValue({ error: { message: "rate limited" } });
-    const networkFailure = vi.fn().mockRejectedValue(new Error("network unavailable"));
+  it("logs in with a password and reports credential failures generically", async () => {
+    const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
+    const rejectedSignIn = vi.fn().mockResolvedValue({ error: { message: "invalid credentials" } });
+    const client = { auth: { signUp: vi.fn(), signInWithPassword } };
 
-    await expect(sendSupabaseMagicLink("analyst@example.test", { auth: { signInWithOtp: rejectedByAuth } }, "https://example.test/Hack_guidance/")).resolves.toBe("failed");
-    expect(toast.error).toHaveBeenCalledWith("매직 링크를 전송하지 못했습니다: rate limited");
+    await expect(signInSupabaseAccount({ email: "analyst@example.test", password: "safe-password" }, client)).resolves.toBe("signed-in");
+    expect(signInWithPassword).toHaveBeenCalledWith({ email: "analyst@example.test", password: "safe-password" });
 
-    await expect(sendSupabaseMagicLink("analyst@example.test", { auth: { signInWithOtp: networkFailure } }, "https://example.test/Hack_guidance/")).resolves.toBe("failed");
-    expect(toast.error).toHaveBeenCalledWith("매직 링크 전송 중 연결 오류가 발생했습니다.");
+    await expect(signInSupabaseAccount({ email: "analyst@example.test", password: "safe-password" }, { auth: { signUp: vi.fn(), signInWithPassword: rejectedSignIn } })).resolves.toBe("failed");
+    expect(toast.error).toHaveBeenCalledWith("이메일 또는 비밀번호가 올바르지 않습니다.");
   });
 });
