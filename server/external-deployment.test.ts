@@ -71,6 +71,8 @@ describe("external free-tier deployment pack", () => {
     expect(labPage).not.toContain("trpc.");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
+    expect(rankingPage).toContain("이메일과 비밀번호로 회원가입하면 이곳에 표시됩니다.");
+    expect(rankingPage).not.toContain("이메일로 간편 시작하면");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
     expect(consoleNav).toContain("Hack Guidance 자체 계정");
