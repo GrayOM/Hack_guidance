@@ -1,8 +1,7 @@
 import { useLocation } from "wouter";
 import { Activity, Flag, Home, List, LockKeyhole, LogOut, ScrollText, Trophy } from "lucide-react";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
+import { usePlatformAuth, startPlatformLogin } from "@/hooks/usePlatformAuth";
+import { useLearningDashboard } from "@/hooks/useLearningApi";
 import { SignalLogo } from "@/components/SignalLogo";
 
 const items = [
@@ -14,8 +13,8 @@ const items = [
 
 export function ConsoleNav() {
   const [location, setLocation] = useLocation();
-  const { user, isAuthenticated, logout } = useAuth();
-  const dashboard = trpc.learning.dashboard.useQuery(undefined, { enabled: isAuthenticated, retry: false });
+  const { user, isAuthenticated, logout } = usePlatformAuth();
+  const dashboard = useLearningDashboard({ enabled: isAuthenticated, retry: false });
   const solved = dashboard.data?.completedIds.length ?? 0;
 
   return (
@@ -40,7 +39,7 @@ export function ConsoleNav() {
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
           <div className="hidden text-right sm:block"><p className="font-mono-ui text-[9px] tracking-[0.12em] text-slate-600">SOLVED</p><p className="font-mono-ui text-xs text-teal-200">{solved}/50</p></div>
-          {isAuthenticated ? <button onClick={() => void logout()} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><LogOut className="h-3.5 w-3.5" /><span className="hidden sm:inline">{user?.name ?? "분석자"}</span></button> : <button onClick={startLogin} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><Activity className="h-3.5 w-3.5" />로그인</button>}
+          {isAuthenticated ? <button onClick={() => void logout()} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><LogOut className="h-3.5 w-3.5" /><span className="hidden sm:inline">{user?.name ?? "분석자"}</span></button> : <button onClick={startPlatformLogin} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><Activity className="h-3.5 w-3.5" />로그인</button>}
         </div>
       </div>
     </header>

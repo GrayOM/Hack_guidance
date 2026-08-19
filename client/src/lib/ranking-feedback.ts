@@ -1,5 +1,5 @@
 export type RankingFeedbackRow = {
-  userId: number;
+  userId: string | number;
   solvedCount: number;
   lastSolvedAt: Date | string | null;
 };
@@ -16,7 +16,7 @@ export type RankingStreamEvent = {
 
 const formatRank = (rank: number | null) => rank === null ? "--" : String(rank).padStart(2, "0");
 
-export function getRankingFingerprint(rows: RankingFeedbackRow[], userId?: number) {
+export function getRankingFingerprint(rows: RankingFeedbackRow[], userId?: string | number) {
   const signature = rows
     .map(row => `${row.userId}:${row.solvedCount}:${row.lastSolvedAt ? new Date(row.lastSolvedAt).getTime() : 0}`)
     .join("|");

@@ -1,16 +1,15 @@
 import { useLocation } from "wouter";
 import { CheckCircle2, FileCheck2, KeyRound, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
+import { usePlatformAuth, startPlatformLogin } from "@/hooks/usePlatformAuth";
+import { useIssueCertificate, useLearningDashboard } from "@/hooks/useLearningApi";
 import { ConsoleNav } from "@/components/ConsoleNav";
 
 export default function Certificate() {
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
-  const dashboard = trpc.learning.dashboard.useQuery(undefined, { enabled: isAuthenticated, retry: false });
-  const issue = trpc.learning.issueCertificate.useMutation({
+  const { isAuthenticated } = usePlatformAuth();
+  const dashboard = useLearningDashboard({ enabled: isAuthenticated, retry: false });
+  const issue = useIssueCertificate({
     onSuccess: result => {
       if (result.issued) toast.success(`클리어런스 기록을 발급했습니다. 인증번호: ${result.certificateCode}`);
       else toast.message(`FINAL GRID 해금까지 ${result.remaining?.modules ?? 0}개 노드가 남았습니다.`);
@@ -18,7 +17,7 @@ export default function Certificate() {
     onError: () => toast.error("클리어런스 기록을 확인하지 못했습니다."),
   });
 
-  if (!isAuthenticated) return <div className="hacknet-shell min-h-screen bg-[#060b0d] text-slate-100"><ConsoleNav /><main className="grid place-items-center p-6 pt-28 text-center"><div className="max-w-md"><LockKeyhole className="mx-auto h-8 w-8 text-teal-300" /><p className="mt-5 font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">FINAL CLEARANCE</p><h1 className="mt-3 text-2xl font-semibold">클리어런스 기록은 로그인 후 해금됩니다.</h1><p className="mt-3 text-sm leading-6 text-slate-400">50개 문제를 모두 해결한 분석자에게만 최종 기록이 표시됩니다.</p><button onClick={startLogin} className="mt-6 bg-teal-300 px-4 py-2.5 text-sm font-semibold text-[#092024]">로그인하여 노드 확인</button></div></main></div>;
+  if (!isAuthenticated) return <div className="hacknet-shell min-h-screen bg-[#060b0d] text-slate-100"><ConsoleNav /><main className="grid place-items-center p-6 pt-28 text-center"><div className="max-w-md"><LockKeyhole className="mx-auto h-8 w-8 text-teal-300" /><p className="mt-5 font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">FINAL CLEARANCE</p><h1 className="mt-3 text-2xl font-semibold">클리어런스 기록은 로그인 후 해금됩니다.</h1><p className="mt-3 text-sm leading-6 text-slate-400">50개 문제를 모두 해결한 분석자에게만 최종 기록이 표시됩니다.</p><button onClick={startPlatformLogin} className="mt-6 bg-teal-300 px-4 py-2.5 text-sm font-semibold text-[#092024]">로그인하여 노드 확인</button></div></main></div>;
 
   const completed = dashboard.data?.completedIds.length ?? 0;
   const certificate = dashboard.data?.certificate;

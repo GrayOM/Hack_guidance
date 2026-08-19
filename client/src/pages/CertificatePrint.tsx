@@ -1,11 +1,11 @@
 import { useRoute } from "wouter";
 import { ArrowLeft, BadgeCheck, Printer } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+import { useVerifyCertificate } from "@/hooks/useLearningApi";
 
 export default function CertificatePrint() {
   const [, params] = useRoute("/certificate/print/:code");
   const code = params?.code ?? "";
-  const verification = trpc.learning.verifyCertificate.useQuery({ certificateCode: code }, { enabled: Boolean(code) });
+  const verification = useVerifyCertificate(code, { enabled: Boolean(code) });
 
   if (verification.isLoading) return <main className="grid min-h-screen place-items-center bg-[#f2f4f3] text-slate-700"><p className="font-mono-ui text-sm">수료 기록을 확인하고 있습니다.</p></main>;
   if (!verification.data) return <main className="grid min-h-screen place-items-center bg-[#f2f4f3] p-6 text-center text-slate-800"><div><p className="font-mono-ui text-xs tracking-[0.16em] text-teal-700">CERTIFICATE VERIFICATION</p><h1 className="mt-3 text-2xl font-semibold">확인할 수 없는 인증번호입니다.</h1><p className="mt-2 text-sm text-slate-500">인증번호를 다시 확인하거나 수료 기록 화면으로 돌아가 주세요.</p><a href="/certificate" className="mt-6 inline-flex rounded-md border border-teal-700/30 px-4 py-2 text-sm text-teal-800">수료 기록으로 돌아가기</a></div></main>;

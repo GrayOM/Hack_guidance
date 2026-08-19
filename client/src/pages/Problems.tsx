@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Check, Flag, Search } from "lucide-react";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
+import { usePlatformAuth, startPlatformLogin } from "@/hooks/usePlatformAuth";
+import { useLearningDashboard } from "@/hooks/useLearningApi";
 import { ConsoleNav } from "@/components/ConsoleNav";
 import { filterProblemDirectory, getUniqueProblems, levels } from "@/lib/curriculum";
 
@@ -17,8 +16,8 @@ const badgeTone: Record<string, string> = {
 
 export default function Problems() {
   const [, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
-  const dashboard = trpc.learning.dashboard.useQuery(undefined, { enabled: isAuthenticated, retry: false });
+  const { isAuthenticated } = usePlatformAuth();
+  const dashboard = useLearningDashboard({ enabled: isAuthenticated, retry: false });
   const [sector, setSector] = useState<number | "all">("all");
   const [query, setQuery] = useState("");
   const completed = dashboard.data?.completedIds ?? [];
@@ -29,7 +28,7 @@ export default function Problems() {
   );
   function openProblem(id: number) {
     if (!isAuthenticated) {
-      startLogin();
+      startPlatformLogin();
       return;
     }
     setLocation(`/lab/${id}`);

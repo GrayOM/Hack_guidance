@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Crown, Radio, Trophy } from "lucide-react";
-import { trpc } from "@/lib/trpc";
 import { ConsoleNav } from "@/components/ConsoleNav";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { usePlatformAuth } from "@/hooks/usePlatformAuth";
+import { useLearningRanking } from "@/hooks/useLearningApi";
 import { getRankingFingerprint, getRankingStreamEvent, type RankingFingerprint, type RankingStreamEvent } from "@/lib/ranking-feedback";
 
 type StreamEvent = RankingStreamEvent & { id: number };
 
 export default function Ranking() {
-  const { user } = useAuth();
-  const ranking = trpc.learning.ranking.useQuery(undefined, {
+  const { user } = usePlatformAuth();
+  const ranking = useLearningRanking({
     refetchInterval: 15_000,
     refetchOnWindowFocus: true,
   });
@@ -41,7 +41,7 @@ export default function Ranking() {
         <section className="ranking-console hnet-panel mt-8 overflow-hidden border border-[#315057]">
           {streamEvent ? <div key={streamEvent.id} className={`ranking-stream ranking-stream--${streamEvent.kind}`} role="status" aria-live="polite"><div className="ranking-stream__rain" /><span>{streamEvent.message}</span></div> : null}
           <div className="hidden grid-cols-[80px_minmax(0,1fr)_140px_180px] border-b border-[#294247] bg-[#0a1518] px-5 py-3 font-mono-ui text-[10px] tracking-[0.14em] text-slate-500 sm:grid"><span>RANK</span><span>OPERATOR</span><span>SOLVED</span><span>LAST SIGNAL</span></div>
-          {ranking.isLoading ? <div className="p-8 text-sm text-slate-400">랭킹 신호를 수집하고 있습니다.</div> : rows.length === 0 ? <div className="p-8 text-center"><Trophy className="mx-auto h-7 w-7 text-teal-300" /><p className="mt-3 text-sm text-slate-300">아직 공개 랭킹에 기록된 해결자가 없습니다.</p></div> : <div className="divide-y divide-[#294247]">{rows.map((row, index) => {
+          {ranking.isLoading ? <div className="p-8 text-sm text-slate-400">랭킹 신호를 수집하고 있습니다.</div> : rows.length === 0 ? <div className="p-8 text-center"><Trophy className="mx-auto h-7 w-7 text-teal-300" /><p className="mt-3 text-sm text-slate-300">아직 공개 랭킹에 기록된 해결자가 없습니다.</p></div> : <div className="divide-y divide-[#294247]">{rows.map((row: any, index: number) => {
             const isCurrentUser = row.userId === user?.id;
             return <div key={row.userId} className={`ranking-row grid gap-2 px-5 py-4 sm:grid-cols-[80px_minmax(0,1fr)_140px_180px] sm:items-center ${isCurrentUser ? "ranking-row--current" : ""}`}>
               <span className={`font-mono-ui text-sm ${index === 0 ? "text-amber-200" : "text-slate-500"}`}>{index === 0 ? <Crown className="h-4 w-4" /> : String(index + 1).padStart(2, "0")}</span>

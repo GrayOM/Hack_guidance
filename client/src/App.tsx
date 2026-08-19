@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -17,7 +17,7 @@ import { PointerAmbient } from "./components/PointerAmbient";
 /**
  * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
  */
-function Router() {
+function Routes() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
@@ -42,7 +42,9 @@ function App() {
         <TooltipProvider>
           <PointerAmbient />
           <Toaster />
-          <Router />
+          <WouterRouter base={import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Routes />
+          </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

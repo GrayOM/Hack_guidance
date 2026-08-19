@@ -5,16 +5,17 @@ import { useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
 import { ArrowLeft, Check, ChevronRight, CircleHelp, FileSearch, LockKeyhole, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
+import { usePlatformAuth, startPlatformLogin } from "@/hooks/usePlatformAuth";
+import { useReviewDefense, useSubmitFlag } from "@/hooks/useLearningApi";
 import { trpc } from "@/lib/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 import { challengeById } from "@shared/learning";
 import { SignalLockOverlay } from "@/components/SignalLockOverlay";
 
 export default function Lab() {
   const [, params] = useRoute("/lab/:id");
   const [, setLocation] = useLocation();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = usePlatformAuth();
   const id = Number(params?.id ?? 0);
   const challenge = useMemo(() => challengeById(id), [id]);
   const [flag, setFlag] = useState("");
@@ -22,23 +23,26 @@ export default function Lab() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [defenseReviewed, setDefenseReviewed] = useState(false);
   const utils = trpc.useUtils();
-  const submit = trpc.learning.submit.useMutation({
+  const queryClient = useQueryClient();
+  const submit = useSubmitFlag({
     onSuccess: result => {
       if (result.correct) {
         setIsCorrect(true);
         toast.success(result.message);
         void utils.learning.dashboard.invalidate();
+        void queryClient.invalidateQueries({ queryKey: ["hg-external"] });
       } else {
         toast.error(result.message);
       }
     },
     onError: () => toast.error("해결 시도를 기록하지 못했습니다. 로그인 상태와 연결을 확인해 주세요."),
   });
-  const reviewDefense = trpc.learning.reviewDefense.useMutation({
+  const reviewDefense = useReviewDefense({
     onSuccess: () => {
-      setDefenseReviewed(true);
-      toast.success("대응 노트 확인 기록을 저장했습니다.");
-      void utils.learning.dashboard.invalidate();
+        setDefenseReviewed(true);
+        toast.success("대응 노트 확인 기록을 저장했습니다.");
+        void utils.learning.dashboard.invalidate();
+        void queryClient.invalidateQueries({ queryKey: ["hg-external"] });
     },
     onError: () => toast.error("방어 기준을 저장하지 못했습니다."),
   });
@@ -51,7 +55,7 @@ export default function Lab() {
   const nextNode = challenge.id < 50 ? challenge.id + 1 : null;
   const submitFlag = () => {
     if (!isAuthenticated) {
-      startLogin();
+      startPlatformLogin();
       return;
     }
     if (!flag.trim()) {
