@@ -1,5 +1,5 @@
 const signalNodes = ["node-a", "node-b", "node-c", "node-d", "node-e", "node-f"];
-const transitRoutes = ["uplink", "downlink", "relay", "backbone"];
+const transitRoutes = ["a-b", "b-f", "e-d", "e-c"];
 
 /** Decorative global layer: conveys an active communications network without competing with task content. */
 export function SecurityBackdrop() {
@@ -17,7 +17,14 @@ export function SecurityBackdrop() {
       ))}
       <div className="security-backdrop__scan" />
       <div className="security-backdrop__pulse" />
-      {signalNodes.map((node) => <span key={node} className={`security-backdrop__node security-backdrop__node--${node}`} />)}
+      {signalNodes.map((node) => (
+        <span key={node} className={`security-backdrop__node security-backdrop__node--${node}`}>
+          <span className="security-backdrop__node-ring security-backdrop__node-ring--outer" />
+          <span className="security-backdrop__node-ring security-backdrop__node-ring--middle" />
+          <span className="security-backdrop__node-ring security-backdrop__node-ring--inner" />
+          <span className="security-backdrop__node-core" />
+        </span>
+      ))}
     </div>
   );
 }

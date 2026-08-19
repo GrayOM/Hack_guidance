@@ -144,6 +144,24 @@
 @keyframes security-handshake { 0%, 15% { transform: scale(0.45); opacity: 0; } 30% { opacity: 0.7; } 70%, 100% { transform: scale(2.3); opacity: 0; } }
 @media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__mesh, .security-backdrop__link, .security-backdrop__packet, .security-backdrop__node::after { animation: none; } .security-backdrop__link { display: none; } }
 
+/* Hacknet-inspired transceiver nodes make every packet route visibly originate from and return to a core. */
+.security-backdrop__link--a-b { top: 18%; left: 14%; width: 55vw; --packet-distance: 55vw; --packet-return: -55vw; transform: rotate(14deg); }
+.security-backdrop__link--b-f { top: 33%; left: 67%; width: 30vw; --packet-distance: 30vw; --packet-return: -30vw; transform: rotate(-39deg); }
+.security-backdrop__link--e-d { top: 46%; left: 43%; width: 43vw; --packet-distance: 43vw; --packet-return: -43vw; transform: rotate(27deg); }
+.security-backdrop__link--e-c { top: 46%; left: 43%; width: 33vw; --packet-distance: 33vw; --packet-return: -33vw; transform: rotate(131deg); }
+.security-backdrop__node { width: 38px; height: 38px; overflow: visible; background: transparent; box-shadow: none; transform: translate(-50%, -50%); animation: none; }
+.security-backdrop__node::after { content: none; }
+.security-backdrop__node-ring { position: absolute; border: 1px solid rgba(97, 255, 207, 0.48); border-radius: 999px; }
+.security-backdrop__node-ring--outer { inset: -8px; border-color: rgba(89, 255, 201, 0.22); box-shadow: 0 0 18px rgba(49, 255, 191, 0.15); animation: security-transceiver-outer 6.2s ease-out infinite; animation-delay: var(--node-delay); }
+.security-backdrop__node-ring--middle { inset: 0; border-color: rgba(106, 255, 212, 0.48); animation: security-transceiver-middle 4.8s ease-in-out infinite; animation-delay: var(--node-delay); }
+.security-backdrop__node-ring--inner { inset: 8px; border-color: rgba(166, 255, 226, 0.7); box-shadow: inset 0 0 10px rgba(78, 255, 196, 0.12); }
+.security-backdrop__node-core { position: absolute; inset: 14px; border-radius: 999px; background: #a8ffe4; box-shadow: 0 0 0 4px rgba(74, 255, 196, 0.10), 0 0 18px rgba(70, 255, 194, 0.92); animation: security-transceiver-core 3.9s ease-in-out infinite; animation-delay: var(--node-delay); }
+.security-backdrop__node--node-d .security-backdrop__node-core, .security-backdrop__node--node-f .security-backdrop__node-core { background: #ffd18e; box-shadow: 0 0 0 4px rgba(255, 186, 83, 0.10), 0 0 18px rgba(255, 188, 87, 0.88); }
+@keyframes security-transceiver-outer { 0%, 20% { transform: scale(0.72); opacity: 0; } 35% { opacity: 0.72; } 78%, 100% { transform: scale(1.22); opacity: 0; } }
+@keyframes security-transceiver-middle { 0%, 100% { transform: scale(0.9); opacity: 0.34; } 48% { transform: scale(1.06); opacity: 0.88; } }
+@keyframes security-transceiver-core { 0%, 100% { transform: scale(0.7); opacity: 0.64; } 45% { transform: scale(1.25); opacity: 1; } }
+@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__node-ring, .security-backdrop__node-core { animation: none; } }
+
 @media (prefers-reduced-motion: no-preference) {
   .signal-line { animation: hnet-pulse 2.8s ease-in-out infinite; }
   @keyframes hnet-pulse { 50% { box-shadow: 0 0 0 1px rgba(52, 255, 190, 0.26), 0 0 26px rgba(0, 239, 174, 0.72); } }
