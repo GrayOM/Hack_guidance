@@ -7,8 +7,9 @@ const signalNodes = [
   { id: "node-d", code: "RANK-04" },
   { id: "node-e", code: "CORE-00" },
   { id: "node-f", code: "CERT-50" },
+  { id: "node-g", code: "INTR-66", kind: "hacker" },
 ];
-const transitRoutes = ["a-e", "e-b", "e-c", "e-d", "b-f", "c-d", "a-b"];
+const transitRoutes = ["a-e", "e-b", "e-c", "e-d", "b-f", "c-d", "a-b", "g-e"];
 const focusByPath: Record<string, string> = {
   "/": "node-e",
   "/problems": "node-b",
@@ -37,7 +38,7 @@ export function SecurityBackdrop() {
       <div className="security-backdrop__scan" />
       <div className="security-backdrop__pulse" />
       {signalNodes.map((node) => (
-        <span key={node.id} className={`security-backdrop__node security-backdrop__node--${node.id} ${activeNode === node.id ? "is-active" : ""}`}>
+        <span key={node.id} className={`security-backdrop__node security-backdrop__node--${node.id} ${node.kind === "hacker" ? "security-backdrop__node--hacker" : ""} ${activeNode === node.id ? "is-active" : ""}`}>
           <span className="security-backdrop__node-ring security-backdrop__node-ring--outer" />
           <span className="security-backdrop__node-ring security-backdrop__node-ring--middle" />
           <span className="security-backdrop__node-ring security-backdrop__node-ring--inner" />

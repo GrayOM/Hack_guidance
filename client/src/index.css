@@ -181,6 +181,29 @@
 @keyframes security-section-focus { 0% { opacity: 0; transform: scale(0.72); } 32% { opacity: 0.94; } 100% { opacity: 0; transform: scale(1.65); } }
 @media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__node-code { display: none; } .security-backdrop__node.is-active { transform: translate(-50%, -50%); filter: none; } .security-backdrop__node.is-active::before { animation: none; } }
 
+/* Traffic timing is deliberately irregular, so the mesh feels like live traffic rather than a synchronized loop. */
+.security-backdrop__packet--forward { animation-duration: var(--forward-duration, 8.5s); animation-delay: var(--forward-delay, 0s); }
+.security-backdrop__packet--ack { animation-duration: var(--ack-duration, 8.5s); animation-delay: var(--ack-delay, 0s); }
+.security-backdrop__link--a-e { --forward-duration: 6.2s; --ack-duration: 10.8s; --forward-delay: -2.4s; --ack-delay: -6.8s; }
+.security-backdrop__link--e-b { --forward-duration: 9.7s; --ack-duration: 7.1s; --forward-delay: -5.2s; --ack-delay: -1.8s; }
+.security-backdrop__link--e-c { --forward-duration: 12.6s; --ack-duration: 8.4s; --forward-delay: -8.1s; --ack-delay: -3.2s; }
+.security-backdrop__link--e-d { --forward-duration: 8.2s; --ack-duration: 13.1s; --forward-delay: -1.6s; --ack-delay: -9.4s; }
+.security-backdrop__link--b-f { --forward-duration: 5.7s; --ack-duration: 9.8s; --forward-delay: -4.4s; --ack-delay: -7.1s; }
+.security-backdrop__link--c-d { --forward-duration: 14.4s; --ack-duration: 6.9s; --forward-delay: -10.6s; --ack-delay: -2.7s; }
+.security-backdrop__link--a-b { --forward-duration: 10.9s; --ack-duration: 12.2s; --forward-delay: -7.6s; --ack-delay: -5.9s; }
+.security-backdrop__link--g-e { top: 11%; left: 90%; width: 48vw; --packet-distance: 48vw; --packet-return: -48vw; --forward-duration: 4.1s; --ack-duration: 11.6s; --forward-delay: -1.9s; --ack-delay: -8.7s; transform: rotate(152deg); background: repeating-linear-gradient(90deg, rgba(255, 109, 92, 0.05) 0 8px, rgba(255, 109, 92, 0.52) 8px 10px, rgba(255, 109, 92, 0.05) 10px 17px); box-shadow: 0 0 14px rgba(255, 105, 85, 0.22); }
+.security-backdrop__link--g-e .security-backdrop__packet--forward { background: #ff886f; box-shadow: 0 0 0 3px rgba(255, 111, 91, 0.12), 0 0 15px rgba(255, 114, 92, 0.95); }
+.security-backdrop__link--g-e .security-backdrop__packet--ack { background: #ffc286; box-shadow: 0 0 0 3px rgba(255, 184, 96, 0.1), 0 0 14px rgba(255, 181, 90, 0.8); }
+.security-backdrop__node--node-g { top: 11%; left: 90%; --node-delay: -1.5s; }
+.security-backdrop__node--hacker { z-index: 2; opacity: 0.78; }
+.security-backdrop__node--hacker .security-backdrop__node-ring { border-color: rgba(255, 119, 96, 0.62); }
+.security-backdrop__node--hacker .security-backdrop__node-ring--outer { box-shadow: 0 0 20px rgba(255, 90, 73, 0.24); animation-name: security-intrusion-ring; animation-duration: 3.2s; }
+.security-backdrop__node--hacker .security-backdrop__node-core { background: #ff836b; box-shadow: 0 0 0 4px rgba(255, 101, 82, 0.12), 0 0 18px rgba(255, 99, 80, 0.9); animation-name: security-intrusion-core; animation-duration: 2.6s; }
+.security-backdrop__node--hacker .security-backdrop__node-code { border-left-color: rgba(255, 131, 101, 0.72); color: #ffc2b4; text-shadow: 0 0 10px rgba(255, 102, 82, 0.68); }
+@keyframes security-intrusion-ring { 0%, 18% { transform: scale(0.68); opacity: 0; } 34% { opacity: 0.88; } 62% { transform: scale(1.12); opacity: 0.16; } 74% { opacity: 0.62; } 100% { transform: scale(1.32); opacity: 0; } }
+@keyframes security-intrusion-core { 0%, 100% { transform: scale(0.68); opacity: 0.64; } 38% { transform: scale(1.32); opacity: 1; } 53% { transform: scale(0.94); opacity: 0.44; } 68% { transform: scale(1.18); opacity: 0.92; } }
+@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__link--g-e { display: none; } .security-backdrop__node--hacker { display: none; } }
+
 @media (prefers-reduced-motion: no-preference) {
   .signal-line { animation: hnet-pulse 2.8s ease-in-out infinite; }
   @keyframes hnet-pulse { 50% { box-shadow: 0 0 0 1px rgba(52, 255, 190, 0.26), 0 0 26px rgba(0, 239, 174, 0.72); } }
