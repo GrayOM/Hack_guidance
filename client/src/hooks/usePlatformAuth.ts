@@ -9,7 +9,7 @@ type PlatformUser = { id: string; name?: string | null; email?: string | null };
 
 type MagicLinkClient = {
   auth: {
-    signInWithOtp: (input: { email: string; options: { emailRedirectTo: string } }) => Promise<{ error: { message: string } | null }>;
+    signInWithOtp: (input: { email: string; options: { emailRedirectTo: string; shouldCreateUser?: boolean } }) => Promise<{ error: { message: string } | null }>;
   };
 };
 
@@ -35,7 +35,7 @@ export async function sendSupabaseMagicLink(
   try {
     const { error } = await client.auth.signInWithOtp({
       email: normalizedEmail,
-      options: { emailRedirectTo },
+      options: { emailRedirectTo, shouldCreateUser: true },
     });
     if (error) {
       toast.error(`매직 링크를 전송하지 못했습니다: ${error.message}`);

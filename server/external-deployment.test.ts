@@ -29,6 +29,9 @@ describe("external free-tier deployment pack", () => {
     expect(migration).toContain("hg_consume_submission_slot");
     expect(migration).toContain("hg_record_problem_completion");
     expect(migration).toContain("hg_issue_clearance_certificate");
+    expect(migration).toContain("hg_on_auth_user_created");
+    expect(migration).toContain("left join public.hg_learning_progress");
+    expect(migration).toContain("count(lp.problem_id)::integer as solved_count");
     expect(migration).not.toContain("drop trigger");
     expect(migration).not.toMatch(/HG\{N\d{2}_[A-Za-z0-9_-]{24}\}/);
     expect(hardeningMigration).toContain("revoke all on function public.hg_consume_submission_slot(uuid) from public, anon, authenticated");
@@ -62,7 +65,9 @@ describe("external free-tier deployment pack", () => {
     expect(rankingPage).toContain("useLearningRanking");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
-    expect(consoleNav).toContain("이메일 매직 링크 로그인");
+    expect(consoleNav).toContain("이메일로 간편 시작");
+    expect(consoleNav).toContain("처음 입력한 이메일은 계정을 만들고");
+    expect(platformAuth).toContain("shouldCreateUser: true");
     expect(consoleNav).toContain("로그아웃");
     expect(consoleNav).toContain("sendSupabaseMagicLink");
     expect(signalLogo).toContain("<svg");

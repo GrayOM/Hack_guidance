@@ -22,7 +22,7 @@ describe("Supabase email magic link", () => {
     await expect(sendSupabaseMagicLink(" analyst@example.test ", { auth: { signInWithOtp } }, "https://example.test/Hack_guidance/")).resolves.toBe("sent");
     expect(signInWithOtp).toHaveBeenCalledWith({
       email: "analyst@example.test",
-      options: { emailRedirectTo: "https://example.test/Hack_guidance/" },
+      options: { emailRedirectTo: "https://example.test/Hack_guidance/", shouldCreateUser: true },
     });
     expect(toast.success).toHaveBeenCalledWith("매직 링크를 전송했습니다. 이메일에서 링크를 열어 로그인해 주세요.");
   });
