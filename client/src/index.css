@@ -216,6 +216,25 @@
 @keyframes security-intrusion-arrival { 0%, 82% { transform: scale(0.44); opacity: 0; } 88% { opacity: 0.82; } 100% { transform: scale(1.86); opacity: 0; } }
 @media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__node-arrival, .security-backdrop__link--g-e, .security-backdrop__node--hacker { animation: none; } }
 
+/* The intrusion node probes several targets on independent clocks; each target detects the hit and returns a defense packet. */
+.security-backdrop__link--g-b, .security-backdrop__link--g-d { background: repeating-linear-gradient(90deg, rgba(255, 109, 92, 0.05) 0 8px, rgba(255, 109, 92, 0.52) 8px 10px, rgba(255, 109, 92, 0.05) 10px 17px); box-shadow: 0 0 14px rgba(255, 105, 85, 0.22); }
+.security-backdrop__link--g-b { top: 11%; left: 90%; width: 17vw; --packet-distance: 17vw; --packet-return: -17vw; --intrusion-duration: 11.8s; --intrusion-delay: -3.4s; transform: rotate(152deg); }
+.security-backdrop__link--g-d { top: 11%; left: 90%; width: 36vw; --packet-distance: 36vw; --packet-return: -36vw; --intrusion-duration: 15.7s; --intrusion-delay: -9.2s; transform: rotate(103deg); }
+.security-backdrop__link--g-e { --intrusion-duration: 13.4s; --intrusion-delay: -6.1s; }
+.security-backdrop__link--g-e, .security-backdrop__link--g-b, .security-backdrop__link--g-d { animation: security-intrusion-link-glitch 9.6s steps(1, end) infinite; }
+.security-backdrop__packet--intrusion { left: 0; background: #ff886f; box-shadow: 0 0 0 3px rgba(255, 111, 91, 0.12), 0 0 15px rgba(255, 114, 92, 0.95); animation: security-intrusion-packet var(--intrusion-duration, 12s) linear var(--intrusion-delay, 0s) infinite; }
+.security-backdrop__packet--defense { right: 0; background: #8fffe1; box-shadow: 0 0 0 3px rgba(85, 255, 204, 0.12), 0 0 16px rgba(93, 255, 209, 0.92); animation: security-defense-packet var(--intrusion-duration, 12s) linear var(--intrusion-delay, 0s) infinite; }
+@keyframes security-intrusion-packet { 0%, 7% { transform: translate3d(-14px, -50%, 0) scale(0.55); opacity: 0; } 13% { opacity: 0.98; } 57% { opacity: 0.94; } 65%, 100% { transform: translate3d(var(--packet-distance), -50%, 0) scale(0.76); opacity: 0; } }
+@keyframes security-defense-packet { 0%, 66% { transform: translate3d(14px, -50%, 0) scale(0.54); opacity: 0; } 72% { opacity: 0.98; } 93% { opacity: 0.9; } 100% { transform: translate3d(var(--packet-return), -50%, 0) scale(0.78); opacity: 0; } }
+.security-backdrop__node-defense { position: absolute; inset: -19px; border: 1px solid rgba(103, 255, 214, 0.9); border-radius: 999px; opacity: 0; transform: scale(0.5); }
+.security-backdrop__node--node-e .security-backdrop__node-defense { animation: security-core-defense 13.4s cubic-bezier(0.23, 1, 0.32, 1) -6.1s infinite; }
+.security-backdrop__node--node-b .security-backdrop__node-defense { animation: security-core-defense 11.8s cubic-bezier(0.23, 1, 0.32, 1) -3.4s infinite; }
+.security-backdrop__node--node-d .security-backdrop__node-defense { animation: security-core-defense 15.7s cubic-bezier(0.23, 1, 0.32, 1) -9.2s infinite; }
+.security-backdrop__node--defense-target .security-backdrop__node-core { animation-name: security-defending-core; }
+@keyframes security-core-defense { 0%, 61% { transform: scale(0.46); opacity: 0; } 67% { opacity: 0.96; } 83% { transform: scale(1.94); opacity: 0; } 100% { transform: scale(1.94); opacity: 0; } }
+@keyframes security-defending-core { 0%, 61%, 100% { transform: scale(0.7); opacity: 0.64; } 66% { transform: scale(1.48); opacity: 1; } 76% { transform: scale(0.82); opacity: 0.88; } }
+@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__link--g-b, .security-backdrop__link--g-d, .security-backdrop__packet--intrusion, .security-backdrop__packet--defense, .security-backdrop__node-defense { display: none; animation: none; } }
+
 @media (prefers-reduced-motion: no-preference) {
   .signal-line { animation: hnet-pulse 2.8s ease-in-out infinite; }
   @keyframes hnet-pulse { 50% { box-shadow: 0 0 0 1px rgba(52, 255, 190, 0.26), 0 0 26px rgba(0, 239, 174, 0.72); } }

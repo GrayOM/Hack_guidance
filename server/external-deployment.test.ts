@@ -100,6 +100,9 @@ describe("external free-tier deployment pack", () => {
     expect(securityBackdrop).toContain('"g-e"');
     expect(securityBackdrop).toContain("security-backdrop__node-code");
     expect(securityBackdrop).toContain("security-backdrop__node-arrival");
+    expect(securityBackdrop).toContain('"g-b"');
+    expect(securityBackdrop).toContain('"g-d"');
+    expect(securityBackdrop).toContain("security-backdrop__node-defense");
     expect(globalCss).toContain("security-scan-sweep");
     expect(globalCss).toContain("security-backdrop__link--e-c");
     expect(globalCss).toContain("security-backdrop__link--g-e");
@@ -108,6 +111,8 @@ describe("external free-tier deployment pack", () => {
     expect(globalCss).toContain("--ack-duration");
     expect(globalCss).toContain("security-packet-arrival");
     expect(globalCss).toContain("security-intrusion-link-glitch");
+    expect(globalCss).toContain("security-defense-packet");
+    expect(globalCss).toContain("security-core-defense");
     expect(globalCss).toContain("security-section-focus");
     expect(globalCss).toContain("prefers-reduced-motion: reduce");
     for (const page of [homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, certificatePrint, verifyPage, consoleNav]) {
