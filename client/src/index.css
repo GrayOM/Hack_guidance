@@ -204,6 +204,18 @@
 @keyframes security-intrusion-core { 0%, 100% { transform: scale(0.68); opacity: 0.64; } 38% { transform: scale(1.32); opacity: 1; } 53% { transform: scale(0.94); opacity: 0.44; } 68% { transform: scale(1.18); opacity: 0.92; } }
 @media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__link--g-e { display: none; } .security-backdrop__node--hacker { display: none; } }
 
+/* Arrival rings are synchronized to incoming packets, turning delivery into a visible node acknowledgement. */
+.security-backdrop__node-arrival { position: absolute; inset: -15px; border: 1px solid rgba(159, 255, 225, 0.8); border-radius: 999px; opacity: 0; transform: scale(0.48); animation: security-packet-arrival var(--arrival-duration, 9s) cubic-bezier(0.23, 1, 0.32, 1) infinite; animation-delay: var(--arrival-delay, -4s); }
+.security-backdrop__node--node-a { --arrival-duration: 10.8s; --arrival-delay: -6.8s; }.security-backdrop__node--node-b { --arrival-duration: 9.7s; --arrival-delay: -5.2s; }.security-backdrop__node--node-c { --arrival-duration: 12.6s; --arrival-delay: -8.1s; }.security-backdrop__node--node-d { --arrival-duration: 8.2s; --arrival-delay: -1.6s; }.security-backdrop__node--node-e { --arrival-duration: 6.2s; --arrival-delay: -2.4s; }.security-backdrop__node--node-f { --arrival-duration: 5.7s; --arrival-delay: -4.4s; }
+@keyframes security-packet-arrival { 0%, 81% { transform: scale(0.44); opacity: 0; } 87% { opacity: 0.96; } 100% { transform: scale(1.78); opacity: 0; } }
+.security-backdrop__link--g-e { animation: security-intrusion-link-glitch 9.6s steps(1, end) infinite; }
+.security-backdrop__node--hacker { animation: security-intrusion-node-glitch 9.6s steps(1, end) infinite; }
+.security-backdrop__node--hacker .security-backdrop__node-arrival { border-color: rgba(255, 125, 105, 0.8); animation-name: security-intrusion-arrival; animation-duration: 11.6s; animation-delay: -8.7s; }
+@keyframes security-intrusion-link-glitch { 0%, 56%, 72%, 100% { opacity: 1; clip-path: inset(0); } 58% { opacity: 0.16; clip-path: inset(0 37% 0 0); } 60%, 64% { opacity: 0; clip-path: inset(0 100% 0 0); } 66% { opacity: 0.72; clip-path: inset(0 19% 0 43%); } 68% { opacity: 0.18; clip-path: inset(0 61% 0 0); } 70% { opacity: 0.94; clip-path: inset(0); } }
+@keyframes security-intrusion-node-glitch { 0%, 56%, 72%, 100% { opacity: 0.78; filter: none; } 58% { opacity: 0.26; filter: saturate(2.2) blur(0.5px); } 60%, 64% { opacity: 0; filter: blur(1.5px); } 66% { opacity: 0.66; filter: saturate(2.8) contrast(1.45); } 68% { opacity: 0.22; filter: blur(1px); } 70% { opacity: 0.92; filter: saturate(1.8); } }
+@keyframes security-intrusion-arrival { 0%, 82% { transform: scale(0.44); opacity: 0; } 88% { opacity: 0.82; } 100% { transform: scale(1.86); opacity: 0; } }
+@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .security-backdrop__node-arrival, .security-backdrop__link--g-e, .security-backdrop__node--hacker { animation: none; } }
+
 @media (prefers-reduced-motion: no-preference) {
   .signal-line { animation: hnet-pulse 2.8s ease-in-out infinite; }
   @keyframes hnet-pulse { 50% { box-shadow: 0 0 0 1px rgba(52, 255, 190, 0.26), 0 0 26px rgba(0, 239, 174, 0.72); } }

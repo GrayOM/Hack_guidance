@@ -43,6 +43,7 @@ export function SecurityBackdrop() {
           <span className="security-backdrop__node-ring security-backdrop__node-ring--middle" />
           <span className="security-backdrop__node-ring security-backdrop__node-ring--inner" />
           <span className="security-backdrop__node-core" />
+          <span className="security-backdrop__node-arrival" />
           <span className="security-backdrop__node-code">{node.code}</span>
         </span>
       ))}
