@@ -295,3 +295,7 @@
 # 실제 수료 발급 함수 오류 수정
 
 - [x] `hg_issue_clearance_certificate`의 `certificate_code` 모호 참조를 제거해 실제 Edge Function 수료 발급이 500 오류 없이 동작하게 수정한다.
+
+# 미리보기 동적 배경 표시 점검
+
+- [ ] Manus 미리보기에서 동적 보안 콘솔 배경이 보이지 않는 원인을 확인하고, 개발 미리보기와 GitHub Pages 배포본에서 모두 식별 가능하게 조정한다.
