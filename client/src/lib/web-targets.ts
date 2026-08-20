@@ -109,6 +109,7 @@ const toolByKind: Record<WebTargetKind, WebTargetTool> = {
 };
 
 const modelByKind: Record<WebTargetKind, WargamePlayModel> = {
+  // The target surface is only one part of a run: the workspace also provides evidence and recovery docks.
   identity: "identity-trail", files: "artifact-hunt", directory: "object-pivot", forms: "request-replay", api: "request-replay", report: "incident-review", upload: "artifact-hunt", content: "render-trace",
 };
 
