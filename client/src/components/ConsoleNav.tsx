@@ -82,8 +82,11 @@ export function ConsoleNav() {
     setSendingLogin(false);
 
     if (result === "signed-in") {
-      setLoginStatus(authMode === "signup" ? "계정 생성과 로그인이 완료되었습니다." : "로그인되었습니다.");
+      setLoginOpen(false);
+      setAuthMode("signin");
       setPassword("");
+      setConfirmation("");
+      setLoginStatus("");
       return;
     }
     if (result === "confirmation-sent") {

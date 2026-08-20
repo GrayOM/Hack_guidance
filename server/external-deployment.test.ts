@@ -121,6 +121,9 @@ describe("external free-tier deployment pack", () => {
     expect(consoleNav).toContain("비밀번호를 잊으셨나요? 이메일로 재설정");
     expect(consoleNav).toContain("이미 사용 중인 공개명입니다.");
     expect(consoleNav).toContain("이메일 인증을 완료하면 입력한 공개명이 공개 랭킹에");
+    expect(consoleNav).toContain('if (result === "signed-in")');
+    expect(consoleNav).toContain('setLoginOpen(false);');
+    expect(consoleNav).toContain('setAuthMode("signin");');
     expect(consoleNav).toContain('setLocation("/me")');
     expect(myPage).toContain("공개명 저장");
     expect(myPage).toContain("LEARNING SUMMARY");
