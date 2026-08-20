@@ -2,6 +2,7 @@ import { caseNarrativeForNode, type CaseNarrative } from "@shared/case-narrative
 
 export type WebTargetKind = "identity" | "files" | "directory" | "forms" | "api" | "report" | "upload" | "content";
 export type WebTargetTool = "identity-bridge" | "artifact-vault" | "object-map" | "request-forge" | "packet-console" | "case-terminal" | "ingest-bay" | "render-lab";
+export type WargamePlayModel = "identity-trail" | "artifact-hunt" | "object-pivot" | "request-replay" | "render-trace" | "incident-review";
 export type WebTargetLayout = "ledger" | "editorial" | "canvas" | "terminal" | "portal" | "dashboard" | "library" | "minimal" | "board" | "studio";
 export type WebTargetScene = "mesh" | "radar" | "rain" | "circuit" | "breach" | "packets" | "cipher" | "orbit" | "vault" | "void";
 
@@ -33,6 +34,7 @@ export type WebTargetSpec = {
 
 export type ResolvedWebTargetSpec = WebTargetSpec & {
   tool: WebTargetTool;
+  playModel: WargamePlayModel;
   caseFile: CaseNarrative | null;
 };
 
@@ -106,6 +108,10 @@ const toolByKind: Record<WebTargetKind, WebTargetTool> = {
   content: "render-lab",
 };
 
+const modelByKind: Record<WebTargetKind, WargamePlayModel> = {
+  identity: "identity-trail", files: "artifact-hunt", directory: "object-pivot", forms: "request-replay", api: "request-replay", report: "incident-review", upload: "artifact-hunt", content: "render-trace",
+};
+
 export function webTargetForNode(id: number): ResolvedWebTargetSpec | null {
   const target = targets.find(candidate => candidate.id === id);
   if (!target) return null;
@@ -115,6 +121,7 @@ export function webTargetForNode(id: number): ResolvedWebTargetSpec | null {
     heading: caseFile?.targetTitle ?? target.heading,
     description: caseFile?.targetBrief ?? target.description,
     tool: toolByKind[target.kind],
+    playModel: modelByKind[target.kind],
     caseFile,
   };
 }

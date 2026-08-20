@@ -25,6 +25,7 @@ export default function WebTarget() {
   const [flag, setFlag] = useState("");
   const [response, setResponse] = useState("Ready. Use this isolated service as you would a normal web application.");
   const [solved, setSolved] = useState(false);
+  const [activeSurface, setActiveSurface] = useState<"service" | "evidence" | "recovery">("service");
   const practice = usePracticeProbe({
     onSuccess: result => {
       if (result.verified && result.capture) {
@@ -90,9 +91,10 @@ export default function WebTarget() {
           <TargetSiteStatus target={target} visual={visual} />
           <div className="web-target__layout">
             <div className="web-target__content">
-              <TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} />
-              <ServiceResponse response={response} artifact={artifact} tool={target.tool} />
-              <FlagSubmission flag={flag} setFlag={setFlag} submitFlag={submitFlag} pending={submit.isPending} solved={solved} nextNode={nextNode} onNext={() => setLocation(`/lab/${nextNode}`)} />
+              <WorkspaceDock target={target} activeSurface={activeSurface} onChange={setActiveSurface} />
+              {activeSurface === "service" ? <><TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} /><ServiceResponse response={response} artifact={artifact} tool={target.tool} /></> : null}
+              {activeSurface === "evidence" ? <EvidenceBoard target={target} guide={guide} artifact={artifact} /> : null}
+              {activeSurface === "recovery" ? <FlagSubmission flag={flag} setFlag={setFlag} submitFlag={submitFlag} pending={submit.isPending} solved={solved} nextNode={nextNode} onNext={() => setLocation(`/lab/${nextNode}`)} /> : null}
             </div>
             <TargetAside target={target} visual={visual} id={id} />
           </div>
@@ -108,6 +110,14 @@ function TargetHeader({ target, visual, id, onBack }: { target: NonNullable<Retu
 
 function TargetSiteStatus({ target, visual }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual }) {
   return <div className="web-target__site-status"><span>{target.origin}</span><span>{target.tool.replace(/-/g, " · ")}</span><span>{visual.scene} environment</span></div>;
+}
+
+function WorkspaceDock({ target, activeSurface, onChange }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; activeSurface: "service" | "evidence" | "recovery"; onChange: (surface: "service" | "evidence" | "recovery") => void }) {
+  return <nav className="web-target__workspace-dock" aria-label="Investigation workspace"><button className={activeSurface === "service" ? "is-active" : ""} onClick={() => onChange("service")}>SERVICE · {target.appName}</button><button className={activeSurface === "evidence" ? "is-active" : ""} onClick={() => onChange("evidence")}>EVIDENCE VIEW</button><button className={activeSurface === "recovery" ? "is-active" : ""} onClick={() => onChange("recovery")}>RECOVERY DOCK</button></nav>;
+}
+
+function EvidenceBoard({ target, guide, artifact }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; guide: NonNullable<ReturnType<typeof practiceGuideForNode>>; artifact: string }) {
+  return <section className="web-target__evidence-board"><p>OBSERVATION WORKSPACE · {target.playModel.replace(/-/g, " ")}</p><h2>{target.caseFile?.title ?? target.heading}</h2><div><span>ENTRY SURFACE</span><strong>{target.origin}{target.route}</strong></div><div><span>INVESTIGATION MARKER</span><strong>{guide.marker}</strong></div><div><span>RECOVERED ARTIFACT</span><strong>{artifact || "No artifact captured"}</strong></div></section>;
 }
 
 function TargetSurface({ target, visual, marker, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {

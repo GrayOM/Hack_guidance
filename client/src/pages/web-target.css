@@ -304,6 +304,15 @@
 .web-target__layout { position: relative; z-index: 1; width: min(calc(100% - 2rem), 112rem); margin: clamp(1rem, 3vw, 3rem) auto 0; border: 1px solid color-mix(in srgb, var(--target-ink) 16%, transparent); background: color-mix(in srgb, var(--target-paper) 96%, transparent); box-shadow: 0 2rem 5rem hsl(var(--target-hue) 42% 10% / .22); }
 .web-target__content { background: color-mix(in srgb, var(--target-paper) 97%, transparent); }
 .web-target__aside { background: color-mix(in srgb, var(--target-tint) 55%, var(--target-paper)); }
+.web-target__workspace-dock { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 1px solid color-mix(in srgb, var(--target-ink) 14%, transparent); }
+.web-target__workspace-dock button { padding: .7rem .85rem; color: var(--target-muted); font: 800 .62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
+.web-target__workspace-dock button.is-active { border-bottom: 2px solid var(--target-accent); color: var(--target-accent-strong); }
+.web-target__evidence-board { display: grid; gap: 1rem; min-height: 28rem; border: 1px solid color-mix(in srgb, var(--target-ink) 16%, transparent); background: color-mix(in srgb, var(--target-tint) 42%, var(--target-paper)); padding: clamp(1.25rem, 3vw, 2.5rem); }
+.web-target__evidence-board > p { color: var(--target-accent-strong); font: 800 .64rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
+.web-target__evidence-board h2 { font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 760; }
+.web-target__evidence-board > div { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem; border-top: 1px solid color-mix(in srgb, var(--target-ink) 13%, transparent); padding-top: .9rem; }
+.web-target__evidence-board span { color: var(--target-muted); font: 700 .63rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; }
+.web-target__evidence-board strong { overflow-wrap: anywhere; font: 700 .85rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 /* Each service category owns its entire environmental palette instead of inheriting a common Hack Guidance grid. */
 .web-target--tool-identity-bridge .web-target__stage { background: radial-gradient(circle at 16% 14%, hsl(var(--target-hue) 74% 42% / .32), transparent 24rem), repeating-linear-gradient(90deg, transparent 0 6rem, #9fffe618 6.05rem 6.12rem), linear-gradient(135deg, #061a18, #0d302c 55%, #06100e); }
