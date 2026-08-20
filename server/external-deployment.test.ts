@@ -114,6 +114,8 @@ describe("external free-tier deployment pack", () => {
     expect(labPage).toContain("TARGET ENVIRONMENT OPEN");
     expect(labPage).toContain("격리된 교육용 서비스");
     expect(webTargetPage).toContain("web-target__site-status");
+    expect(webTargetPage).toContain("ServiceRelay");
+    expect(webTargetPage).toContain("RECOVERY PATH");
     expect(webTargetPage).not.toContain("function BrowserFrame");
     expect(webTargetPage).not.toContain("function SecurityHud");
     expect(webTargetPage).toContain("data-service-reference");
@@ -149,6 +151,7 @@ describe("external free-tier deployment pack", () => {
     expect(webTargetCss).toContain("web-target--tool-case-terminal");
     expect(webTargetCss).toContain("web-target__workspace-dock");
     expect(webTargetCss).toContain("web-target__evidence-board");
+    expect(webTargetCss).toContain("web-target__service-relay");
     expect(webTargetCss).toContain("width: min(100%, 100rem)");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");

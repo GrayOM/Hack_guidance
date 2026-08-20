@@ -122,7 +122,8 @@ function ServiceRelay({ target, selected, onSelect }: { target: NonNullable<Retu
 }
 
 function EvidenceBoard({ target, guide, artifact }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; guide: NonNullable<ReturnType<typeof practiceGuideForNode>>; artifact: string }) {
-  return <section className="web-target__evidence-board"><p>OBSERVATION WORKSPACE · {target.playModel.replace(/-/g, " ")}</p><h2>{target.caseFile?.title ?? target.heading}</h2><div><span>ENTRY SURFACE</span><strong>{target.origin}{target.route}</strong></div><div><span>INVESTIGATION MARKER</span><strong>{guide.marker}</strong></div><div><span>RECOVERED ARTIFACT</span><strong>{artifact || "No artifact captured"}</strong></div></section>;
+  const recovery: Record<typeof target.playModel, string> = { "identity-trail": "세션·복구·역할 경로에서 보호된 표식을 회수", "artifact-hunt": "파일 전달 흔적에서 보호된 아티팩트를 회수", "object-pivot": "객체 경계 전환 결과에서 보호된 표식을 회수", "request-replay": "요청·응답 차이에서 보호된 아티팩트를 회수", "render-trace": "렌더링 문맥에서 노출된 보호 표식을 회수", "incident-review": "연결된 증거 사슬에서 최종 아티팩트를 회수" };
+  return <section className="web-target__evidence-board"><p>OBSERVATION WORKSPACE · {target.playModel.replace(/-/g, " ")}</p><h2>{target.caseFile?.title ?? target.heading}</h2><div><span>ENTRY SURFACE</span><strong>{target.origin}{target.route}</strong></div><div><span>RECOVERY PATH</span><strong>{recovery[target.playModel]}</strong></div><div><span>INVESTIGATION MARKER</span><strong>{guide.marker}</strong></div><div><span>RECOVERED ARTIFACT</span><strong>{artifact || "No artifact captured"}</strong></div></section>;
 }
 
 function TargetSurface({ target, visual, marker, serviceName, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; serviceName?: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
