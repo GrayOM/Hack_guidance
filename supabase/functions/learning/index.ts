@@ -101,6 +101,13 @@ Deno.serve(async request => {
 
   const user = await requireUser(request);
   if (!user) return json({ error: "Please sign in" }, 401);
+  if (!user.email_confirmed_at) return json({ error: "Please confirm your email address" }, 403);
+
+  if (action === "provisionProfile") {
+    const { data: displayName, error } = await service.rpc("hg_provision_confirmed_profile", { p_user_id: user.id });
+    if (error) return json({ error: "Unable to create learner profile" }, 500);
+    return json({ profile: { displayName } });
+  }
 
   if (action === "profile") {
     const [{ data: profile, error: profileError }, { data: progress, error: progressError }, { data: certificate, error: certificateError }] = await Promise.all([

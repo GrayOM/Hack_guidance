@@ -1,4 +1,4 @@
-import { isExternalSupabaseDeployment, supabase } from "@/lib/external-supabase";
+import { invokeLearning, isExternalSupabaseDeployment, supabase } from "@/lib/external-supabase";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -30,8 +30,8 @@ export async function registerSupabaseAccount(input: { email: string; password: 
   try {
     const { data, error } = await client.auth.signUp({ email, password: input.password, options: { data: { name: displayName }, emailRedirectTo } });
     if (error) { toast.error("회원가입을 완료하지 못했습니다. 이메일과 공개명을 다시 확인해 주세요."); return "failed" as const; }
-    if (data.session) { toast.success("회원가입과 로그인이 완료되었습니다. 공개 랭킹에 등록했습니다."); return "signed-in" as const; }
-    toast.success("확인 이메일을 전송했습니다. 메일의 링크를 열면 회원가입이 완료됩니다.");
+    if (data.session) { toast.success("계정 생성과 로그인이 완료되었습니다."); return "signed-in" as const; }
+    toast.success("확인 이메일을 전송했습니다. 이메일 인증을 완료하면 공개 프로필과 랭킹에 등록됩니다.");
     return "confirmation-sent" as const;
   } catch { toast.error("회원가입 중 연결 오류가 발생했습니다."); return "failed" as const; }
 }
@@ -84,18 +84,54 @@ function useSupabaseAuth() {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   useEffect(() => {
     if (!supabase) return;
-    void supabase.auth.getUser().then(({ data, error: authError }) => { setUser(mapUser(data.user)); setError(authError ?? null); }).catch(() => setError(new Error("인증 상태를 확인하지 못했습니다."))).finally(() => setLoading(false));
+    let mounted = true;
+    const activateConfirmedUser = async (authUser: User | null) => {
+      if (!authUser) {
+        if (mounted) setUser(null);
+        return;
+      }
+      if (!authUser.email_confirmed_at) {
+        if (mounted) {
+          setUser(null);
+          setError(new Error("이메일 인증을 완료한 뒤 로그인할 수 있습니다."));
+        }
+        return;
+      }
+      try {
+        await invokeLearning("provisionProfile");
+        if (mounted) {
+          setUser(mapUser(authUser));
+          setError(null);
+        }
+      } catch {
+        if (mounted) {
+          setUser(null);
+          setError(new Error("인증된 학습자 프로필을 준비하지 못했습니다."));
+        }
+      }
+    };
+    void supabase.auth.getUser().then(async ({ data, error: authError }) => {
+      if (authError) {
+        if (mounted) setError(authError);
+        return;
+      }
+      await activateConfirmedUser(data.user);
+    }).catch(() => { if (mounted) setError(new Error("인증 상태를 확인하지 못했습니다.")); }).finally(() => { if (mounted) setLoading(false); });
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(mapUser(session?.user ?? null));
+      void activateConfirmedUser(session?.user ?? null);
       if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
       if (event === "SIGNED_OUT") setPasswordRecovery(false);
-      setLoading(false);
+      if (mounted) setLoading(false);
     });
-    return () => listener.subscription.unsubscribe();
+    return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, []);
   const logout = useCallback(async () => { await supabase?.auth.signOut(); setUser(null); setPasswordRecovery(false); }, []);
   const clearPasswordRecovery = useCallback(() => setPasswordRecovery(false), []);
-  return useMemo(() => ({ user, loading, error, isAuthenticated: Boolean(user), passwordRecovery, clearPasswordRecovery, refresh: async () => { const { data } = await supabase?.auth.getUser() ?? { data: { user: null } }; setUser(mapUser(data.user)); }, logout }), [clearPasswordRecovery, error, loading, logout, passwordRecovery, user]);
+  return useMemo(() => ({ user, loading, error, isAuthenticated: Boolean(user), passwordRecovery, clearPasswordRecovery, refresh: async () => {
+    const { data, error: authError } = await supabase?.auth.getUser() ?? { data: { user: null }, error: null };
+    if (authError || !data.user?.email_confirmed_at) { setUser(null); return; }
+    try { await invokeLearning("provisionProfile"); setUser(mapUser(data.user)); } catch { setUser(null); }
+  }, logout }), [clearPasswordRecovery, error, loading, logout, passwordRecovery, user]);
 }
 
 /** Stable auth contract for Hack Guidance's independent Supabase account system. */

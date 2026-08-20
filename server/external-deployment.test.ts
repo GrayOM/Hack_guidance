@@ -5,11 +5,12 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000005_account_recovery_and_profiles.sql", root), "utf8"),
+      readFile(new URL("supabase/migrations/20260820000006_confirmed_email_profiles.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000003_fix_hg_certificate_function.sql", root), "utf8"),
       readFile(new URL("supabase/functions/learning/index.ts", root), "utf8"),
       readFile(new URL("client/public/_redirects", root), "utf8"),
@@ -51,6 +52,10 @@ describe("external free-tier deployment pack", () => {
     expect(accountMigration).toContain("hg_profiles_display_name_ci_unique");
     expect(accountMigration).toContain("hg_display_name_available");
     expect(accountMigration).toContain("revoke all on function public.hg_display_name_available");
+    expect(confirmedProfilesMigration).toContain("drop trigger if exists hg_on_auth_user_created");
+    expect(confirmedProfilesMigration).toContain("u.email_confirmed_at is null");
+    expect(confirmedProfilesMigration).toContain("hg_provision_confirmed_profile");
+    expect(confirmedProfilesMigration).toContain("Email confirmation is required");
     expect(certificateFunctionFix).toContain("v_certificate_code text");
     expect(certificateFunctionFix).toContain("select c.certificate_code into v_certificate_code");
     expect(certificateFunctionFix).toContain("returning public.hg_course_certificates.certificate_code into v_certificate_code");
@@ -62,6 +67,9 @@ describe("external free-tier deployment pack", () => {
     expect(edgeFunction).toContain('action === "checkDisplayName"');
     expect(edgeFunction).toContain('action === "profile"');
     expect(edgeFunction).toContain('action === "updateDisplayName"');
+    expect(edgeFunction).toContain('action === "provisionProfile"');
+    expect(edgeFunction).toContain("user.email_confirmed_at");
+    expect(edgeFunction).toContain("hg_provision_confirmed_profile");
     expect(edgeFunction).toContain("updateUserById");
     expect(edgeFunction).toContain("ranking: (data ?? []).map");
     expect(edgeFunction).toContain("json({ certificate: null })");
@@ -77,7 +85,9 @@ describe("external free-tier deployment pack", () => {
     expect(platformAuth).not.toContain("useManusAuth");
     expect(platformAuth).not.toContain("startManusLogin");
     expect(platformAuth).toContain("이메일 주소 형식을 확인해 주세요.");
-    expect(platformAuth).toContain("회원가입과 로그인이 완료되었습니다.");
+    expect(platformAuth).toContain("이메일 인증을 완료하면 공개 프로필과 랭킹에 등록됩니다.");
+    expect(platformAuth).toContain('invokeLearning("provisionProfile")');
+    expect(platformAuth).toContain("이메일 인증을 완료하면 공개 프로필과 랭킹에 등록됩니다.");
     expect(platformAuth).toContain("이메일 또는 비밀번호가 올바르지 않습니다.");
     expect(platformAuth).toContain("resetPasswordForEmail");
     expect(platformAuth).toContain('event === "PASSWORD_RECOVERY"');
@@ -93,7 +103,8 @@ describe("external free-tier deployment pack", () => {
     expect(labPage).not.toContain("trpc.");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
-    expect(rankingPage).toContain("이메일과 비밀번호로 회원가입하면 이곳에 표시됩니다.");
+    expect(rankingPage).toContain("이메일 인증 뒤 이곳에 표시됩니다.");
+    expect(rankingPage).toContain("이메일 인증을 완료한 분석자만");
     expect(rankingPage).not.toContain("이메일로 간편 시작하면");
     expect(certificatePage).toContain("useIssueCertificate");
     expect(consoleNav).toContain("usePlatformAuth");
@@ -109,6 +120,7 @@ describe("external free-tier deployment pack", () => {
     expect(consoleNav).toContain("sendPasswordResetEmail");
     expect(consoleNav).toContain("비밀번호를 잊으셨나요? 이메일로 재설정");
     expect(consoleNav).toContain("이미 사용 중인 공개명입니다.");
+    expect(consoleNav).toContain("이메일 인증을 완료하면 입력한 공개명이 공개 랭킹에");
     expect(consoleNav).toContain('setLocation("/me")');
     expect(myPage).toContain("공개명 저장");
     expect(myPage).toContain("LEARNING SUMMARY");

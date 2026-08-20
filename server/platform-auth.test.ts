@@ -27,7 +27,14 @@ describe("Supabase independent email and password account", () => {
       password: "safe-password",
       options: { data: { name: "GrayOM Analyst" }, emailRedirectTo: "https://example.test/Hack_guidance/" },
     });
-    expect(toast.success).toHaveBeenCalledWith("회원가입과 로그인이 완료되었습니다. 공개 랭킹에 등록했습니다.");
+    expect(toast.success).toHaveBeenCalledWith("계정 생성과 로그인이 완료되었습니다.");
+  });
+
+  it("waits for email confirmation before announcing public profile registration", async () => {
+    const signUp = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
+
+    await expect(registerSupabaseAccount({ email: "analyst@example.test", password: "safe-password", displayName: "GrayOM Analyst" }, { auth: { signUp, signInWithPassword: vi.fn() } }, "https://example.test/Hack_guidance/")).resolves.toBe("confirmation-sent");
+    expect(toast.success).toHaveBeenCalledWith("확인 이메일을 전송했습니다. 이메일 인증을 완료하면 공개 프로필과 랭킹에 등록됩니다.");
   });
 
   it("logs in with a password and reports credential failures generically", async () => {

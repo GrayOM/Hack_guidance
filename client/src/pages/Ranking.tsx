@@ -34,14 +34,14 @@ export default function Ranking() {
         <p className="font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">PUBLIC RANKING // SOLVED NODES</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">공개 랭킹</h1>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-2xl text-sm leading-6 text-slate-400">가입을 완료한 분석자는 해결 수 0개부터 공개됩니다. 해결한 문제 수를 우선으로 정렬하며, 같은 수라면 마지막 해결 기록이 빠른 분석자가 먼저 표시됩니다.</p>
+          <p className="max-w-2xl text-sm leading-6 text-slate-400">이메일 인증을 완료한 분석자만 해결 수 0개부터 공개됩니다. 해결한 문제 수를 우선으로 정렬하며, 같은 수라면 마지막 해결 기록이 빠른 분석자가 먼저 표시됩니다.</p>
           <span className="inline-flex items-center gap-1.5 font-mono-ui text-[10px] tracking-[0.14em] text-slate-600"><Radio className={`h-3.5 w-3.5 ${ranking.isFetching ? "animate-pulse text-teal-300" : ""}`} />{ranking.isFetching ? "SYNCING" : "LIVE SYNC / 15S"}</span>
         </div>
 
         <section className="ranking-console hnet-panel mt-8 overflow-hidden border border-[#315057]">
           {streamEvent ? <div key={streamEvent.id} className={`ranking-stream ranking-stream--${streamEvent.kind}`} role="status" aria-live="polite"><div className="ranking-stream__rain" /><span>{streamEvent.message}</span></div> : null}
           <div className="hidden grid-cols-[80px_minmax(0,1fr)_140px_180px] border-b border-[#294247] bg-[#0a1518] px-5 py-3 font-mono-ui text-[10px] tracking-[0.14em] text-slate-500 sm:grid"><span>RANK</span><span>OPERATOR</span><span>SOLVED</span><span>LAST SIGNAL</span></div>
-          {ranking.isLoading ? <div className="p-8 text-sm text-slate-400">랭킹 신호를 수집하고 있습니다.</div> : rows.length === 0 ? <div className="p-8 text-center"><Trophy className="mx-auto h-7 w-7 text-teal-300" /><p className="mt-3 text-sm text-slate-300">아직 가입한 분석자가 없습니다. 이메일과 비밀번호로 회원가입하면 이곳에 표시됩니다.</p></div> : <div className="divide-y divide-[#294247]">{rows.map((row: any, index: number) => {
+          {ranking.isLoading ? <div className="p-8 text-sm text-slate-400">랭킹 신호를 수집하고 있습니다.</div> : rows.length === 0 ? <div className="p-8 text-center"><Trophy className="mx-auto h-7 w-7 text-teal-300" /><p className="mt-3 text-sm text-slate-300">아직 인증을 완료한 분석자가 없습니다. 이메일 인증 뒤 이곳에 표시됩니다.</p></div> : <div className="divide-y divide-[#294247]">{rows.map((row: any, index: number) => {
             const isCurrentUser = row.userId === user?.id;
             return <div key={row.userId} className={`ranking-row grid gap-2 px-5 py-4 sm:grid-cols-[80px_minmax(0,1fr)_140px_180px] sm:items-center ${isCurrentUser ? "ranking-row--current" : ""}`}>
               <span className={`font-mono-ui text-sm ${index === 0 ? "text-amber-200" : "text-slate-500"}`}>{index === 0 ? <Crown className="h-4 w-4" /> : String(index + 1).padStart(2, "0")}</span>

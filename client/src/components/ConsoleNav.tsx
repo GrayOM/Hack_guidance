@@ -82,12 +82,12 @@ export function ConsoleNav() {
     setSendingLogin(false);
 
     if (result === "signed-in") {
-      setLoginStatus(authMode === "signup" ? "회원가입과 로그인이 완료되었습니다. 공개 랭킹에 등록했습니다." : "로그인되었습니다.");
+      setLoginStatus(authMode === "signup" ? "계정 생성과 로그인이 완료되었습니다." : "로그인되었습니다.");
       setPassword("");
       return;
     }
     if (result === "confirmation-sent") {
-      setLoginStatus("확인 이메일을 전송했습니다. 링크를 열면 회원가입이 완료됩니다.");
+      setLoginStatus("확인 이메일을 전송했습니다. 링크를 열어 이메일 인증을 완료하면 공개 랭킹에 등록됩니다.");
       return;
     }
     if (result === "updated") {
@@ -152,7 +152,7 @@ export function ConsoleNav() {
             {authMode !== "recovery" ? <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">EMAIL ADDRESS</span><div className="mt-2 flex items-center border border-[#31545a] bg-[#071013] focus-within:border-teal-300"><Mail className="ml-3 h-4 w-4 shrink-0 text-teal-300" /><input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="name@example.com" className="h-11 w-full bg-transparent px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600" /></div></label> : null}
             <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">{authMode === "recovery" ? "NEW PASSWORD" : "PASSWORD"}</span><input type="password" autoComplete={authMode === "signup" || authMode === "recovery" ? "new-password" : "current-password"} required minLength={8} maxLength={72} value={password} onChange={event => setPassword(event.target.value)} placeholder="8~72자" className="mt-2 h-11 w-full border border-[#31545a] bg-[#071013] px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-teal-300" /></label>
             {authMode === "recovery" ? <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">CONFIRM PASSWORD</span><input type="password" autoComplete="new-password" required minLength={8} maxLength={72} value={confirmation} onChange={event => setConfirmation(event.target.value)} placeholder="새 비밀번호 다시 입력" className="mt-2 h-11 w-full border border-[#31545a] bg-[#071013] px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-teal-300" /></label> : null}
-            {authMode === "signup" ? <p className="border-l-2 border-teal-300/50 bg-teal-300/[0.05] px-3 py-2 text-xs leading-5 text-teal-100">가입이 완료되면 입력한 공개명이 공개 랭킹에 <strong>0 / 50</strong>부터 표시됩니다.</p> : null}
+            {authMode === "signup" ? <p className="border-l-2 border-teal-300/50 bg-teal-300/[0.05] px-3 py-2 text-xs leading-5 text-teal-100">이메일 인증을 완료하면 입력한 공개명이 공개 랭킹에 <strong>0 / 50</strong>부터 표시됩니다.</p> : null}
             {loginStatus ? <p role="status" className="border-l-2 border-teal-300/70 bg-teal-300/[0.06] px-3 py-2 text-xs leading-5 text-teal-100">{loginStatus}</p> : null}
             <button type="submit" disabled={sendingLogin || nameUnavailable || (authMode === "signup" && nameAvailability.isFetching)} className="inline-flex w-full items-center justify-center gap-2 bg-teal-300 px-4 py-3 text-sm font-semibold text-[#082023] transition hover:bg-teal-200 disabled:cursor-not-allowed disabled:opacity-60">{authMode === "recovery" ? <KeyRound className="h-4 w-4" /> : <Mail className="h-4 w-4" />}{sendingLogin ? "처리 중" : authMode === "signup" ? "계정 만들기" : authMode === "recovery" ? "새 비밀번호 저장" : "로그인"}</button>
             {authMode === "signin" ? <button type="button" onClick={() => void requestPasswordReset()} disabled={sendingLogin} className="w-full text-center text-xs text-teal-200 hover:text-teal-100 disabled:opacity-50">비밀번호를 잊으셨나요? 이메일로 재설정</button> : null}
