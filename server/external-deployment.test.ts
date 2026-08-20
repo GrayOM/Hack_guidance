@@ -125,6 +125,8 @@ describe("external free-tier deployment pack", () => {
     expect(webTargetPage).not.toContain("WARGAME COMMAND CONSOLE");
     expect(webTargets).toContain("id: 50");
     expect(webTargets).toContain("WebTargetTool");
+    expect(webTargets).toContain("WargamePlayModel");
+    expect(webTargets).toContain("modelByKind");
     expect(webTargets).toContain("toolByKind");
     expect(caseNarratives).toContain("야간 교대의 위조된 승인");
     expect(caseNarratives).toContain("문서 보관함의 탈출 경로");
@@ -145,6 +147,8 @@ describe("external free-tier deployment pack", () => {
     expect(webTargetCss).toContain("web-target--tool-identity-bridge");
     expect(webTargetCss).toContain("web-target--tool-packet-console");
     expect(webTargetCss).toContain("web-target--tool-case-terminal");
+    expect(webTargetCss).toContain("web-target__workspace-dock");
+    expect(webTargetCss).toContain("web-target__evidence-board");
     expect(webTargetCss).toContain("width: min(100%, 100rem)");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
