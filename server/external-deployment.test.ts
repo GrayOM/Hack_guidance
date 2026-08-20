@@ -89,7 +89,9 @@ describe("external free-tier deployment pack", () => {
     expect(consoleNav).toContain(">NAME</span>");
     expect(consoleNav).toContain("계정 만들기");
     expect(consoleNav).toContain("/>로그인</button>");
-    expect(consoleNav).toContain("로그아웃");
+    expect(consoleNav).toContain("회원가입");
+    expect(consoleNav).toContain("공개명");
+    expect(consoleNav).not.toContain("공개 분석자명");
     expect(consoleNav).toContain("registerSupabaseAccount");
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
