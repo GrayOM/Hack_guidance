@@ -81,8 +81,9 @@ export default function WebTarget() {
     >
       <BrowserFrame origin={target.origin} route={target.route} onBack={() => setLocation(`/lab/${id}`)} />
       <main className="web-target__stage">
+        <SecurityHud id={id} visual={visual} />
         <section className="web-target__app">
-          <TargetHeader target={target} visual={visual} />
+          <TargetHeader target={target} visual={visual} id={id} />
           <div className="web-target__layout">
             <div className="web-target__content">
               <TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} />
@@ -101,8 +102,12 @@ function BrowserFrame({ origin, route, onBack }: { origin: string; route: string
   return <header className="web-target__browser"><div className="web-target__browser-inner"><button type="button" onClick={onBack} className="web-target__exit"><ArrowLeft className="h-4 w-4" />나가기</button><div className="web-target__address"><LockKeyhole className="h-3.5 w-3.5" /><span>https://{origin}{route}</span></div><span className="web-target__browser-state">EDUCATION TARGET</span></div></header>;
 }
 
-function TargetHeader({ target, visual }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual }) {
-  return <header className="web-target__header"><div className="web-target__brand"><div className="web-target__brand-mark"><Globe2 className="h-4 w-4" /></div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav></header>;
+function SecurityHud({ id, visual }: { id: number; visual: WebTargetVisual }) {
+  return <div className="web-target__security-hud" aria-label="Isolated security analysis status"><div><span className="web-target__live-dot" />HG//ANALYSIS · NODE-{String(id).padStart(2, "0")}</div><span>ISOLATED_TARGET</span><span>ROUTE.{visual.layout.toUpperCase()}</span><span>TRACE_READY</span></div>;
+}
+
+function TargetHeader({ target, visual, id }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number }) {
+  return <header className="web-target__header"><div className="web-target__brand"><div className="web-target__brand-mark"><Globe2 className="h-4 w-4" /></div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav><div className="web-target__header-trace"><span className="web-target__live-dot" />CASE-{String(id).padStart(2, "0")} · SURFACE_ACTIVE</div></header>;
 }
 
 function TargetSurface({ target, visual, marker, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
@@ -127,7 +132,7 @@ function FeatureList({ tiles }: { tiles: readonly string[] }) {
 }
 
 function ServiceResponse({ response, artifact }: { response: string; artifact: string }) {
-  return <div aria-live="polite" className="web-target__response"><p>Service response</p><span>{response}</span>{artifact ? <div className="web-target__artifact"><small>Recovered artifact</small><code>{artifact}</code></div> : null}</div>;
+  return <div aria-live="polite" className="web-target__response"><p><span className="web-target__live-dot" />Observed response · packet scan</p><span>{response}</span>{artifact ? <div className="web-target__artifact"><small>Recovered artifact</small><code>{artifact}</code></div> : null}</div>;
 }
 
 function FlagSubmission({ flag, setFlag, submitFlag, pending, solved, nextNode, onNext }: { flag: string; setFlag: (value: string) => void; submitFlag: () => void; pending: boolean; solved: boolean; nextNode: number | null; onNext: () => void }) {
@@ -135,7 +140,7 @@ function FlagSubmission({ flag, setFlag, submitFlag, pending, solved, nextNode, 
 }
 
 function TargetAside({ target, visual, id }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number }) {
-  return <aside className="web-target__aside"><p className="web-target__aside-label">Isolated training target</p><h2>{target.appName}</h2><p>이 서비스는 외부 시스템과 분리된 교육용 웹 타깃입니다. 실제 계정이나 실제 데이터를 사용하지 않습니다.</p><div className="web-target__aside-list">{target.tiles.map((tile, index) => <div key={tile}><AsideIcon index={index} /><span>{tile}</span></div>)}</div><div className="web-target__case"><span>Case node</span><strong>#{String(id).padStart(2, "0")}</strong><small>{visual.signature} · {visual.density}</small></div></aside>;
+  return <aside className="web-target__aside"><p className="web-target__aside-label">Isolated training target</p><h2>{target.appName}</h2><p>이 서비스는 외부 시스템과 분리된 교육용 웹 타깃입니다. 실제 계정이나 실제 데이터를 사용하지 않습니다.</p><div className="web-target__aside-list">{target.tiles.map((tile, index) => <div key={tile}><AsideIcon index={index} /><span>{tile}</span></div>)}</div><div className="web-target__case"><span>Case node</span><strong>#{String(id).padStart(2, "0")}</strong><small>{visual.signature} · {visual.density}</small></div><div className="web-target__telemetry"><span>LINK</span><strong>LOCAL / ENCRYPTED</strong><span>OBSERVATION</span><strong>PASSIVE MODE</strong></div></aside>;
 }
 
 function AsideIcon({ index }: { index: number }) {
