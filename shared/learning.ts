@@ -1,3 +1,5 @@
+import { caseNarrativeForNode } from "./case-narratives";
+
 /**
  * Public challenge content for all 50 safe, closed analysis nodes.
  * The client receives evidence and hints only; flag matching is server-side.
@@ -18,8 +20,11 @@ export type LearningChallenge = {
 type ChallengeSeed = Omit<LearningChallenge, "hints"> & { hints?: [string, string, string] };
 
 function createChallenge(challenge: ChallengeSeed): LearningChallenge {
+  const narrative = caseNarrativeForNode(challenge.id);
   return {
     ...challenge,
+    title: narrative?.title ?? challenge.title,
+    objective: narrative?.brief ?? challenge.objective,
     hints: challenge.hints ?? [
       "먼저 화면에 보이는 값이 브라우저가 보관하는 정보인지, 서버가 관리하는 정보인지 구분해 보세요.",
       "단서가 이동하는 경로와 누가 그 값을 바꿀 수 있는지 함께 확인하세요.",

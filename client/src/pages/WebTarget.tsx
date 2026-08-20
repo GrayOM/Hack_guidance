@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, ChevronRight, FileText, Flag, FolderOpen, Globe2, LoaderCircle, LockKeyhole, Send, ShieldCheck, UploadCloud, UserRound } from "lucide-react";
+import { ArrowLeft, ChevronRight, Code2, FileText, Flag, FolderOpen, Globe2, LoaderCircle, LockKeyhole, Network, Send, ShieldCheck, TerminalSquare, UploadCloud, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { challengeById } from "@shared/learning";
 import { practiceGuideForNode } from "@/lib/problem-brief";
@@ -80,11 +80,11 @@ export default function WebTarget() {
 
   return (
     <div
-      className={`web-target web-target--${visual.layout} web-target--scene-${visual.scene} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
+      className={`web-target web-target--${visual.layout} web-target--scene-${visual.scene} web-target--tool-${target.tool} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
       data-target-signature={visual.signature}
       style={visualStyle}
     >
-      <BrowserFrame origin={target.origin} route={target.route} onBack={() => setLocation(`/lab/${id}`)} />
+      <BrowserFrame origin={target.origin} route={target.route} target={target} visual={visual} id={id} onBack={() => setLocation(`/lab/${id}`)} />
       <main className="web-target__stage">
         <SecurityHud id={id} visual={visual} />
         <section className="web-target__app">
@@ -92,7 +92,7 @@ export default function WebTarget() {
           <div className="web-target__layout">
             <div className="web-target__content">
               <TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} />
-              <ServiceResponse response={response} artifact={artifact} />
+              <ServiceResponse response={response} artifact={artifact} tool={target.tool} />
               <FlagSubmission flag={flag} setFlag={setFlag} submitFlag={submitFlag} pending={submit.isPending} solved={solved} nextNode={nextNode} onNext={() => setLocation(`/lab/${nextNode}`)} />
             </div>
             <TargetAside target={target} visual={visual} id={id} />
@@ -103,8 +103,9 @@ export default function WebTarget() {
   );
 }
 
-function BrowserFrame({ origin, route, onBack }: { origin: string; route: string; onBack: () => void }) {
-  return <header className="web-target__browser"><div className="web-target__browser-inner"><button type="button" onClick={onBack} className="web-target__exit"><ArrowLeft className="h-4 w-4" />나가기</button><div className="web-target__address"><LockKeyhole className="h-3.5 w-3.5" /><span>https://{origin}{route}</span></div><span className="web-target__browser-state">EDUCATION TARGET</span></div></header>;
+function BrowserFrame({ origin, route, target, visual, id, onBack }: { origin: string; route: string; target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number; onBack: () => void }) {
+  const labels: Record<NonNullable<ReturnType<typeof webTargetForNode>>["tool"], string> = { "identity-bridge": "IDENTITY BRIDGE", "artifact-vault": "ARTIFACT VAULT", "object-map": "OBJECT MAP", "request-forge": "REQUEST FORGE", "packet-console": "PACKET CONSOLE", "case-terminal": "CASE TERMINAL", "ingest-bay": "INGEST BAY", "render-lab": "RENDER LAB" };
+  return <header className={`web-target__browser web-target__browser--${target.tool}`} data-browser-tool={target.tool}><div className="web-target__browser-inner"><button type="button" onClick={onBack} className="web-target__exit"><ArrowLeft className="h-4 w-4" />나가기</button><div className="web-target__browser-tool"><span className="web-target__browser-lights"><i /><i /><i /></span><span>{labels[target.tool]}</span></div><div className="web-target__address"><LockKeyhole className="h-3.5 w-3.5" /><span>https://{origin}{route}</span></div><span className="web-target__browser-state">NODE-{String(id).padStart(2, "0")} · {visual.scene.toUpperCase()}</span></div></header>;
 }
 
 function SecurityHud({ id, visual }: { id: number; visual: WebTargetVisual }) {
@@ -112,32 +113,38 @@ function SecurityHud({ id, visual }: { id: number; visual: WebTargetVisual }) {
 }
 
 function TargetHeader({ target, visual, id }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number }) {
-  return <header className="web-target__header"><div className="web-target__brand"><div className="web-target__brand-mark"><Globe2 className="h-4 w-4" /></div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav><div className="web-target__header-trace"><span className="web-target__live-dot" />CASE-{String(id).padStart(2, "0")} · SURFACE_ACTIVE</div></header>;
+  return <header className="web-target__header"><div className="web-target__brand"><div className="web-target__brand-mark">{target.tool === "packet-console" || target.tool === "case-terminal" ? <TerminalSquare className="h-4 w-4" /> : target.tool === "object-map" ? <Network className="h-4 w-4" /> : <Globe2 className="h-4 w-4" />}</div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav><div className="web-target__header-trace"><span className="web-target__live-dot" />CASE-{String(id).padStart(2, "0")} · {target.caseFile?.operatorCue ?? "SURFACE_ACTIVE"}</div></header>;
 }
 
 function TargetSurface({ target, visual, marker, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
   const icon = target.kind === "files" || target.kind === "upload" ? <FolderOpen className="h-5 w-5" /> : target.kind === "api" ? <Send className="h-5 w-5" /> : target.kind === "directory" ? <UserRound className="h-5 w-5" /> : target.kind === "report" || target.kind === "content" ? <FileText className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />;
   const referenceInput = <input value={reference} onChange={event => setReference(event.target.value)} placeholder={target.fieldPlaceholder} className="web-target__input" />;
   const action = <button type="submit" disabled={pending} className="web-target__action">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{pending ? "처리 중" : target.actionLabel}</button>;
-  const title = <div className="web-target__hero"><div className="web-target__hero-icon">{icon}</div><div><p className="web-target__eyebrow">{visual.layout.toUpperCase()} INTERFACE</p><h1>{target.heading}</h1><p>{target.description}</p></div></div>;
+  const title = <div className="web-target__hero"><div className="web-target__hero-icon">{icon}</div><div><p className="web-target__eyebrow">{target.caseFile?.operatorCue ?? visual.layout.toUpperCase()} · {target.tool.replace(/-/g, " ")}</p><h1>{target.heading}</h1><p>{target.description}</p></div></div>;
   const referenceForm = (label = target.fieldLabel) => <form onSubmit={event => { event.preventDefault(); onRun(); }} className="web-target__form"><label>{label}{referenceInput}</label>{action}</form>;
+  const shell = (children: ReactNode) => <section className={`web-target__surface web-target__surface--${target.tool}`} data-service-reference={marker} data-tool={target.tool}>{title}<ToolTelemetry target={target} visual={visual} />{children}</section>;
 
-  if (target.kind === "identity") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__sign-in"><p className="web-target__surface-label">Sign in to {target.appName}</p><label>Work email<input disabled placeholder="name@workspace.example" className="web-target__input" /></label><label>{target.fieldLabel}{referenceInput}</label>{action}<p className="web-target__microcopy">Need help? Recover access or review your active sessions.</p></div><FeatureList tiles={target.tiles} /></section>;
-  if (target.kind === "files") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__file-list"><div className="web-target__file-list-title"><span>Shared library</span><span>3 items</span></div>{target.tiles.map((tile, index) => <div key={tile} className="web-target__file-row"><span><FolderOpen className="h-4 w-4" />{tile}</span><small>Updated {index + 1}d ago</small></div>)}</div>{referenceForm("Open item")}</section>;
-  if (target.kind === "directory") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__directory"><div><span>Name</span><span>Workspace</span></div>{target.tiles.map((tile, index) => <div key={tile}><span>{tile}</span><span>#{String(104 + index).padStart(3, "0")}</span></div>)}</div>{referenceForm(target.fieldLabel)}</section>;
-  if (target.kind === "upload") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__dropzone"><UploadCloud className="h-9 w-9" /><p>Drop a file here to stage it</p><small>No real files leave this isolated training target.</small></div>{referenceForm(target.fieldLabel)}</section>;
-  if (target.kind === "api") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__code"><p>GET {target.route}?ref=…</p><span>Accept: application/json</span><span>Authorization: Bearer [session]</span><strong>{`{ "status": "ready", "scope": "workspace" }`}</strong></div>{referenceForm(target.fieldLabel)}</section>;
-  if (target.kind === "content") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__editor"><label>Draft<textarea disabled rows={4} placeholder="Write an update…" /></label><div><span>Plain text</span><span>0 words</span></div></div>{referenceForm(target.fieldLabel)}</section>;
-  if (target.kind === "forms") return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__field-grid"><label>Display name<input disabled placeholder="Your name" /></label><label>Email<input disabled placeholder="you@example.com" /></label></div>{referenceForm(target.fieldLabel)}</section>;
-  return <section className="web-target__surface" data-service-reference={marker}>{title}<div className="web-target__metric-grid">{target.tiles.map((tile, index) => <div key={tile}><strong>{["12", "04", "01"][index]}</strong><span>{tile}</span></div>)}</div>{referenceForm(target.fieldLabel)}</section>;
+  if (target.kind === "identity") return shell(<><div className="web-target__sign-in"><p className="web-target__surface-label">Access relay · {target.appName}</p><label>Work email<input disabled placeholder="name@workspace.example" className="web-target__input" /></label><label>{target.fieldLabel}{referenceInput}</label>{action}<p className="web-target__microcopy">세션·역할·복구 경로는 이 격리된 사건 환경에서만 분석됩니다.</p></div><FeatureList tiles={target.tiles} /></>);
+  if (target.kind === "files") return shell(<><div className="web-target__file-list"><div className="web-target__file-list-title"><span>Recovered artifacts</span><span>3 records</span></div>{target.tiles.map((tile, index) => <div key={tile} className="web-target__file-row"><span><FolderOpen className="h-4 w-4" />{tile}</span><small>Trace +{index + 1}d</small></div>)}</div>{referenceForm("Artifact reference")}</>);
+  if (target.kind === "directory") return shell(<><div className="web-target__directory"><div><span>Observed object</span><span>Trace ID</span></div>{target.tiles.map((tile, index) => <div key={tile}><span>{tile}</span><span>OBJ-{String(104 + index).padStart(3, "0")}</span></div>)}</div>{referenceForm(target.fieldLabel)}</>);
+  if (target.kind === "upload") return shell(<><div className="web-target__dropzone"><UploadCloud className="h-9 w-9" /><p>Stage an isolated artifact</p><small>실제 파일은 업로드되지 않으며, 검수 경계만 재현합니다.</small></div>{referenceForm(target.fieldLabel)}</>);
+  if (target.kind === "api") return shell(<><div className="web-target__code"><div className="web-target__code-top"><Code2 className="h-4 w-4" /><span>REQUEST WORKBENCH</span><span>GET</span></div><p>GET {target.route}?ref=…</p><span>Accept: application/json</span><span>Authorization: Bearer [session]</span><strong>{`{ "channel": "isolated", "scope": "observe", "status": "ready" }`}</strong></div>{referenceForm(target.fieldLabel)}</>);
+  if (target.kind === "content") return shell(<><div className="web-target__editor"><label>Captured draft<textarea disabled rows={4} placeholder="Incoming content appears here…" /></label><div><span>Render mode: text</span><span>Sanitizer: observe</span></div></div>{referenceForm(target.fieldLabel)}</>);
+  if (target.kind === "forms") return shell(<><div className="web-target__field-grid"><label>Display name<input disabled placeholder="External operator" /></label><label>Email<input disabled placeholder="operator@relay.example" /></label></div>{referenceForm(target.fieldLabel)}</>);
+  return shell(<><div className="web-target__metric-grid">{target.tiles.map((tile, index) => <div key={tile}><strong>{["12", "04", "01"][index]}</strong><span>{tile}</span></div>)}</div><div className="web-target__case-log"><span>$ case://{target.origin}{target.route}</span><span>signal: {target.caseFile?.operatorCue ?? "SURFACE_ACTIVE"}</span><span>mode: passive collection</span></div>{referenceForm(target.fieldLabel)}</>);
+}
+
+function ToolTelemetry({ target, visual }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual }) {
+  return <div className="web-target__tool-telemetry"><span>{target.tool.replace(/-/g, " ")}</span><span>scene::{visual.scene}</span><span>scope::isolated</span></div>;
 }
 
 function FeatureList({ tiles }: { tiles: readonly string[] }) {
   return <div className="web-target__feature-list">{tiles.map((tile, index) => <div key={tile}><span>{String(index + 1).padStart(2, "0")}</span><p>{tile}</p></div>)}</div>;
 }
 
-function ServiceResponse({ response, artifact }: { response: string; artifact: string }) {
-  return <div aria-live="polite" className="web-target__response"><p><span className="web-target__live-dot" />Observed response · packet scan</p><span>{response}</span>{artifact ? <div className="web-target__artifact"><small>Recovered artifact</small><code>{artifact}</code></div> : null}</div>;
+function ServiceResponse({ response, artifact, tool }: { response: string; artifact: string; tool: NonNullable<ReturnType<typeof webTargetForNode>>["tool"] }) {
+  const prompt = tool === "packet-console" ? "response://packet" : tool === "case-terminal" ? "case-log" : tool === "artifact-vault" ? "vault-index" : "observed-response";
+  return <div aria-live="polite" className={`web-target__response web-target__response--${tool}`}><p><span className="web-target__live-dot" />{prompt} · isolated trace</p><span>{response}</span>{artifact ? <div className="web-target__artifact"><small>Recovered artifact</small><code>{artifact}</code></div> : null}</div>;
 }
 
 function FlagSubmission({ flag, setFlag, submitFlag, pending, solved, nextNode, onNext }: { flag: string; setFlag: (value: string) => void; submitFlag: () => void; pending: boolean; solved: boolean; nextNode: number | null; onNext: () => void }) {

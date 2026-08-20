@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Router as WouterRouter, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -43,16 +43,27 @@ function Routes() {
   );
 }
 
+function RoutedCanvas() {
+  const [location] = useLocation();
+  const isChallengeRoute = /^\/(lab|target|workspace)\//.test(location);
+
+  return (
+    <>
+      {!isChallengeRoute ? <SecurityBackdrop /> : null}
+      {!isChallengeRoute ? <PointerAmbient /> : null}
+      <div className={isChallengeRoute ? "challenge-shell" : "hacknet-shell"}><Routes /></div>
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <SecurityBackdrop />
-          <PointerAmbient />
           <Toaster />
           <WouterRouter base={import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <div className="hacknet-shell"><Routes /></div>
+            <RoutedCanvas />
           </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>

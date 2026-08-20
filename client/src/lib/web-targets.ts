@@ -1,4 +1,7 @@
+import { caseNarrativeForNode, type CaseNarrative } from "@shared/case-narratives";
+
 export type WebTargetKind = "identity" | "files" | "directory" | "forms" | "api" | "report" | "upload" | "content";
+export type WebTargetTool = "identity-bridge" | "artifact-vault" | "object-map" | "request-forge" | "packet-console" | "case-terminal" | "ingest-bay" | "render-lab";
 export type WebTargetLayout = "ledger" | "editorial" | "canvas" | "terminal" | "portal" | "dashboard" | "library" | "minimal" | "board" | "studio";
 export type WebTargetScene = "mesh" | "radar" | "rain" | "circuit" | "breach" | "packets" | "cipher" | "orbit" | "vault" | "void";
 
@@ -26,6 +29,11 @@ export type WebTargetSpec = {
   fieldPlaceholder: string;
   actionLabel: string;
   tiles: readonly string[];
+};
+
+export type ResolvedWebTargetSpec = WebTargetSpec & {
+  tool: WebTargetTool;
+  caseFile: CaseNarrative | null;
 };
 
 const targets: readonly WebTargetSpec[] = [
@@ -87,8 +95,28 @@ const typeScales: readonly WebTargetVisual["type"][] = ["sans", "serif", "mono",
 const densityScales: readonly WebTargetVisual["density"][] = ["compact", "balanced", "spacious", "balanced", "compact"];
 const navigationStyles: readonly WebTargetVisual["navigation"][] = ["rail", "tabs", "topbar", "quiet", "tabs"];
 
-export function webTargetForNode(id: number) {
-  return targets.find(target => target.id === id) ?? null;
+const toolByKind: Record<WebTargetKind, WebTargetTool> = {
+  identity: "identity-bridge",
+  files: "artifact-vault",
+  directory: "object-map",
+  forms: "request-forge",
+  api: "packet-console",
+  report: "case-terminal",
+  upload: "ingest-bay",
+  content: "render-lab",
+};
+
+export function webTargetForNode(id: number): ResolvedWebTargetSpec | null {
+  const target = targets.find(candidate => candidate.id === id);
+  if (!target) return null;
+  const caseFile = caseNarrativeForNode(id);
+  return {
+    ...target,
+    heading: caseFile?.targetTitle ?? target.heading,
+    description: caseFile?.targetBrief ?? target.description,
+    tool: toolByKind[target.kind],
+    caseFile,
+  };
 }
 
 /** Every node receives a deterministic, unique visual fingerprint rather than inheriting a shared app shell. */
