@@ -51,7 +51,7 @@ function App() {
           <PointerAmbient />
           <Toaster />
           <WouterRouter base={import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Routes />
+            <div className="hacknet-shell"><Routes /></div>
           </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>

@@ -149,6 +149,7 @@ describe("external free-tier deployment pack", () => {
     expect(appShell).toContain('path="/me"');
     expect(appShell).toContain('path="/account/password"');
     expect(appShell).toContain('path="/workspace/:id"');
+    expect(appShell).toContain('<div className="hacknet-shell"><Routes /></div>');
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
     expect(signalLogo).not.toContain("<img");
