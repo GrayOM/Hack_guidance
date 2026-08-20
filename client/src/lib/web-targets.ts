@@ -1,4 +1,14 @@
 export type WebTargetKind = "identity" | "files" | "directory" | "forms" | "api" | "report" | "upload" | "content";
+export type WebTargetLayout = "ledger" | "editorial" | "canvas" | "terminal" | "portal" | "dashboard" | "library" | "minimal" | "board" | "studio";
+
+export type WebTargetVisual = {
+  signature: string;
+  layout: WebTargetLayout;
+  hue: number;
+  density: "compact" | "balanced" | "spacious";
+  type: "sans" | "serif" | "mono";
+  navigation: "rail" | "tabs" | "topbar" | "quiet";
+};
 
 export type WebTargetSpec = {
   id: number;
@@ -67,8 +77,28 @@ const targets: readonly WebTargetSpec[] = [
   { id: 50, appName: "Boundary Planner", origin: "planner.boundary.local", kind: "report", route: "/plan", heading: "Final protection plan", description: "Review the final cross-boundary protection plan.", fieldLabel: "Plan reference", fieldPlaceholder: "plan key", actionLabel: "Open plan", tiles: ["Inputs", "Access", "Responses"] },
 ];
 
+const targetLayouts: readonly WebTargetLayout[] = ["ledger", "editorial", "canvas", "terminal", "portal", "dashboard", "library", "minimal", "board", "studio"];
+const typeScales: readonly WebTargetVisual["type"][] = ["sans", "serif", "mono", "sans", "serif"];
+const densityScales: readonly WebTargetVisual["density"][] = ["compact", "balanced", "spacious", "balanced", "compact"];
+const navigationStyles: readonly WebTargetVisual["navigation"][] = ["rail", "tabs", "topbar", "quiet", "tabs"];
+
 export function webTargetForNode(id: number) {
   return targets.find(target => target.id === id) ?? null;
+}
+
+/** Every node receives a deterministic, unique visual fingerprint rather than inheriting a shared app shell. */
+export function webTargetVisualForNode(id: number): WebTargetVisual | null {
+  if (!webTargetForNode(id)) return null;
+  const index = id - 1;
+  return {
+    signature: `target-${String(id).padStart(2, "0")}`,
+    layout: targetLayouts[index % targetLayouts.length]!,
+    // 47 and 360 are coprime, so these 50 nodes never repeat their primary hue.
+    hue: (197 + index * 47) % 360,
+    density: densityScales[(index * 2 + Math.floor(index / 5)) % densityScales.length]!,
+    type: typeScales[(index + Math.floor(index / 10)) % typeScales.length]!,
+    navigation: navigationStyles[(index * 3 + Math.floor(index / 2)) % navigationStyles.length]!,
+  };
 }
 
 export const webTargets = targets;

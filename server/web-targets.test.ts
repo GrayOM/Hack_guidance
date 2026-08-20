@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { webTargetForNode, webTargets } from "../client/src/lib/web-targets";
+import { webTargetForNode, webTargetVisualForNode, webTargets } from "../client/src/lib/web-targets";
 
 describe("isolated web wargame targets", () => {
   it("provides one independently addressed training service for every public node", () => {
@@ -14,5 +14,15 @@ describe("isolated web wargame targets", () => {
     expect(webTargetForNode(1)?.appName).toBe("Northstar Identity");
     expect(webTargetForNode(50)?.appName).toBe("Boundary Planner");
     expect(webTargetForNode(51)).toBeNull();
+  });
+
+  it("assigns every target a unique visual fingerprint across palettes and layout families", () => {
+    const visuals = webTargets.map(target => webTargetVisualForNode(target.id));
+    expect(visuals.every(Boolean)).toBe(true);
+    expect(new Set(visuals.map(visual => visual?.signature)).size).toBe(50);
+    expect(new Set(visuals.map(visual => visual?.hue)).size).toBe(50);
+    expect(new Set(visuals.map(visual => visual?.layout)).size).toBe(10);
+    expect(new Set(visuals.map(visual => `${visual?.layout}-${visual?.type}-${visual?.density}-${visual?.navigation}`)).size).toBeGreaterThan(10);
+    expect(webTargetVisualForNode(51)).toBeNull();
   });
 });
