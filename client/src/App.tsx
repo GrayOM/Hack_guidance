@@ -14,7 +14,7 @@ import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
 import MyPage from "./pages/MyPage";
 import PasswordRecovery from "./pages/PasswordRecovery";
-import Workspace from "./pages/Workspace";
+import WebTarget from "./pages/WebTarget";
 import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
@@ -27,7 +27,8 @@ function Routes() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/lab/:id" component={Lab} />
-      <Route path="/workspace/:id" component={Workspace} />
+      <Route path="/workspace/:id" component={WebTarget} />
+      <Route path="/target/:id" component={WebTarget} />
       <Route path="/certificate" component={Certificate} />
       <Route path="/certificate/print/:code" component={CertificatePrint} />
       <Route path="/records" component={Records} />

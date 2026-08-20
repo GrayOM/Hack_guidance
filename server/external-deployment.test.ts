@@ -5,7 +5,7 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, learningApi, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, workspacePage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, learningApi, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, webTargetPage, webTargets, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
@@ -23,7 +23,8 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/pages/Home.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Problems.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Lab.tsx", root), "utf8"),
-      readFile(new URL("client/src/pages/Workspace.tsx", root), "utf8"),
+      readFile(new URL("client/src/pages/WebTarget.tsx", root), "utf8"),
+      readFile(new URL("client/src/lib/web-targets.ts", root), "utf8"),
       readFile(new URL("client/src/pages/Records.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Ranking.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Certificate.tsx", root), "utf8"),
@@ -34,7 +35,6 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/App.tsx", root), "utf8"),
       readFile(new URL("client/src/index.css", root), "utf8"),
       readFile(new URL("client/src/components/SecurityBackdrop.tsx", root), "utf8"),
-      readFile(new URL("client/src/components/PracticeWorkbench.tsx", root), "utf8"),
     ]);
 
     expect(migration).toContain("enable row level security");
@@ -109,19 +109,19 @@ describe("external free-tier deployment pack", () => {
     expect(problemsPage).toContain("WARGAME DIRECTORY");
     expect(problemsPage).toContain("독립 사례");
     expect(labPage).toContain("CASE BRIEF");
-    expect(labPage).toContain("WARGAME CONSOLE OPEN");
-    expect(workspacePage).toContain("ISOLATED WARGAME CONSOLE");
-    expect(workspacePage).toContain("PracticeWorkbench");
-    expect(workspacePage).toContain("FINAL SUBMISSION");
+    expect(labPage).toContain("WEB TARGET OPEN");
+    expect(labPage).toContain("별도의 교육용 웹 서비스");
+    expect(webTargetPage).toContain("EDUCATION TARGET");
+    expect(webTargetPage).toContain("data-service-reference");
+    expect(webTargetPage).toContain("Recovered artifact");
+    expect(webTargetPage).toContain("Hack Guidance 플래그 제출");
+    expect(webTargetPage).toContain("`${guide.operation} ${reference.trim()}`");
+    expect(webTargetPage).not.toContain("WARGAME COMMAND CONSOLE");
+    expect(webTargets).toContain("id: 50");
     expect(labPage).not.toContain("@/lib/trpc");
     expect(labPage).not.toContain("trpc.");
-    expect(practiceWorkbench).toContain("WARGAME COMMAND CONSOLE");
-    expect(practiceWorkbench).toContain("COMMAND INPUT");
-    expect(practiceWorkbench).toContain("현재 사례 표식");
-    expect(practiceWorkbench).toContain("외부 시스템을 대상으로 요청을 보내거나 코드를 실행하지 않습니다.");
-    expect(practiceWorkbench).not.toContain("practiceInput");
-    expect(practiceWorkbench).not.toContain("role=admin");
-    expect(practiceWorkbench).not.toContain("fetch(");
+    expect(webTargetPage).not.toContain("practiceInput");
+    expect(webTargetPage).not.toContain("role=admin");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
     expect(rankingPage).toContain("이메일 인증 뒤 이곳에 표시됩니다.");
@@ -152,6 +152,7 @@ describe("external free-tier deployment pack", () => {
     expect(appShell).toContain('path="/me"');
     expect(appShell).toContain('path="/account/password"');
     expect(appShell).toContain('path="/workspace/:id"');
+    expect(appShell).toContain('path="/target/:id"');
     expect(appShell).toContain('<div className="hacknet-shell"><Routes /></div>');
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
