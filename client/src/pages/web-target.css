@@ -318,6 +318,12 @@
 .web-target__evidence-board > div { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem; border-top: 1px solid color-mix(in srgb, var(--target-ink) 13%, transparent); padding-top: .9rem; }
 .web-target__evidence-board span { color: var(--target-muted); font: 700 .63rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; }
 .web-target__evidence-board strong { overflow-wrap: anywhere; font: 700 .85rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.web-target--run-identity-trail .web-target__layout { border-radius: 1.25rem; overflow: hidden; }.web-target--run-identity-trail .web-target__workspace-dock { background: #e6f5f2; margin: -1.75rem -1.75rem 1.75rem; padding: 1rem 1.75rem; }
+.web-target--run-artifact-hunt .web-target__layout { border-top: .32rem solid #737f31; }.web-target--run-artifact-hunt .web-target__evidence-board { background: #171b12; color: #e7f1c7; }
+.web-target--run-object-pivot .web-target__layout { grid-template-columns: minmax(0, 1fr) 22rem; }.web-target--run-object-pivot .web-target__evidence-board { border-radius: 1.5rem 0 1.5rem 0; }
+.web-target--run-request-replay .web-target__workspace-dock { border-color: #5a2e5a; }.web-target--run-request-replay .web-target__workspace-dock button.is-active { border-bottom-color: #a31b8d; }.web-target--run-request-replay .web-target__evidence-board { background: #10121d; color: #e7daf1; }
+.web-target--run-render-trace .web-target__content { background: linear-gradient(135deg, color-mix(in srgb, var(--target-paper) 94%, white), color-mix(in srgb, var(--target-tint) 32%, white)); }.web-target--run-render-trace .web-target__workspace-dock { justify-content: center; }
+.web-target--run-incident-review .web-target__layout { border-inline: 0; box-shadow: 0 2.5rem 6rem #02060466; }.web-target--run-incident-review .web-target__evidence-board { min-height: 34rem; background: #101611; color: #d6e4cf; }
 
 /* Each service category owns its entire environmental palette instead of inheriting a common Hack Guidance grid. */
 .web-target--tool-identity-bridge .web-target__stage { background: radial-gradient(circle at 16% 14%, hsl(var(--target-hue) 74% 42% / .32), transparent 24rem), repeating-linear-gradient(90deg, transparent 0 6rem, #9fffe618 6.05rem 6.12rem), linear-gradient(135deg, #061a18, #0d302c 55%, #06100e); }

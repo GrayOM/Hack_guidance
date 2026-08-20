@@ -81,7 +81,7 @@ export default function WebTarget() {
 
   return (
     <div
-      className={`web-target web-target--${visual.layout} web-target--scene-${visual.scene} web-target--tool-${target.tool} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
+      className={`web-target web-target--${visual.layout} web-target--scene-${visual.scene} web-target--tool-${target.tool} web-target--run-${target.playModel} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
       data-target-signature={visual.signature}
       style={visualStyle}
     >
