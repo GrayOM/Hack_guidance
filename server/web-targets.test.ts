@@ -16,6 +16,12 @@ describe("isolated web wargame targets", () => {
     expect(webTargetForNode(51)).toBeNull();
   });
 
+  it("maps every node into a wargame play model instead of a single generic interaction flow", () => {
+    const resolved = webTargets.map(target => webTargetForNode(target.id));
+    expect(resolved.every(target => Boolean(target?.playModel))).toBe(true);
+    expect(new Set(resolved.map(target => target?.playModel))).toEqual(new Set(["identity-trail", "artifact-hunt", "object-pivot", "request-replay", "render-trace", "incident-review"]));
+  });
+
   it("assigns every target a unique visual fingerprint across palettes and layout families", () => {
     const visuals = webTargets.map(target => webTargetVisualForNode(target.id));
     expect(visuals.every(Boolean)).toBe(true);
