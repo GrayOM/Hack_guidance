@@ -312,6 +312,11 @@
 .web-target__workspace-dock { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 1px solid color-mix(in srgb, var(--target-ink) 14%, transparent); }
 .web-target__workspace-dock button { padding: .7rem .85rem; color: var(--target-muted); font: 800 .62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
 .web-target__workspace-dock button.is-active { border-bottom: 2px solid var(--target-accent); color: var(--target-accent-strong); }
+.web-target__service-relay { display: flex; gap: .45rem; overflow-x: auto; margin: 0 0 1rem; padding-bottom: .35rem; }
+.web-target__service-relay button { display: inline-flex; flex: 0 0 auto; gap: .5rem; align-items: center; border: 1px solid color-mix(in srgb, var(--target-ink) 14%, transparent); padding: .5rem .7rem; color: var(--target-muted); font: 700 .65rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+.web-target__service-relay button span { color: var(--target-accent-strong); opacity: .7; }
+.web-target__service-relay button.is-current { background: var(--target-ink); border-color: var(--target-ink); color: var(--target-paper); }
+.web-target__service-relay button.is-current span { color: var(--target-accent); opacity: 1; }
 .web-target__evidence-board { display: grid; gap: 1rem; min-height: 28rem; border: 1px solid color-mix(in srgb, var(--target-ink) 16%, transparent); background: color-mix(in srgb, var(--target-tint) 42%, var(--target-paper)); padding: clamp(1.25rem, 3vw, 2.5rem); }
 .web-target__evidence-board > p { color: var(--target-accent-strong); font: 800 .64rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
 .web-target__evidence-board h2 { font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 760; }

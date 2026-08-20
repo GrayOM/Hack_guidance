@@ -26,6 +26,7 @@ export default function WebTarget() {
   const [response, setResponse] = useState("Ready. Use this isolated service as you would a normal web application.");
   const [solved, setSolved] = useState(false);
   const [activeSurface, setActiveSurface] = useState<"service" | "evidence" | "recovery">("service");
+  const [selectedService, setSelectedService] = useState(0);
   const practice = usePracticeProbe({
     onSuccess: result => {
       if (result.verified && result.capture) {
@@ -92,7 +93,7 @@ export default function WebTarget() {
           <div className="web-target__layout">
             <div className="web-target__content">
               <WorkspaceDock target={target} activeSurface={activeSurface} onChange={setActiveSurface} />
-              {activeSurface === "service" ? <><TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} /><ServiceResponse response={response} artifact={artifact} tool={target.tool} /></> : null}
+              {activeSurface === "service" ? <><ServiceRelay target={target} selected={selectedService} onSelect={index => { setSelectedService(index); setReference(`surface-${index + 1}`); }} /><TargetSurface target={target} visual={visual} marker={guide.marker} serviceName={target.tiles[selectedService]} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} /><ServiceResponse response={response} artifact={artifact} tool={target.tool} /></> : null}
               {activeSurface === "evidence" ? <EvidenceBoard target={target} guide={guide} artifact={artifact} /> : null}
               {activeSurface === "recovery" ? <FlagSubmission flag={flag} setFlag={setFlag} submitFlag={submitFlag} pending={submit.isPending} solved={solved} nextNode={nextNode} onNext={() => setLocation(`/lab/${nextNode}`)} /> : null}
             </div>
@@ -116,15 +117,19 @@ function WorkspaceDock({ target, activeSurface, onChange }: { target: NonNullabl
   return <nav className="web-target__workspace-dock" aria-label="Investigation workspace"><button className={activeSurface === "service" ? "is-active" : ""} onClick={() => onChange("service")}>SERVICE · {target.appName}</button><button className={activeSurface === "evidence" ? "is-active" : ""} onClick={() => onChange("evidence")}>EVIDENCE VIEW</button><button className={activeSurface === "recovery" ? "is-active" : ""} onClick={() => onChange("recovery")}>RECOVERY DOCK</button></nav>;
 }
 
+function ServiceRelay({ target, selected, onSelect }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; selected: number; onSelect: (index: number) => void }) {
+  return <div className="web-target__service-relay">{target.tiles.map((tile, index) => <button type="button" key={tile} className={selected === index ? "is-current" : ""} onClick={() => onSelect(index)}><span>0{index + 1}</span>{tile}</button>)}</div>;
+}
+
 function EvidenceBoard({ target, guide, artifact }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; guide: NonNullable<ReturnType<typeof practiceGuideForNode>>; artifact: string }) {
   return <section className="web-target__evidence-board"><p>OBSERVATION WORKSPACE · {target.playModel.replace(/-/g, " ")}</p><h2>{target.caseFile?.title ?? target.heading}</h2><div><span>ENTRY SURFACE</span><strong>{target.origin}{target.route}</strong></div><div><span>INVESTIGATION MARKER</span><strong>{guide.marker}</strong></div><div><span>RECOVERED ARTIFACT</span><strong>{artifact || "No artifact captured"}</strong></div></section>;
 }
 
-function TargetSurface({ target, visual, marker, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
+function TargetSurface({ target, visual, marker, serviceName, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; serviceName?: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
   const icon = target.kind === "files" || target.kind === "upload" ? <FolderOpen className="h-5 w-5" /> : target.kind === "api" ? <Send className="h-5 w-5" /> : target.kind === "directory" ? <UserRound className="h-5 w-5" /> : target.kind === "report" || target.kind === "content" ? <FileText className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />;
   const referenceInput = <input value={reference} onChange={event => setReference(event.target.value)} placeholder={target.fieldPlaceholder} className="web-target__input" />;
   const action = <button type="submit" disabled={pending} className="web-target__action">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{pending ? "처리 중" : target.actionLabel}</button>;
-  const title = <div className="web-target__hero"><div className="web-target__hero-icon">{icon}</div><div><p className="web-target__eyebrow">{target.caseFile?.operatorCue ?? visual.layout.toUpperCase()} · {target.tool.replace(/-/g, " ")}</p><h1>{target.heading}</h1><p>{target.description}</p></div></div>;
+  const title = <div className="web-target__hero"><div className="web-target__hero-icon">{icon}</div><div><p className="web-target__eyebrow">{target.caseFile?.operatorCue ?? visual.layout.toUpperCase()} · {target.tool.replace(/-/g, " ")}</p><h1>{target.heading}</h1><p>{serviceName ? `${serviceName} · ${target.description}` : target.description}</p></div></div>;
   const referenceForm = (label = target.fieldLabel) => <form onSubmit={event => { event.preventDefault(); onRun(); }} className="web-target__form"><label>{label}{referenceInput}</label>{action}</form>;
   const shell = (children: ReactNode) => <section className={`web-target__surface web-target__surface--${target.tool}`} data-service-reference={marker} data-tool={target.tool}>{title}<ToolTelemetry target={target} visual={visual} />{children}</section>;
 
