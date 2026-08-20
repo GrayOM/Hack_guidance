@@ -1,5 +1,6 @@
 export type WebTargetKind = "identity" | "files" | "directory" | "forms" | "api" | "report" | "upload" | "content";
 export type WebTargetLayout = "ledger" | "editorial" | "canvas" | "terminal" | "portal" | "dashboard" | "library" | "minimal" | "board" | "studio";
+export type WebTargetScene = "mesh" | "radar" | "rain" | "circuit" | "breach" | "packets" | "cipher" | "orbit" | "vault" | "void";
 
 export type WebTargetVisual = {
   signature: string;
@@ -8,6 +9,9 @@ export type WebTargetVisual = {
   density: "compact" | "balanced" | "spacious";
   type: "sans" | "serif" | "mono";
   navigation: "rail" | "tabs" | "topbar" | "quiet";
+  scene: WebTargetScene;
+  scenePhase: number;
+  sceneOffset: number;
 };
 
 export type WebTargetSpec = {
@@ -78,6 +82,7 @@ const targets: readonly WebTargetSpec[] = [
 ];
 
 const targetLayouts: readonly WebTargetLayout[] = ["ledger", "editorial", "canvas", "terminal", "portal", "dashboard", "library", "minimal", "board", "studio"];
+const targetScenes: readonly WebTargetScene[] = ["mesh", "radar", "rain", "circuit", "breach", "packets", "cipher", "orbit", "vault", "void"];
 const typeScales: readonly WebTargetVisual["type"][] = ["sans", "serif", "mono", "sans", "serif"];
 const densityScales: readonly WebTargetVisual["density"][] = ["compact", "balanced", "spacious", "balanced", "compact"];
 const navigationStyles: readonly WebTargetVisual["navigation"][] = ["rail", "tabs", "topbar", "quiet", "tabs"];
@@ -98,6 +103,9 @@ export function webTargetVisualForNode(id: number): WebTargetVisual | null {
     density: densityScales[(index * 2 + Math.floor(index / 5)) % densityScales.length]!,
     type: typeScales[(index + Math.floor(index / 10)) % typeScales.length]!,
     navigation: navigationStyles[(index * 3 + Math.floor(index / 2)) % navigationStyles.length]!,
+    scene: targetScenes[index % targetScenes.length]!,
+    scenePhase: (index * 67) % 360,
+    sceneOffset: (index * 29) % 97,
   };
 }
 

@@ -129,6 +129,11 @@ describe("external free-tier deployment pack", () => {
     expect(webTargetCss).toContain("web-target__security-hud");
     expect(webTargetCss).toContain("web-target__telemetry");
     expect(webTargetCss).toContain("web-target__stage::before");
+    expect(webTargetCss).toContain("web-target--scene-mesh");
+    expect(webTargetCss).toContain("web-target--scene-radar");
+    expect(webTargetCss).toContain("web-target--scene-circuit");
+    expect(webTargetCss).toContain("web-target--scene-vault");
+    expect(webTargetCss).toContain("web-target--scene-void");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
     expect(rankingPage).toContain("이메일 인증 뒤 이곳에 표시됩니다.");

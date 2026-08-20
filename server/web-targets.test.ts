@@ -22,6 +22,8 @@ describe("isolated web wargame targets", () => {
     expect(new Set(visuals.map(visual => visual?.signature)).size).toBe(50);
     expect(new Set(visuals.map(visual => visual?.hue)).size).toBe(50);
     expect(new Set(visuals.map(visual => visual?.layout)).size).toBe(10);
+    expect(new Set(visuals.map(visual => visual?.scene)).size).toBe(10);
+    expect(new Set(visuals.map(visual => `${visual?.scene}-${visual?.scenePhase}-${visual?.sceneOffset}`)).size).toBe(50);
     expect(new Set(visuals.map(visual => `${visual?.layout}-${visual?.type}-${visual?.density}-${visual?.navigation}`)).size).toBeGreaterThan(10);
     expect(webTargetVisualForNode(51)).toBeNull();
   });

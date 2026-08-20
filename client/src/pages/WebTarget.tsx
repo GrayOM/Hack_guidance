@@ -47,7 +47,12 @@ export default function WebTarget() {
 
   if (!target || !challenge || !guide || !visual) return <MissingTarget onBack={() => setLocation("/problems")} />;
   const nextNode = id < 50 ? id + 1 : null;
-  const visualStyle = { "--target-hue": visual.hue } as CSSProperties;
+  const visualStyle = {
+    "--target-hue": visual.hue,
+    "--scene-phase": `${visual.scenePhase}deg`,
+    "--scene-offset": `${visual.sceneOffset}%`,
+    "--scene-offset-negative": `-${visual.sceneOffset}%`,
+  } as CSSProperties;
   const runTarget = () => {
     if (!isAuthenticated) {
       setResponse("Sign in to Hack Guidance from the challenge directory before sending a request to this training target.");
@@ -75,7 +80,7 @@ export default function WebTarget() {
 
   return (
     <div
-      className={`web-target web-target--${visual.layout} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
+      className={`web-target web-target--${visual.layout} web-target--scene-${visual.scene} web-target--${visual.type} web-target--${visual.density} web-target--nav-${visual.navigation}`}
       data-target-signature={visual.signature}
       style={visualStyle}
     >
@@ -103,7 +108,7 @@ function BrowserFrame({ origin, route, onBack }: { origin: string; route: string
 }
 
 function SecurityHud({ id, visual }: { id: number; visual: WebTargetVisual }) {
-  return <div className="web-target__security-hud" aria-label="Isolated security analysis status"><div><span className="web-target__live-dot" />HG//ANALYSIS · NODE-{String(id).padStart(2, "0")}</div><span>ISOLATED_TARGET</span><span>ROUTE.{visual.layout.toUpperCase()}</span><span>TRACE_READY</span></div>;
+  return <div className="web-target__security-hud" aria-label="Isolated security analysis status"><div><span className="web-target__live-dot" />HG//ANALYSIS · NODE-{String(id).padStart(2, "0")}</div><span>ISOLATED_TARGET</span><span>SCENE.{visual.scene.toUpperCase()}</span><span>TRACE_READY</span></div>;
 }
 
 function TargetHeader({ target, visual, id }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number }) {
