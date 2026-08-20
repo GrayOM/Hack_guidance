@@ -113,13 +113,13 @@ describe("external free-tier deployment pack", () => {
     expect(labPage).toContain("CASE BRIEF");
     expect(labPage).toContain("TARGET ENVIRONMENT OPEN");
     expect(labPage).toContain("격리된 교육용 서비스");
-    expect(webTargetPage).toContain("IDENTITY BRIDGE");
-    expect(webTargetPage).toContain("PACKET CONSOLE");
-    expect(webTargetPage).toContain("CASE TERMINAL");
+    expect(webTargetPage).toContain("web-target__site-status");
+    expect(webTargetPage).not.toContain("function BrowserFrame");
+    expect(webTargetPage).not.toContain("function SecurityHud");
     expect(webTargetPage).toContain("data-service-reference");
     expect(webTargetPage).toContain("Recovered artifact");
     expect(webTargetPage).toContain("Hack Guidance 플래그 제출");
-    expect(webTargetPage).toContain("HG//ANALYSIS");
+    expect(webTargetPage).toContain("web-target__site-status");
     expect(webTargetPage).toContain("isolated trace");
     expect(webTargetPage).toContain("`${guide.operation} ${reference.trim()}`");
     expect(webTargetPage).not.toContain("WARGAME COMMAND CONSOLE");

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, ChevronRight, Code2, FileText, Flag, FolderOpen, Globe2, LoaderCircle, LockKeyhole, Network, Send, ShieldCheck, TerminalSquare, UploadCloud, UserRound } from "lucide-react";
+import { ArrowLeft, ChevronRight, Code2, FileText, Flag, FolderOpen, Globe2, LoaderCircle, Network, Send, ShieldCheck, TerminalSquare, UploadCloud, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { challengeById } from "@shared/learning";
 import { practiceGuideForNode } from "@/lib/problem-brief";
@@ -84,11 +84,10 @@ export default function WebTarget() {
       data-target-signature={visual.signature}
       style={visualStyle}
     >
-      <BrowserFrame origin={target.origin} route={target.route} target={target} visual={visual} id={id} onBack={() => setLocation(`/lab/${id}`)} />
       <main className="web-target__stage">
-        <SecurityHud id={id} visual={visual} />
         <section className="web-target__app">
-          <TargetHeader target={target} visual={visual} id={id} />
+          <TargetHeader target={target} visual={visual} id={id} onBack={() => setLocation(`/lab/${id}`)} />
+          <TargetSiteStatus target={target} visual={visual} />
           <div className="web-target__layout">
             <div className="web-target__content">
               <TargetSurface target={target} visual={visual} marker={guide.marker} reference={reference} setReference={setReference} onRun={runTarget} pending={practice.isPending} />
@@ -103,17 +102,12 @@ export default function WebTarget() {
   );
 }
 
-function BrowserFrame({ origin, route, target, visual, id, onBack }: { origin: string; route: string; target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number; onBack: () => void }) {
-  const labels: Record<NonNullable<ReturnType<typeof webTargetForNode>>["tool"], string> = { "identity-bridge": "IDENTITY BRIDGE", "artifact-vault": "ARTIFACT VAULT", "object-map": "OBJECT MAP", "request-forge": "REQUEST FORGE", "packet-console": "PACKET CONSOLE", "case-terminal": "CASE TERMINAL", "ingest-bay": "INGEST BAY", "render-lab": "RENDER LAB" };
-  return <header className={`web-target__browser web-target__browser--${target.tool}`} data-browser-tool={target.tool}><div className="web-target__browser-inner"><button type="button" onClick={onBack} className="web-target__exit"><ArrowLeft className="h-4 w-4" />나가기</button><div className="web-target__browser-tool"><span className="web-target__browser-lights"><i /><i /><i /></span><span>{labels[target.tool]}</span></div><div className="web-target__address"><LockKeyhole className="h-3.5 w-3.5" /><span>https://{origin}{route}</span></div><span className="web-target__browser-state">NODE-{String(id).padStart(2, "0")} · {visual.scene.toUpperCase()}</span></div></header>;
+function TargetHeader({ target, visual, id, onBack }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number; onBack: () => void }) {
+  return <header className="web-target__header"><button type="button" onClick={onBack} className="web-target__site-return"><ArrowLeft className="h-3.5 w-3.5" /><span>CASE FILE</span></button><div className="web-target__brand"><div className="web-target__brand-mark">{target.tool === "packet-console" || target.tool === "case-terminal" ? <TerminalSquare className="h-4 w-4" /> : target.tool === "object-map" ? <Network className="h-4 w-4" /> : <Globe2 className="h-4 w-4" />}</div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav><div className="web-target__header-trace"><span className="web-target__live-dot" />CASE-{String(id).padStart(2, "0")} · {target.caseFile?.operatorCue ?? "SURFACE_ACTIVE"}</div></header>;
 }
 
-function SecurityHud({ id, visual }: { id: number; visual: WebTargetVisual }) {
-  return <div className="web-target__security-hud" aria-label="Isolated security analysis status"><div><span className="web-target__live-dot" />HG//ANALYSIS · NODE-{String(id).padStart(2, "0")}</div><span>ISOLATED_TARGET</span><span>SCENE.{visual.scene.toUpperCase()}</span><span>TRACE_READY</span></div>;
-}
-
-function TargetHeader({ target, visual, id }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; id: number }) {
-  return <header className="web-target__header"><div className="web-target__brand"><div className="web-target__brand-mark">{target.tool === "packet-console" || target.tool === "case-terminal" ? <TerminalSquare className="h-4 w-4" /> : target.tool === "object-map" ? <Network className="h-4 w-4" /> : <Globe2 className="h-4 w-4" />}</div><div><p className="web-target__brand-name">{target.appName}</p><p className="web-target__origin">{target.origin}</p></div></div><nav className="web-target__nav" aria-label="Target navigation"><span>{visual.navigation === "rail" ? "Workspace" : "Home"}</span><span>{visual.navigation === "quiet" ? "About" : "Help"}</span><UserRound className="h-4 w-4" /></nav><div className="web-target__header-trace"><span className="web-target__live-dot" />CASE-{String(id).padStart(2, "0")} · {target.caseFile?.operatorCue ?? "SURFACE_ACTIVE"}</div></header>;
+function TargetSiteStatus({ target, visual }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual }) {
+  return <div className="web-target__site-status"><span>{target.origin}</span><span>{target.tool.replace(/-/g, " · ")}</span><span>{visual.scene} environment</span></div>;
 }
 
 function TargetSurface({ target, visual, marker, reference, setReference, onRun, pending }: { target: NonNullable<ReturnType<typeof webTargetForNode>>; visual: WebTargetVisual; marker: string; reference: string; setReference: (value: string) => void; onRun: () => void; pending: boolean }) {
