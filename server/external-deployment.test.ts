@@ -5,7 +5,7 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
@@ -32,6 +32,7 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/App.tsx", root), "utf8"),
       readFile(new URL("client/src/index.css", root), "utf8"),
       readFile(new URL("client/src/components/SecurityBackdrop.tsx", root), "utf8"),
+      readFile(new URL("client/src/components/PracticeWorkbench.tsx", root), "utf8"),
     ]);
 
     expect(migration).toContain("enable row level security");
@@ -97,10 +98,19 @@ describe("external free-tier deployment pack", () => {
     expect(homePage).toContain("문제를 풀고");
     expect(homePage).toContain("Hack Guidance는 보안 단서를 분석해 플래그를 확보하는 문제 풀이 보드입니다.");
     expect(problemsPage).toContain("useLearningDashboard");
+    expect(problemsPage).toContain("LOCAL LAB");
+    expect(problemsPage).toContain("로컬 실습 워크스페이스");
     expect(labPage).toContain("useSubmitFlag");
     expect(labPage).toContain("useReviewDefense");
+    expect(labPage).toContain("PracticeWorkbench");
     expect(labPage).not.toContain("@/lib/trpc");
     expect(labPage).not.toContain("trpc.");
+    expect(practiceWorkbench).toContain("LOCAL REQUEST REPLAY");
+    expect(practiceWorkbench).toContain("SAFE OUTPUT SANDBOX");
+    expect(practiceWorkbench).toContain("AUTHORIZATION GATE");
+    expect(practiceWorkbench).toContain("외부 시스템에 요청을 보내거나 코드를 실행하지 않으며");
+    expect(practiceWorkbench).toContain("practiceTrackForNode");
+    expect(practiceWorkbench).not.toContain("fetch(");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
     expect(rankingPage).toContain("이메일 인증 뒤 이곳에 표시됩니다.");
