@@ -5,7 +5,7 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, workspacePage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, learningApi, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, workspacePage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
@@ -17,6 +17,7 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/pages/VerifyCertificate.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/CertificatePrint.tsx", root), "utf8"),
       readFile(new URL("client/src/lib/external-supabase.ts", root), "utf8"),
+      readFile(new URL("client/src/hooks/useLearningApi.ts", root), "utf8"),
       readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8"),
       readFile(new URL("client/src/hooks/usePlatformAuth.ts", root), "utf8"),
       readFile(new URL("client/src/pages/Home.tsx", root), "utf8"),
@@ -81,6 +82,8 @@ describe("external free-tier deployment pack", () => {
     expect(verifyPage).not.toContain("@/lib/trpc");
     expect(certificatePrint).toContain("useVerifyCertificate");
     expect(externalClient).toContain("const configured = Boolean(url && publishableKey)");
+    expect(learningApi).toContain('externalQuery<{ records: unknown[] }>("records", "records", {}, options)');
+    expect(learningApi).toContain("Array.isArray(response.data?.records) ? response.data.records : []");
     expect(pagesWorkflow).toContain("pnpm build:github-pages");
     expect(pagesWorkflow).toContain("actions/deploy-pages@v4");
     expect(platformAuth).toContain("signInWithPassword");

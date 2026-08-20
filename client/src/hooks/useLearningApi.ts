@@ -20,9 +20,11 @@ export function useLearningDashboard(options?: QueryOptions): any {
 }
 
 export function useLearningRecords(options?: QueryOptions): any {
-  return isExternalSupabaseDeployment
-    ? externalQuery("records", "records", {}, options)
-    : trpc.learning.records.useQuery(undefined, options);
+  if (isExternalSupabaseDeployment) {
+    const response = externalQuery<{ records: unknown[] }>("records", "records", {}, options);
+    return { ...response, data: Array.isArray(response.data?.records) ? response.data.records : [] };
+  }
+  return trpc.learning.records.useQuery(undefined, options);
 }
 
 export function useLearningRanking(options?: QueryOptions): any {
