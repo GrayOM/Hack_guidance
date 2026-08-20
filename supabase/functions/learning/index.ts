@@ -37,14 +37,11 @@ function loadFlagMap(): FlagMap {
 const flagMap = loadFlagMap();
 const levels = new Map(Array.from({ length: 50 }, (_, index) => [index + 1, Math.floor(index / 10) + 1]));
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
+const textEncoder = new TextEncoder();
 
-function expectedPracticeInput(problemId: number) {
-  if (problemId >= 1 && problemId <= 10) return "role=admin";
-  if (problemId >= 11 && problemId <= 20) return "topic=session";
-  if (problemId >= 21 && problemId <= 30) return "<sample>";
-  if (problemId >= 31 && problemId <= 40) return "104";
-  if (problemId >= 41 && problemId <= 50) return "fact: response header";
-  return null;
+async function wargameCommandSignature(command: string) {
+  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", textEncoder.encode(command)));
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
 async function requireUser(request: Request) {
@@ -169,13 +166,16 @@ Deno.serve(async request => {
 
   if (action === "practice") {
     const problemId = Number(payload?.problemId);
-    const input = typeof payload?.input === "string" ? payload.input.trim().toLowerCase() : "";
-    const expected = expectedPracticeInput(problemId);
-    if (!expected || !levels.has(problemId)) return json({ error: "지원하지 않는 문제 공간입니다." }, 400);
-    if (input !== expected.toLowerCase()) return json({ verified: false, message: "입력값을 문제 안내의 ‘무엇을 할까요’ 단계와 다시 비교해 보세요." });
+    const input = typeof payload?.input === "string" ? payload.input.trim().toLowerCase().replace(/\s+/g, " ") : "";
+    if (!levels.has(problemId) || input.length < 3 || input.length > 96) return json({ error: "유효한 조사 명령과 문제 공간을 확인해 주세요." }, 400);
+    const signature = await wargameCommandSignature(input);
+    if (!signature) return json({ error: "실습 검증기를 준비하지 못했습니다." }, 500);
+    const { data: rule, error: ruleError } = await service.from("hg_wargame_rules").select("command_signature").eq("problem_id", problemId).maybeSingle();
+    if (ruleError || !rule) return json({ error: "문제별 실습 규칙을 불러오지 못했습니다." }, 500);
+    if (rule.command_signature !== signature) return json({ verified: false, message: "조사 결과가 아직 부족합니다. 증거의 처리 대상·신뢰 경계·응답 신호를 다시 연결해 보세요." });
     const capture = flagMap[String(problemId)];
     if (!capture) return json({ error: "실습 플래그를 준비하지 못했습니다." }, 500);
-    return json({ verified: true, capture, message: "조작 결과가 예상한 신뢰 경계를 확인했습니다. 캡처한 플래그를 직접 제출하세요." });
+    return json({ verified: true, capture, message: "사례의 핵심 경계를 확인했습니다. 복구한 플래그 아티팩트를 직접 제출하세요." });
   }
 
   if (action === "submit") {
