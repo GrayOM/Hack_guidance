@@ -5,10 +5,10 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
-      readFile(new URL("supabase/migrations/20260819000002_add_hg_admin_role.sql", root), "utf8"),
+      readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000003_fix_hg_certificate_function.sql", root), "utf8"),
       readFile(new URL("supabase/functions/learning/index.ts", root), "utf8"),
       readFile(new URL("client/public/_redirects", root), "utf8"),
@@ -42,9 +42,9 @@ describe("external free-tier deployment pack", () => {
     expect(hardeningMigration).toContain("revoke all on function public.hg_consume_submission_slot(uuid) from public, anon, authenticated");
     expect(hardeningMigration).toContain("security_invoker = true");
     expect(hardeningMigration).not.toMatch(/HG\{N\d{2}_[A-Za-z0-9_-]{24}\}/);
-    expect(adminMigration).toContain("is_admin boolean not null default false");
-    expect(adminMigration).toContain("where p.is_admin = false");
-    expect(adminMigration).toContain("grant select on table public.hg_public_ranking to service_role");
+    expect(adminRoleRemovalMigration).toContain("drop column if exists is_admin");
+    expect(adminRoleRemovalMigration).not.toContain("where p.is_admin = false");
+    expect(adminRoleRemovalMigration).toContain("grant select on table public.hg_public_ranking to service_role");
     expect(certificateFunctionFix).toContain("v_certificate_code text");
     expect(certificateFunctionFix).toContain("select c.certificate_code into v_certificate_code");
     expect(certificateFunctionFix).toContain("returning public.hg_course_certificates.certificate_code into v_certificate_code");
