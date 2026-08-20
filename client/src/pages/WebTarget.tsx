@@ -57,7 +57,8 @@ export default function WebTarget() {
   const nextNode = id < 50 ? id + 1 : null;
   const runTarget = () => {
     if (!isAuthenticated) {
-      startPlatformLogin();
+      setResponse("Sign in to Hack Guidance from the challenge directory before sending a request to this training target.");
+      toast.message("플랫폼 로그인 후 교육용 웹 타깃 요청을 실행할 수 있습니다.");
       return;
     }
     if (!reference.trim()) {
