@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Crown, Radio, Trophy } from "lucide-react";
+import { Crown, Radio, Target, Trophy } from "lucide-react";
 import { ConsoleNav } from "@/components/ConsoleNav";
 import { usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useLearningRanking } from "@/hooks/useLearningApi";
-import { getRankingFingerprint, getRankingStreamEvent, type RankingFingerprint, type RankingStreamEvent } from "@/lib/ranking-feedback";
+import { getCurrentRankingPosition, getRankingFingerprint, getRankingStreamEvent, type RankingFingerprint, type RankingStreamEvent } from "@/lib/ranking-feedback";
 
 type StreamEvent = RankingStreamEvent & { id: number };
 
@@ -16,6 +16,9 @@ export default function Ranking() {
   const rows = ranking.data ?? [];
   const [streamEvent, setStreamEvent] = useState<StreamEvent | null>(null);
   const previousRef = useRef<RankingFingerprint | null>(null);
+  const currentUserPosition = getCurrentRankingPosition(rows, user?.id);
+  const currentUserIndex = currentUserPosition?.index ?? -1;
+  const currentUserRow = currentUserPosition?.row ?? null;
 
   const fingerprint = useMemo(() => getRankingFingerprint(rows, user?.id), [rows, user?.id]);
 
@@ -38,14 +41,21 @@ export default function Ranking() {
           <span className="inline-flex items-center gap-1.5 font-mono-ui text-[10px] tracking-[0.14em] text-slate-600"><Radio className={`h-3.5 w-3.5 ${ranking.isFetching ? "animate-pulse text-teal-300" : ""}`} />{ranking.isFetching ? "SYNCING" : "LIVE SYNC / 15S"}</span>
         </div>
 
+        {currentUserRow ? <section className="my-rank-signal mt-6" aria-label="내 순위">
+          <div className="my-rank-signal__position"><span>YOUR POSITION</span><strong>#{String(currentUserIndex + 1).padStart(2, "0")}</strong></div>
+          <div className="my-rank-signal__identity"><span className="my-rank-signal__label"><Target className="h-3.5 w-3.5" />MY ACCOUNT</span><p>{currentUserRow.name ?? user?.name ?? "ANONYMOUS OPERATOR"}</p></div>
+          <div className="my-rank-signal__metric"><span>SOLVED</span><strong>{currentUserRow.solvedCount} <em>/ 50</em></strong></div>
+          <div className="my-rank-signal__metric"><span>LAST SIGNAL</span><strong className="text-sm">{currentUserRow.lastSolvedAt ? new Date(currentUserRow.lastSolvedAt).toLocaleString("ko-KR") : "기록 없음"}</strong></div>
+        </section> : null}
+
         <section className="ranking-console hnet-panel mt-8 overflow-hidden border border-[#315057]">
           {streamEvent ? <div key={streamEvent.id} className={`ranking-stream ranking-stream--${streamEvent.kind}`} role="status" aria-live="polite"><div className="ranking-stream__rain" /><span>{streamEvent.message}</span></div> : null}
           <div className="hidden grid-cols-[80px_minmax(0,1fr)_140px_180px] border-b border-[#294247] bg-[#0a1518] px-5 py-3 font-mono-ui text-[10px] tracking-[0.14em] text-slate-500 sm:grid"><span>RANK</span><span>OPERATOR</span><span>SOLVED</span><span>LAST SIGNAL</span></div>
           {ranking.isLoading ? <div className="p-8 text-sm text-slate-400">랭킹 신호를 수집하고 있습니다.</div> : rows.length === 0 ? <div className="p-8 text-center"><Trophy className="mx-auto h-7 w-7 text-teal-300" /><p className="mt-3 text-sm text-slate-300">아직 인증을 완료한 분석자가 없습니다. 이메일 인증 뒤 이곳에 표시됩니다.</p></div> : <div className="divide-y divide-[#294247]">{rows.map((row: any, index: number) => {
             const isCurrentUser = row.userId === user?.id;
-            return <div key={row.userId} className={`ranking-row grid gap-2 px-5 py-4 sm:grid-cols-[80px_minmax(0,1fr)_140px_180px] sm:items-center ${isCurrentUser ? "ranking-row--current" : ""}`}>
-              <span className={`font-mono-ui text-sm ${index === 0 ? "text-amber-200" : "text-slate-500"}`}>{index === 0 ? <Crown className="h-4 w-4" /> : String(index + 1).padStart(2, "0")}</span>
-              <span className="truncate text-sm font-medium text-slate-100">{row.name ?? "ANONYMOUS OPERATOR"}{isCurrentUser ? <span className="ml-2 font-mono-ui text-[9px] tracking-wider text-teal-200">YOU</span> : null}</span>
+            return <div key={row.userId} aria-current={isCurrentUser ? "true" : undefined} className={`ranking-row grid gap-2 px-5 py-4 sm:grid-cols-[80px_minmax(0,1fr)_140px_180px] sm:items-center ${isCurrentUser ? "ranking-row--current" : ""}`}>
+              <span className={`ranking-row__rank font-mono-ui text-sm ${index === 0 ? "text-amber-200" : "text-slate-500"}`}>{index === 0 ? <Crown className="h-4 w-4" /> : `#${String(index + 1).padStart(2, "0")}`}</span>
+              <span className="truncate text-sm font-medium text-slate-100"><span>{row.name ?? "ANONYMOUS OPERATOR"}</span>{isCurrentUser ? <span className="ranking-row__current-label"><Target className="h-3 w-3" />MY ACCOUNT</span> : null}</span>
               <span className="font-mono-ui text-sm text-teal-200">{row.solvedCount} / 50</span>
               <span className="text-xs text-slate-500">{row.lastSolvedAt ? new Date(row.lastSolvedAt).toLocaleString("ko-KR") : "기록 없음"}</span>
             </div>;

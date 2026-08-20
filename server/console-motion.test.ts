@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { getRankingFingerprint, getRankingStreamEvent } from "../client/src/lib/ranking-feedback";
+import { getCurrentRankingPosition, getRankingFingerprint, getRankingStreamEvent } from "../client/src/lib/ranking-feedback";
 import { SIGNAL_LOCK_DURATION_MS, shouldStartSignalLock } from "../client/src/lib/signal-feedback";
 
 const appSource = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
@@ -28,8 +28,13 @@ describe("event-driven console feedback", () => {
   it("refreshes public ranking data and renders a temporary stream on changes", () => {
     expect(rankingSource).toContain("refetchInterval: 15_000");
     expect(rankingSource).toContain("ranking-stream");
+    expect(rankingSource).toContain("my-rank-signal");
+    expect(rankingSource).toContain('aria-label="내 순위"');
+    expect(rankingSource).toContain("ranking-row__current-label");
     expect(rankingSource).toContain("RANK");
     expect(styles).toContain("ranking-data-rain");
+    expect(styles).toContain(".my-rank-signal");
+    expect(styles).toContain(".ranking-row__current-label");
     expect(styles).toContain("@media (max-width: 639px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)");
   });
 
@@ -54,5 +59,16 @@ describe("event-driven console feedback", () => {
     expect(getRankingStreamEvent(previous, unchanged)).toBeNull();
     expect(getRankingStreamEvent(previous, movedUp)).toMatchObject({ kind: "rank-change", message: "RANK UPLINK // 02 → 01" });
     expect(getRankingStreamEvent(previous, refreshed)).toMatchObject({ kind: "refresh" });
+  });
+
+  it("finds only the logged-in user's server-ordered ranking position", () => {
+    const tiedRows = [
+      { userId: "alpha", solvedCount: 4, lastSolvedAt: "2026-08-18T00:00:00.000Z" },
+      { userId: "current", solvedCount: 4, lastSolvedAt: "2026-08-18T00:01:00.000Z" },
+    ];
+
+    expect(getCurrentRankingPosition(tiedRows)).toBeNull();
+    expect(getCurrentRankingPosition(tiedRows, "missing")).toBeNull();
+    expect(getCurrentRankingPosition(tiedRows, "current")).toMatchObject({ index: 1, rank: 2, row: { userId: "current" } });
   });
 });
