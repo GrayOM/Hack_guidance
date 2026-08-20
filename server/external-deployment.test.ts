@@ -5,7 +5,7 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, confirmedProfilesMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, workspacePage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop, practiceWorkbench] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
@@ -22,6 +22,7 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/pages/Home.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Problems.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Lab.tsx", root), "utf8"),
+      readFile(new URL("client/src/pages/Workspace.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Records.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Ranking.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Certificate.tsx", root), "utf8"),
@@ -69,6 +70,8 @@ describe("external free-tier deployment pack", () => {
     expect(edgeFunction).toContain('action === "profile"');
     expect(edgeFunction).toContain('action === "updateDisplayName"');
     expect(edgeFunction).toContain('action === "provisionProfile"');
+    expect(edgeFunction).toContain('action === "practice"');
+    expect(edgeFunction).toContain("expectedPracticeInput");
     expect(edgeFunction).toContain("user.email_confirmed_at");
     expect(edgeFunction).toContain("hg_provision_confirmed_profile");
     expect(edgeFunction).toContain("updateUserById");
@@ -100,15 +103,17 @@ describe("external free-tier deployment pack", () => {
     expect(problemsPage).toContain("useLearningDashboard");
     expect(problemsPage).toContain("LOCAL LAB");
     expect(problemsPage).toContain("로컬 실습 워크스페이스");
-    expect(labPage).toContain("useSubmitFlag");
-    expect(labPage).toContain("useReviewDefense");
-    expect(labPage).toContain("PracticeWorkbench");
+    expect(labPage).toContain("MISSION BRIEF");
+    expect(labPage).toContain("전용 문제 공간 열기");
+    expect(workspacePage).toContain("ISOLATED PRACTICE SPACE");
+    expect(workspacePage).toContain("PracticeWorkbench");
+    expect(workspacePage).toContain("FINAL SUBMISSION");
     expect(labPage).not.toContain("@/lib/trpc");
     expect(labPage).not.toContain("trpc.");
     expect(practiceWorkbench).toContain("LOCAL REQUEST REPLAY");
     expect(practiceWorkbench).toContain("SAFE OUTPUT SANDBOX");
     expect(practiceWorkbench).toContain("AUTHORIZATION GATE");
-    expect(practiceWorkbench).toContain("외부 시스템에 요청을 보내거나 코드를 실행하지 않으며");
+    expect(practiceWorkbench).toContain("외부 대상 시스템에 요청을 보내거나 코드를 실행하지 않으며");
     expect(practiceWorkbench).toContain("practiceTrackForNode");
     expect(practiceWorkbench).not.toContain("fetch(");
     expect(recordsPage).toContain("useLearningRecords");
@@ -140,6 +145,7 @@ describe("external free-tier deployment pack", () => {
     expect(passwordRecoveryPage).toContain("새 비밀번호 설정");
     expect(appShell).toContain('path="/me"');
     expect(appShell).toContain('path="/account/password"');
+    expect(appShell).toContain('path="/workspace/:id"');
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
     expect(signalLogo).not.toContain("<img");

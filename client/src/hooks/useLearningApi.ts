@@ -53,6 +53,10 @@ export function useReviewDefense(options?: { onSuccess?: (result: any) => void; 
     : trpc.learning.reviewDefense.useMutation(options);
 }
 
+export function usePracticeProbe(options?: { onSuccess?: (result: any) => void; onError?: (error: unknown) => void }): any {
+  return useMutation({ mutationFn: (input: { problemId: number; method: string; input: string }) => invokeLearning("practice", input), ...options });
+}
+
 export function useIssueCertificate(options?: { onSuccess?: (result: any) => void; onError?: (error: unknown) => void }): any {
   return isExternalSupabaseDeployment
     ? useMutation({ mutationFn: () => invokeLearning("issueCertificate"), ...options })

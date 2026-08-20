@@ -38,6 +38,15 @@ const flagMap = loadFlagMap();
 const levels = new Map(Array.from({ length: 50 }, (_, index) => [index + 1, Math.floor(index / 10) + 1]));
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 
+function expectedPracticeInput(problemId: number) {
+  if (problemId >= 1 && problemId <= 10) return "role=admin";
+  if (problemId >= 11 && problemId <= 20) return "topic=session";
+  if (problemId >= 21 && problemId <= 30) return "<sample>";
+  if (problemId >= 31 && problemId <= 40) return "104";
+  if (problemId >= 41 && problemId <= 50) return "fact: response header";
+  return null;
+}
+
 async function requireUser(request: Request) {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) return null;
@@ -156,6 +165,17 @@ Deno.serve(async request => {
         issuedAt: certificate.issued_at,
       } : null,
     });
+  }
+
+  if (action === "practice") {
+    const problemId = Number(payload?.problemId);
+    const input = typeof payload?.input === "string" ? payload.input.trim().toLowerCase() : "";
+    const expected = expectedPracticeInput(problemId);
+    if (!expected || !levels.has(problemId)) return json({ error: "지원하지 않는 문제 공간입니다." }, 400);
+    if (input !== expected.toLowerCase()) return json({ verified: false, message: "입력값을 문제 안내의 ‘무엇을 할까요’ 단계와 다시 비교해 보세요." });
+    const capture = flagMap[String(problemId)];
+    if (!capture) return json({ error: "실습 플래그를 준비하지 못했습니다." }, 500);
+    return json({ verified: true, capture, message: "조작 결과가 예상한 신뢰 경계를 확인했습니다. 캡처한 플래그를 직접 제출하세요." });
   }
 
   if (action === "submit") {
