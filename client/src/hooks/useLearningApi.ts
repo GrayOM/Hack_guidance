@@ -58,3 +58,19 @@ export function useIssueCertificate(options?: { onSuccess?: (result: any) => voi
     ? useMutation({ mutationFn: () => invokeLearning("issueCertificate"), ...options })
     : trpc.learning.issueCertificate.useMutation(options);
 }
+
+export function useDisplayNameAvailability(displayName: string, options?: QueryOptions): any {
+  const normalized = displayName.trim();
+  return externalQuery<{ available: boolean; valid: boolean }>("display-name", "checkDisplayName", { displayName: normalized }, {
+    ...options,
+    enabled: (options?.enabled ?? true) && normalized.length >= 2,
+  });
+}
+
+export function useAccountProfile(options?: QueryOptions): any {
+  return externalQuery("account-profile", "profile", {}, options);
+}
+
+export function useUpdateDisplayName(options?: { onSuccess?: (result: any) => void; onError?: (error: unknown) => void }): any {
+  return useMutation({ mutationFn: (input: { displayName: string }) => invokeLearning("updateDisplayName", input), ...options });
+}

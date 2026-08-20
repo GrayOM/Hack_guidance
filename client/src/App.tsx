@@ -12,6 +12,8 @@ import Records from "./pages/Records";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
+import MyPage from "./pages/MyPage";
+import PasswordRecovery from "./pages/PasswordRecovery";
 import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
@@ -30,6 +32,8 @@ function Routes() {
       <Route path="/verify" component={VerifyCertificate} />
       <Route path="/ranking" component={Ranking} />
       <Route path="/problems" component={Problems} />
+      <Route path="/me" component={MyPage} />
+      <Route path="/account/password" component={PasswordRecovery} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

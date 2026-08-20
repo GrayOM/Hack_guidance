@@ -19,6 +19,8 @@ const focusByPath: Record<string, string> = {
   "/records": "node-c",
   "/ranking": "node-d",
   "/certificate": "node-f",
+  "/me": "node-c",
+  "/account/password": "node-e",
 };
 
 /** Decorative global layer: conveys an active communications network without competing with task content. */

@@ -4,7 +4,7 @@ const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
 
 vi.mock("sonner", () => ({ toast }));
 
-import { isValidAccountEmail, isValidAccountPassword, isValidDisplayName, registerSupabaseAccount, signInSupabaseAccount } from "../client/src/hooks/usePlatformAuth";
+import { isValidAccountEmail, isValidAccountPassword, isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword } from "../client/src/hooks/usePlatformAuth";
 
 describe("Supabase independent email and password account", () => {
   it("rejects malformed registration input before making an Auth request", async () => {
@@ -40,5 +40,26 @@ describe("Supabase independent email and password account", () => {
 
     await expect(signInSupabaseAccount({ email: "analyst@example.test", password: "safe-password" }, { auth: { signUp: vi.fn(), signInWithPassword: rejectedSignIn } })).resolves.toBe("failed");
     expect(toast.error).toHaveBeenCalledWith("이메일 또는 비밀번호가 올바르지 않습니다.");
+  });
+
+  it("sends a password reset email only for a valid address and directs it to the update screen", async () => {
+    const resetPasswordForEmail = vi.fn().mockResolvedValue({ error: null });
+    const client = { auth: { signUp: vi.fn(), signInWithPassword: vi.fn(), resetPasswordForEmail } };
+
+    await expect(sendPasswordResetEmail({ email: " analyst@example.test " }, client, "https://example.test/Hack_guidance/")).resolves.toBe("sent");
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("analyst@example.test", { redirectTo: "https://example.test/Hack_guidance/" });
+
+    await expect(sendPasswordResetEmail({ email: "broken" }, client, "https://example.test/Hack_guidance/")).resolves.toBe("invalid");
+    expect(resetPasswordForEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("updates a password only after local length validation", async () => {
+    const updateUser = vi.fn().mockResolvedValue({ error: null });
+    const client = { auth: { signUp: vi.fn(), signInWithPassword: vi.fn(), updateUser } };
+
+    await expect(updateSupabasePassword({ password: "short" }, client)).resolves.toBe("invalid");
+    expect(updateUser).not.toHaveBeenCalled();
+    await expect(updateSupabasePassword({ password: "safe-password" }, client)).resolves.toBe("updated");
+    expect(updateUser).toHaveBeenCalledWith({ password: "safe-password" });
   });
 });

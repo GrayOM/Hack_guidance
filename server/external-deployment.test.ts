@@ -5,10 +5,11 @@ const root = new URL("../", import.meta.url);
 
 describe("external free-tier deployment pack", () => {
   it("keeps real flags out of the migration and exposes only the Edge Function server boundary", async () => {
-    const [migration, hardeningMigration, adminRoleRemovalMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
+    const [migration, hardeningMigration, adminRoleRemovalMigration, accountMigration, certificateFunctionFix, edgeFunction, redirects, verifyPage, certificatePrint, externalClient, pagesWorkflow, platformAuth, homePage, problemsPage, labPage, recordsPage, rankingPage, certificatePage, consoleNav, myPage, passwordRecoveryPage, signalLogo, appShell, globalCss, securityBackdrop] = await Promise.all([
       readFile(new URL("supabase/migrations/20260819000000_hack_guidance.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000001_harden_hg_security.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260820000004_remove_hg_admin_role.sql", root), "utf8"),
+      readFile(new URL("supabase/migrations/20260820000005_account_recovery_and_profiles.sql", root), "utf8"),
       readFile(new URL("supabase/migrations/20260819000003_fix_hg_certificate_function.sql", root), "utf8"),
       readFile(new URL("supabase/functions/learning/index.ts", root), "utf8"),
       readFile(new URL("client/public/_redirects", root), "utf8"),
@@ -24,6 +25,8 @@ describe("external free-tier deployment pack", () => {
       readFile(new URL("client/src/pages/Ranking.tsx", root), "utf8"),
       readFile(new URL("client/src/pages/Certificate.tsx", root), "utf8"),
       readFile(new URL("client/src/components/ConsoleNav.tsx", root), "utf8"),
+      readFile(new URL("client/src/pages/MyPage.tsx", root), "utf8"),
+      readFile(new URL("client/src/pages/PasswordRecovery.tsx", root), "utf8"),
       readFile(new URL("client/src/components/SignalLogo.tsx", root), "utf8"),
       readFile(new URL("client/src/App.tsx", root), "utf8"),
       readFile(new URL("client/src/index.css", root), "utf8"),
@@ -45,6 +48,9 @@ describe("external free-tier deployment pack", () => {
     expect(adminRoleRemovalMigration).toContain("drop column if exists is_admin");
     expect(adminRoleRemovalMigration).not.toContain("where p.is_admin = false");
     expect(adminRoleRemovalMigration).toContain("grant select on table public.hg_public_ranking to service_role");
+    expect(accountMigration).toContain("hg_profiles_display_name_ci_unique");
+    expect(accountMigration).toContain("hg_display_name_available");
+    expect(accountMigration).toContain("revoke all on function public.hg_display_name_available");
     expect(certificateFunctionFix).toContain("v_certificate_code text");
     expect(certificateFunctionFix).toContain("select c.certificate_code into v_certificate_code");
     expect(certificateFunctionFix).toContain("returning public.hg_course_certificates.certificate_code into v_certificate_code");
@@ -53,6 +59,10 @@ describe("external free-tier deployment pack", () => {
     expect(edgeFunction).toContain("hg_issue_clearance_certificate");
     expect(edgeFunction).toContain('action === "ranking"');
     expect(edgeFunction).toContain('action === "verifyCertificate"');
+    expect(edgeFunction).toContain('action === "checkDisplayName"');
+    expect(edgeFunction).toContain('action === "profile"');
+    expect(edgeFunction).toContain('action === "updateDisplayName"');
+    expect(edgeFunction).toContain("updateUserById");
     expect(edgeFunction).toContain("ranking: (data ?? []).map");
     expect(edgeFunction).toContain("json({ certificate: null })");
     expect(redirects.trim()).toBe("/* /index.html 200");
@@ -69,6 +79,9 @@ describe("external free-tier deployment pack", () => {
     expect(platformAuth).toContain("이메일 주소 형식을 확인해 주세요.");
     expect(platformAuth).toContain("회원가입과 로그인이 완료되었습니다.");
     expect(platformAuth).toContain("이메일 또는 비밀번호가 올바르지 않습니다.");
+    expect(platformAuth).toContain("resetPasswordForEmail");
+    expect(platformAuth).toContain('event === "PASSWORD_RECOVERY"');
+    expect(platformAuth).toContain("updateSupabasePassword");
 
     expect(homePage).toContain("useLearningDashboard");
     expect(homePage).toContain("문제를 풀고");
@@ -93,6 +106,15 @@ describe("external free-tier deployment pack", () => {
     expect(consoleNav).toContain("공개명");
     expect(consoleNav).not.toContain("공개 분석자명");
     expect(consoleNav).toContain("registerSupabaseAccount");
+    expect(consoleNav).toContain("sendPasswordResetEmail");
+    expect(consoleNav).toContain("비밀번호를 잊으셨나요? 이메일로 재설정");
+    expect(consoleNav).toContain("이미 사용 중인 공개명입니다.");
+    expect(consoleNav).toContain('setLocation("/me")');
+    expect(myPage).toContain("공개명 저장");
+    expect(myPage).toContain("LEARNING SUMMARY");
+    expect(passwordRecoveryPage).toContain("새 비밀번호 설정");
+    expect(appShell).toContain('path="/me"');
+    expect(appShell).toContain('path="/account/password"');
     expect(signalLogo).toContain("<svg");
     expect(signalLogo).not.toContain("manus-storage");
     expect(signalLogo).not.toContain("<img");
