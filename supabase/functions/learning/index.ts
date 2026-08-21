@@ -53,7 +53,34 @@ Deno.serve(async request => {
     return error ? json({ error: "Unable to check display name" }, 500) : json({ available: Boolean(data), valid: true });
   }
 
-  if (action === "ranking") return json({ ranking: [] });
+  if (action === "ranking") {
+    const [{ data: profiles, error: profileError }, { data: progress, error: progressError }] = await Promise.all([
+      service.from("hg_profiles").select("id, display_name"),
+      service.from("hg_black_trace_progress").select("user_id, completed_at"),
+    ]);
+    if (profileError || progressError) return json({ error: "Unable to load operation ranking" }, 500);
+    const totals = new Map<string, { solvedCount: number; lastSolvedAt: string | null }>();
+    for (const record of progress ?? []) {
+      const current = totals.get(record.user_id) ?? { solvedCount: 0, lastSolvedAt: null };
+      totals.set(record.user_id, {
+        solvedCount: current.solvedCount + 1,
+        lastSolvedAt: !current.lastSolvedAt || record.completed_at > current.lastSolvedAt ? record.completed_at : current.lastSolvedAt,
+      });
+    }
+    const ranking = (profiles ?? []).map(profile => ({
+      userId: profile.id,
+      name: profile.display_name,
+      solvedCount: totals.get(profile.id)?.solvedCount ?? 0,
+      lastSolvedAt: totals.get(profile.id)?.lastSolvedAt ?? null,
+    })).sort((left, right) => {
+      if (right.solvedCount !== left.solvedCount) return right.solvedCount - left.solvedCount;
+      const leftTime = left.lastSolvedAt ? Date.parse(left.lastSolvedAt) : Number.MAX_SAFE_INTEGER;
+      const rightTime = right.lastSolvedAt ? Date.parse(right.lastSolvedAt) : Number.MAX_SAFE_INTEGER;
+      if (leftTime !== rightTime) return leftTime - rightTime;
+      return left.name.localeCompare(right.name, "ko");
+    });
+    return json({ ranking });
+  }
   if (action === "verifyCertificate") return json({ certificate: null });
 
   const user = await requireUser(request);
@@ -66,9 +93,12 @@ Deno.serve(async request => {
   }
 
   if (action === "profile") {
-    const { data: profile, error } = await service.from("hg_profiles").select("display_name, created_at, updated_at").eq("id", user.id).maybeSingle();
-    if (error || !profile) return json({ error: "Unable to load profile" }, 500);
-    return json({ profile: { displayName: profile.display_name, createdAt: profile.created_at, updatedAt: profile.updated_at }, summary: { solvedCount: 0, defenseReviewCount: 0, hasCertificate: false } });
+    const [{ data: profile, error: profileError }, { data: progress, error: progressError }] = await Promise.all([
+      service.from("hg_profiles").select("display_name, created_at, updated_at").eq("id", user.id).maybeSingle(),
+      service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id),
+    ]);
+    if (profileError || progressError || !profile) return json({ error: "Unable to load profile" }, 500);
+    return json({ profile: { displayName: profile.display_name, createdAt: profile.created_at, updatedAt: profile.updated_at }, summary: { solvedCount: progress?.length ?? 0, defenseReviewCount: 0, hasCertificate: false } });
   }
 
   if (action === "updateDisplayName") {
@@ -110,8 +140,16 @@ Deno.serve(async request => {
     return json({ correct: true, alreadyCompleted: completedStages.includes(stage), completedStages: nextStages, accessLevel: blackTraceAccess(stage), operationComplete: nextStages.length === 10 });
   }
 
-  if (action === "dashboard") return json({ completedIds: [], defenseReviewedIds: [], certificate: null });
-  if (action === "records") return json({ records: [] });
+  if (action === "dashboard") {
+    const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
+    if (error) return json({ error: "Unable to load operation dashboard" }, 500);
+    return json({ completedIds: (data ?? []).map(record => record.stage), defenseReviewedIds: [], certificate: null });
+  }
+  if (action === "records") {
+    const { data, error } = await service.from("hg_black_trace_progress").select("stage, hint_count, completed_at").eq("user_id", user.id).order("stage");
+    if (error) return json({ error: "Unable to load operation records" }, 500);
+    return json({ records: (data ?? []).map(record => ({ stage: record.stage, hintCount: record.hint_count, completedAt: record.completed_at })) });
+  }
   if (action === "practice") return json({ verified: false, message: "현재 등록된 문제가 없습니다." }, 410);
   if (action === "submit") return json({ correct: false, message: "현재 등록된 문제가 없습니다." });
   if (action === "reviewDefense") return json({ success: false, message: "현재 등록된 문제가 없습니다." });

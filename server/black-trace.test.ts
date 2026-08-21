@@ -4,6 +4,8 @@ import { blackTraceStageById, blackTraceStages } from "../shared/black-trace";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
+const recordsSource = readFileSync(new URL("../client/src/pages/Records.tsx", import.meta.url), "utf8");
+const myPageSource = readFileSync(new URL("../client/src/pages/MyPage.tsx", import.meta.url), "utf8");
 const traceFunction = readFileSync(new URL("../supabase/functions/black-trace/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.url), "utf8");
@@ -40,5 +42,15 @@ describe("OPERATION BLACK TRACE", () => {
     expect(directorySource).toContain('import { ConsoleNav } from "@/components/ConsoleNav"');
     expect(directorySource).toContain("<ConsoleNav />");
     expect(stageSource).not.toContain("ConsoleNav");
+  });
+
+  it("uses BLACK TRACE progress as the source for public ranking and private records", () => {
+    expect(learningFunction).toContain('service.from("hg_profiles").select("id, display_name")');
+    expect(learningFunction).toContain('service.from("hg_black_trace_progress").select("user_id, completed_at")');
+    expect(learningFunction).toContain('if (action === "records")');
+    expect(recordsSource).toContain("useLearningRecords");
+    expect(recordsSource).toContain("NODES RECOVERED");
+    expect(myPageSource).toContain("OPERATION SUMMARY");
+    expect(myPageSource).toContain("/10");
   });
 });
