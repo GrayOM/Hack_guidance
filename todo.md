@@ -540,3 +540,11 @@
 - [x] Stage 06~10의 Network 응답·Redirect Header·Response Header·robots.txt·단서 조합 문제를 실제 동작으로 구현한다.
 - [x] 서버 검증·진행 기록·완료 연출·보안 경계·반응형·회귀 테스트를 검증한다. `pnpm check` 및 8개 파일·21개 테스트를 통과했고, `hg-learning` v12와 공개 단서용 `hg-black-trace` v1을 JWT 검증 비활성 상태로 배포했다.
 - [x] Supabase Edge Function과 GitHub Pages에 배포하고 운영 흐름을 확인한다. GitHub Pages 배포 워크플로 `32461081265`가 성공했고, 운영 주소에서 작전 보드의 Stage 01 활성·Stage 02~10 잠금과 Stage 01 독립 조사·제출 콘솔을 확인했다. 공개 함수의 Response·Redirect Location·Response Header·조각 응답 및 인증된 진행 조회 계약도 확인했다.
+
+# GitHub 저장소 비공개 전환
+- [x] GitHub Pages 운영 조건을 확인한 뒤 `GrayOM/Hack_guidance` 저장소를 비공개로 전환한다.
+- [ ] 비공개 전환 후 기존 운영 주소 및 Pages 배포 상태를 확인하고 결과를 기록한다. 저장소는 PRIVATE로 전환됐으나 GitHub Pages 주소는 현재 404이며, 비공개 저장소 상태를 유지할 운영 경로를 선택해야 한다.
+
+# GitHub Pages 공개 운영 복구
+- [x] 사용자 요청에 따라 `GrayOM/Hack_guidance` 저장소를 다시 공개로 전환한다.
+- [ ] 공개 전환 후 GitHub Pages 운영 주소와 BLACK TRACE 경로가 복구되는지 확인한다. 비공개 전환 때 Pages 사이트 설정이 삭제됐으며, 현재 연결된 GitHub 권한은 Pages 사이트 생성 API에 403으로 제한됐다. GitHub Settings → Pages 화면에서 비활성 상태와 `GitHub Actions` 복구 옵션을 확인했다.
