@@ -152,6 +152,7 @@ describe("external free-tier deployment pack", () => {
     expect(webTargetCss).toContain("web-target__workspace-dock");
     expect(webTargetCss).toContain("web-target__evidence-board");
     expect(webTargetCss).toContain("web-target__service-relay");
+    expect(webTargetCss).toContain("Service environments deliberately override scene grids");
     expect(webTargetCss).toContain("width: min(100%, 100rem)");
     expect(recordsPage).toContain("useLearningRecords");
     expect(rankingPage).toContain("useLearningRanking");
@@ -203,6 +204,7 @@ describe("external free-tier deployment pack", () => {
     expect(securityBackdrop).toContain("security-backdrop__node-defense");
     expect(globalCss).toContain("security-scan-sweep");
     expect(globalCss).toContain(".challenge-shell");
+    expect(globalCss).toContain("body:has(.challenge-shell)");
     expect(globalCss).toContain("security-backdrop__link--e-c");
     expect(globalCss).toContain("security-backdrop__link--g-e");
     expect(globalCss).toContain("security-backdrop__node--hacker");
