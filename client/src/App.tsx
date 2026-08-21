@@ -14,6 +14,8 @@ import Problems from "./pages/Problems";
 import MyPage from "./pages/MyPage";
 import PasswordRecovery from "./pages/PasswordRecovery";
 import CasePrototype from "./pages/CasePrototype";
+import BlackTraceDirectory from "./pages/BlackTraceDirectory";
+import BlackTraceStage from "./pages/BlackTraceStage";
 import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
@@ -29,6 +31,8 @@ function Routes() {
       <Route path="/workspace/:id" component={Problems} />
       <Route path="/target/:id" component={Problems} />
       <Route path="/prototype/case-001" component={CasePrototype} />
+      <Route path="/black-trace" component={BlackTraceDirectory} />
+      <Route path="/black-trace/:stage" component={BlackTraceStage} />
       <Route path="/certificate" component={Certificate} />
       <Route path="/certificate/print/:code" component={CertificatePrint} />
       <Route path="/records" component={Records} />
@@ -45,7 +49,7 @@ function Routes() {
 
 function RoutedCanvas() {
   const [location] = useLocation();
-  const isChallengeRoute = /^\/(lab|target|workspace|prototype)\//.test(location);
+  const isChallengeRoute = /^\/(lab|target|workspace|prototype|black-trace)(\/|$)/.test(location);
 
   return (
     <>

@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /restricted/
+
+# archived directive
+# FLAG{robots_know_the_way}

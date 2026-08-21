@@ -8,7 +8,7 @@ import { SignalLogo } from "@/components/SignalLogo";
 
 const items = [
   { path: "/", label: "홈", icon: Home },
-  { path: "/problems", label: "문제 상태", icon: List },
+  { path: "/black-trace", label: "작전 보드", icon: List },
   { path: "/records", label: "해결 기록", icon: ScrollText },
   { path: "/ranking", label: "랭킹", icon: Trophy },
 ];
@@ -138,7 +138,7 @@ export function ConsoleNav() {
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
-          <div className="hidden text-right sm:block"><p className="font-mono-ui text-[9px] tracking-[0.12em] text-slate-600">INVENTORY</p><p className="font-mono-ui text-xs text-teal-200">RESET</p></div>
+          <div className="hidden text-right sm:block"><p className="font-mono-ui text-[9px] tracking-[0.12em] text-slate-600">OPERATION</p><p className="font-mono-ui text-xs text-teal-200">BLACK TRACE</p></div>
           {isAuthenticated ? <div className="flex items-center gap-1.5"><button onClick={() => setLocation("/me")} className="hidden max-w-40 truncate font-mono-ui text-[10px] text-teal-200 sm:inline" title={user?.email ?? user?.name ?? "분석자"}>{user?.email ?? user?.name ?? "분석자"}</button><button onClick={() => void logout()} className="inline-flex items-center gap-1.5 border border-teal-300/40 bg-teal-300/[0.06] px-2.5 py-1.5 text-xs text-teal-100 hover:border-teal-300 hover:bg-teal-300/10"><LogOut className="h-3.5 w-3.5" />로그아웃</button></div> : <button onClick={openLogin} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><Activity className="h-3.5 w-3.5" />로그인</button>}
         </div>
       </div>

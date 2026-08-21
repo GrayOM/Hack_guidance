@@ -8,7 +8,7 @@ const prototypeStyles = readFileSync(new URL("../client/src/pages/case-prototype
 describe("independent case page prototype", () => {
   it("registers the prototype outside the main ambient shell", () => {
     expect(appSource).toContain('path="/prototype/case-001"');
-    expect(appSource).toContain("(lab|target|workspace|prototype)");
+    expect(appSource).toContain("(lab|target|workspace|prototype|black-trace)");
   });
 
   it("provides isolated service surfaces and evidence collection without the main console navigation", () => {

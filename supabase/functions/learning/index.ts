@@ -6,6 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
+const blackTraceFlags: Record<number, string> = {
+  1: "FLAG{ghost_in_the_source}",
+  2: "FLAG{hidden_fields_remember}",
+  3: "FLAG{attributes_tell_more}",
+  4: "FLAG{cookies_leave_traces}",
+  5: "FLAG{read_the_address}",
+  6: "FLAG{the_server_did_answer}",
+  7: "FLAG{follow_the_location}",
+  8: "FLAG{headers_can_whisper}",
+  9: "FLAG{robots_know_the_way}",
+  10: "FLAG{two_places_one_key}",
+};
+
+function blackTraceAccess(stage: number) {
+  if (stage >= 10) return "OPERATOR";
+  if (stage >= 7) return "FIELD OPERATOR";
+  if (stage >= 4) return "ANALYST";
+  return "GUEST";
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" } });
@@ -63,6 +82,32 @@ Deno.serve(async request => {
     if (profileError || !profile) return json({ error: "Unable to update display name" }, 500);
     const { error: metadataError } = await service.auth.admin.updateUserById(user.id, { user_metadata: { ...user.user_metadata, name: displayName } });
     return metadataError ? json({ error: "Unable to synchronize profile" }, 500) : json({ profile: { displayName: profile.display_name, updatedAt: profile.updated_at } });
+  }
+
+  if (action === "blackTraceProgress") {
+    const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
+    if (error) return json({ error: "Unable to load operation progress" }, 500);
+    const completedStages = (data ?? []).map(row => row.stage as number);
+    const currentStage = Array.from({ length: 10 }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? 10;
+    return json({ completedStages, currentStage, accessLevel: blackTraceAccess(completedStages.length >= 10 ? 10 : currentStage), completed: completedStages.length === 10 });
+  }
+
+  if (action === "blackTraceSubmit") {
+    const stage = typeof payload?.stage === "number" ? payload.stage : 0;
+    const flag = typeof payload?.flag === "string" ? payload.flag.trim() : "";
+    const hintCount = typeof payload?.hintCount === "number" ? Math.max(0, Math.min(2, Math.floor(payload.hintCount))) : 0;
+    const expected = blackTraceFlags[stage];
+    if (!expected) return json({ correct: false, message: "Unknown operation node" }, 400);
+    const { data: existing, error: progressError } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
+    if (progressError) return json({ error: "Unable to verify operation progress" }, 500);
+    const completedStages = (existing ?? []).map(row => row.stage as number);
+    const firstOpen = Array.from({ length: 10 }, (_, index) => index + 1).find(node => !completedStages.includes(node)) ?? 10;
+    if (!completedStages.includes(stage) && stage > firstOpen) return json({ correct: false, message: "Clear the previous node first" }, 409);
+    if (flag !== expected) return json({ correct: false, message: "INVALID ACCESS KEY" });
+    const { error: saveError } = await service.from("hg_black_trace_progress").upsert({ user_id: user.id, stage, hint_count: hintCount }, { onConflict: "user_id,stage" });
+    if (saveError) return json({ error: "Unable to store recovered trace" }, 500);
+    const nextStages = completedStages.includes(stage) ? completedStages : [...completedStages, stage].sort((a, b) => a - b);
+    return json({ correct: true, alreadyCompleted: completedStages.includes(stage), completedStages: nextStages, accessLevel: blackTraceAccess(stage), operationComplete: nextStages.length === 10 });
   }
 
   if (action === "dashboard") return json({ completedIds: [], defenseReviewedIds: [], certificate: null });
