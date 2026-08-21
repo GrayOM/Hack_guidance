@@ -1,14 +1,14 @@
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
-import { Activity, Flag, Home, KeyRound, List, LockKeyhole, LogOut, Mail, ScrollText, Trophy, UserRound, X } from "lucide-react";
+import { Activity, Home, KeyRound, List, LogOut, Mail, ScrollText, Trophy, UserRound, X } from "lucide-react";
 import { isExternalSupabaseDeployment } from "@/lib/external-supabase";
 import { isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword, usePlatformAuth } from "@/hooks/usePlatformAuth";
-import { useDisplayNameAvailability, useLearningDashboard } from "@/hooks/useLearningApi";
+import { useDisplayNameAvailability } from "@/hooks/useLearningApi";
 import { SignalLogo } from "@/components/SignalLogo";
 
 const items = [
   { path: "/", label: "홈", icon: Home },
-  { path: "/problems", label: "문제", icon: List },
+  { path: "/problems", label: "문제 상태", icon: List },
   { path: "/records", label: "해결 기록", icon: ScrollText },
   { path: "/ranking", label: "랭킹", icon: Trophy },
 ];
@@ -26,8 +26,6 @@ export function ConsoleNav() {
   const [confirmation, setConfirmation] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
   const [sendingLogin, setSendingLogin] = useState(false);
-  const dashboard = useLearningDashboard({ enabled: isAuthenticated, retry: false });
-  const solved = dashboard.data?.completedIds.length ?? 0;
   const nameAvailability = useDisplayNameAvailability(displayName, {
     enabled: authMode === "signup" && isValidDisplayName(displayName),
     retry: false,
@@ -126,7 +124,7 @@ export function ConsoleNav() {
           <SignalLogo className="h-7 w-7" />
           <span>
             <span className="block font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">HACK // GUIDANCE</span>
-            <span className="mt-0.5 block text-[11px] text-slate-500">Challenge Grid <span className="text-slate-600">· by GrayOM</span></span>
+            <span className="mt-0.5 block text-[11px] text-slate-500">Security Workspace <span className="text-slate-600">· by GrayOM</span></span>
           </span>
         </button>
 
@@ -137,11 +135,10 @@ export function ConsoleNav() {
             return <button key={item.path} onClick={() => setLocation(item.path)} className={`inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-xs transition ${active ? "border-teal-300 text-teal-100" : "border-transparent text-slate-500 hover:text-slate-200"}`}><Icon className="h-3.5 w-3.5" />{item.label}</button>;
           })}
           {isAuthenticated ? <button onClick={() => setLocation("/me")} className={`inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-xs transition ${location === "/me" ? "border-teal-300 text-teal-100" : "border-transparent text-slate-500 hover:text-slate-200"}`}><UserRound className="h-3.5 w-3.5" />마이페이지</button> : null}
-          {solved >= 50 ? <button onClick={() => setLocation("/certificate")} className={`inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-xs transition ${location === "/certificate" ? "border-teal-300 text-teal-100" : "border-transparent text-slate-500 hover:text-slate-200"}`}><Flag className="h-3.5 w-3.5" />최종 기록</button> : <span className="inline-flex shrink-0 items-center gap-1.5 px-2.5 py-2 text-xs text-slate-700"><LockKeyhole className="h-3.5 w-3.5" />최종 기록</span>}
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
-          <div className="hidden text-right sm:block"><p className="font-mono-ui text-[9px] tracking-[0.12em] text-slate-600">SOLVED</p><p className="font-mono-ui text-xs text-teal-200">{solved}/50</p></div>
+          <div className="hidden text-right sm:block"><p className="font-mono-ui text-[9px] tracking-[0.12em] text-slate-600">INVENTORY</p><p className="font-mono-ui text-xs text-teal-200">RESET</p></div>
           {isAuthenticated ? <div className="flex items-center gap-1.5"><button onClick={() => setLocation("/me")} className="hidden max-w-40 truncate font-mono-ui text-[10px] text-teal-200 sm:inline" title={user?.email ?? user?.name ?? "분석자"}>{user?.email ?? user?.name ?? "분석자"}</button><button onClick={() => void logout()} className="inline-flex items-center gap-1.5 border border-teal-300/40 bg-teal-300/[0.06] px-2.5 py-1.5 text-xs text-teal-100 hover:border-teal-300 hover:bg-teal-300/10"><LogOut className="h-3.5 w-3.5" />로그아웃</button></div> : <button onClick={openLogin} className="inline-flex items-center gap-1.5 border border-[#31545a] px-2.5 py-1.5 text-xs text-slate-300 hover:border-teal-300/60 hover:text-teal-100"><Activity className="h-3.5 w-3.5" />로그인</button>}
         </div>
       </div>
@@ -155,7 +152,7 @@ export function ConsoleNav() {
             {authMode !== "recovery" ? <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">EMAIL ADDRESS</span><div className="mt-2 flex items-center border border-[#31545a] bg-[#071013] focus-within:border-teal-300"><Mail className="ml-3 h-4 w-4 shrink-0 text-teal-300" /><input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="name@example.com" className="h-11 w-full bg-transparent px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600" /></div></label> : null}
             <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">{authMode === "recovery" ? "NEW PASSWORD" : "PASSWORD"}</span><input type="password" autoComplete={authMode === "signup" || authMode === "recovery" ? "new-password" : "current-password"} required minLength={8} maxLength={72} value={password} onChange={event => setPassword(event.target.value)} placeholder="8~72자" className="mt-2 h-11 w-full border border-[#31545a] bg-[#071013] px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-teal-300" /></label>
             {authMode === "recovery" ? <label className="block"><span className="font-mono-ui text-[10px] tracking-[.12em] text-slate-500">CONFIRM PASSWORD</span><input type="password" autoComplete="new-password" required minLength={8} maxLength={72} value={confirmation} onChange={event => setConfirmation(event.target.value)} placeholder="새 비밀번호 다시 입력" className="mt-2 h-11 w-full border border-[#31545a] bg-[#071013] px-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-teal-300" /></label> : null}
-            {authMode === "signup" ? <p className="border-l-2 border-teal-300/50 bg-teal-300/[0.05] px-3 py-2 text-xs leading-5 text-teal-100">이메일 인증을 완료하면 입력한 공개명이 공개 랭킹에 <strong>0 / 50</strong>부터 표시됩니다.</p> : null}
+            {authMode === "signup" ? <p className="border-l-2 border-teal-300/50 bg-teal-300/[0.05] px-3 py-2 text-xs leading-5 text-teal-100">이메일 인증을 완료하면 공개 프로필과 랭킹 표시 이름을 사용할 수 있습니다.</p> : null}
             {loginStatus ? <p role="status" className="border-l-2 border-teal-300/70 bg-teal-300/[0.06] px-3 py-2 text-xs leading-5 text-teal-100">{loginStatus}</p> : null}
             <button type="submit" disabled={sendingLogin || nameUnavailable || (authMode === "signup" && nameAvailability.isFetching)} className="inline-flex w-full items-center justify-center gap-2 bg-teal-300 px-4 py-3 text-sm font-semibold text-[#082023] transition hover:bg-teal-200 disabled:cursor-not-allowed disabled:opacity-60">{authMode === "recovery" ? <KeyRound className="h-4 w-4" /> : <Mail className="h-4 w-4" />}{sendingLogin ? "처리 중" : authMode === "signup" ? "계정 만들기" : authMode === "recovery" ? "새 비밀번호 저장" : "로그인"}</button>
             {authMode === "signin" ? <button type="button" onClick={() => void requestPasswordReset()} disabled={sendingLogin} className="w-full text-center text-xs text-teal-200 hover:text-teal-100 disabled:opacity-50">비밀번호를 잊으셨나요? 이메일로 재설정</button> : null}

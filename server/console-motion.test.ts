@@ -4,17 +4,14 @@ import { getCurrentRankingPosition, getRankingFingerprint, getRankingStreamEvent
 import { SIGNAL_LOCK_DURATION_MS, shouldStartSignalLock } from "../client/src/lib/signal-feedback";
 
 const appSource = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
-const workspaceSource = readFileSync(new URL("../client/src/pages/Workspace.tsx", import.meta.url), "utf8");
 const rankingSource = readFileSync(new URL("../client/src/pages/Ranking.tsx", import.meta.url), "utf8");
 const signalLockSource = readFileSync(new URL("../client/src/components/SignalLockOverlay.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
-  it("keeps only ambient pointer response and limits success feedback to correct submissions", () => {
+  it("keeps main-console ambient pointer response without retired challenge workspace dependencies", () => {
     expect(appSource).toContain("PointerAmbient");
     expect(appSource).not.toContain("ConsoleMotion");
-    expect(workspaceSource).toContain('import { SignalLockOverlay } from "@/components/SignalLockOverlay"');
-    expect(workspaceSource).toContain("<SignalLockOverlay active={isCorrect} nodeId={challenge.id} />");
     expect(styles).toContain(".signal-lock");
     expect(styles).toContain(".pointer-ambient");
     expect(styles).not.toContain("pointer-ambient__reticle");

@@ -5,7 +5,6 @@ import { Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import Lab from "./pages/Lab";
 import Certificate from "./pages/Certificate";
 import CertificatePrint from "./pages/CertificatePrint";
 import Records from "./pages/Records";
@@ -14,7 +13,6 @@ import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
 import MyPage from "./pages/MyPage";
 import PasswordRecovery from "./pages/PasswordRecovery";
-import WebTarget from "./pages/WebTarget";
 import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
@@ -26,9 +24,9 @@ function Routes() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/lab/:id" component={Lab} />
-      <Route path="/workspace/:id" component={WebTarget} />
-      <Route path="/target/:id" component={WebTarget} />
+      <Route path="/lab/:id" component={Problems} />
+      <Route path="/workspace/:id" component={Problems} />
+      <Route path="/target/:id" component={Problems} />
       <Route path="/certificate" component={Certificate} />
       <Route path="/certificate/print/:code" component={CertificatePrint} />
       <Route path="/records" component={Records} />

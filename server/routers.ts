@@ -4,8 +4,6 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { evaluateFlagSubmission, getCertificateByCode, getLearnerDashboard, getLearnerRecord, getPublicRanking, issueCertificateIfEligible, saveCompletedProblem, saveDefenseReview } from "./learning";
-import { challengeById } from "../shared/learning";
-import { checkSubmissionRateLimit } from "./submission-rate-limit";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -25,23 +23,14 @@ export const appRouter = router({
     records: protectedProcedure.query(({ ctx }) => getLearnerRecord(ctx.user.id)),
     ranking: publicProcedure.query(() => getPublicRanking()),
     verifyCertificate: publicProcedure.input(z.object({ certificateCode: z.string().trim().min(8).max(48) })).query(({ input }) => getCertificateByCode(input.certificateCode)),
-    submit: protectedProcedure.input(z.object({ problemId: z.number().int().min(1).max(50), flag: z.string().trim().min(4).max(96), hintCount: z.number().int().min(0).max(3) }))
-      .mutation(async ({ ctx, input }) => {
-        const rateLimit = checkSubmissionRateLimit(ctx.user.id);
-        if (!rateLimit.allowed) return { correct: false, message: `제출 시도가 많습니다. ${rateLimit.retryAfterSeconds}초 뒤에 다시 시도하세요.` };
-        const challenge = challengeById(input.problemId);
+    submit: protectedProcedure.input(z.object({ problemId: z.number().int().positive(), flag: z.string().trim().min(1).max(96), hintCount: z.number().int().min(0).max(3) }))
+      .mutation(async ({ input }) => {
         const evaluation = evaluateFlagSubmission(input.problemId, input.flag);
-        if (!evaluation.supported || !challenge) return { correct: false, message: "지원하지 않는 문제입니다." };
-        if (!evaluation.correct) return { correct: false, message: "플래그가 일치하지 않습니다. 단서와 증거를 다시 확인해 보세요." };
-        const result = await saveCompletedProblem({ userId: ctx.user.id, problemId: input.problemId, level: challenge!.level, hintCount: input.hintCount });
-        return { correct: true, message: result.alreadyCompleted ? "이미 해결한 문제입니다. 기존 해결 기록을 유지합니다." : "플래그가 확인되었습니다. 이 문제를 해결했습니다.", solvedAt: result.solvedAt };
+        return { correct: evaluation.correct, message: "현재 등록된 문제가 없습니다." };
       }),
-    reviewDefense: protectedProcedure.input(z.object({ problemId: z.number().int().min(1).max(50) }))
-      .mutation(async ({ ctx, input }) => {
-        const challenge = challengeById(input.problemId);
-        if (!challenge) throw new Error("지원하지 않는 실습 문제입니다.");
-        await saveDefenseReview({ userId: ctx.user.id, problemId: input.problemId, level: challenge.level });
-        return { success: true };
+    reviewDefense: protectedProcedure.input(z.object({ problemId: z.number().int().positive() }))
+      .mutation(async () => {
+        return { success: false, message: "현재 등록된 문제가 없습니다." };
       }),
     issueCertificate: protectedProcedure.mutation(({ ctx }) => issueCertificateIfEligible(ctx.user.id)),
   }),
