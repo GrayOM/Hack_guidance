@@ -539,4 +539,4 @@
 - [x] Stage 01~05의 HTML 주석·hidden field·data 속성·Cookie·URL 파라미터 문제를 실제 동작으로 구현한다.
 - [x] Stage 06~10의 Network 응답·Redirect Header·Response Header·robots.txt·단서 조합 문제를 실제 동작으로 구현한다.
 - [x] 서버 검증·진행 기록·완료 연출·보안 경계·반응형·회귀 테스트를 검증한다. `pnpm check` 및 8개 파일·21개 테스트를 통과했고, `hg-learning` v12와 공개 단서용 `hg-black-trace` v1을 JWT 검증 비활성 상태로 배포했다.
-- [ ] Supabase Edge Function과 GitHub Pages에 배포하고 운영 흐름을 확인한다.
+- [x] Supabase Edge Function과 GitHub Pages에 배포하고 운영 흐름을 확인한다. GitHub Pages 배포 워크플로 `32461081265`가 성공했고, 운영 주소에서 작전 보드의 Stage 01 활성·Stage 02~10 잠금과 Stage 01 독립 조사·제출 콘솔을 확인했다. 공개 함수의 Response·Redirect Location·Response Header·조각 응답 및 인증된 진행 조회 계약도 확인했다.
