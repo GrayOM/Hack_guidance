@@ -543,8 +543,8 @@
 
 # GitHub 저장소 비공개 전환
 - [x] GitHub Pages 운영 조건을 확인한 뒤 `GrayOM/Hack_guidance` 저장소를 비공개로 전환한다.
-- [ ] 비공개 전환 후 기존 운영 주소 및 Pages 배포 상태를 확인하고 결과를 기록한다. 저장소는 PRIVATE로 전환됐으나 GitHub Pages 주소는 현재 404이며, 비공개 저장소 상태를 유지할 운영 경로를 선택해야 한다.
+- [x] 비공개 전환 후 기존 운영 주소 및 Pages 배포 상태를 확인하고 결과를 기록한다. PRIVATE 전환 직후 GitHub Pages 주소가 404가 된 것을 확인했고, 사용자는 공개 저장소·GitHub Pages 운영을 선택했다.
 
 # GitHub Pages 공개 운영 복구
 - [x] 사용자 요청에 따라 `GrayOM/Hack_guidance` 저장소를 다시 공개로 전환한다.
-- [ ] 공개 전환 후 GitHub Pages 운영 주소와 BLACK TRACE 경로가 복구되는지 확인한다. 비공개 전환 때 Pages 사이트 설정이 삭제됐으며, 현재 연결된 GitHub 권한은 Pages 사이트 생성 API에 403으로 제한됐다. GitHub Settings → Pages 화면에서 비활성 상태와 `GitHub Actions` 복구 옵션을 확인했다.
+- [x] 공개 전환 후 GitHub Pages 운영 주소와 BLACK TRACE 경로가 복구되는지 확인한다. GitHub Settings → Pages에서 `GitHub Actions`를 다시 활성화했고, 배포 워크플로 `32462224558` 성공 후 운영 BLACK TRACE 작전 보드와 Stage 01 활성 상태가 정상 렌더링되는 것을 확인했다.
