@@ -13,6 +13,7 @@ import Ranking from "./pages/Ranking";
 import Problems from "./pages/Problems";
 import MyPage from "./pages/MyPage";
 import PasswordRecovery from "./pages/PasswordRecovery";
+import CasePrototype from "./pages/CasePrototype";
 import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
@@ -27,6 +28,7 @@ function Routes() {
       <Route path="/lab/:id" component={Problems} />
       <Route path="/workspace/:id" component={Problems} />
       <Route path="/target/:id" component={Problems} />
+      <Route path="/prototype/case-001" component={CasePrototype} />
       <Route path="/certificate" component={Certificate} />
       <Route path="/certificate/print/:code" component={CertificatePrint} />
       <Route path="/records" component={Records} />
@@ -43,7 +45,7 @@ function Routes() {
 
 function RoutedCanvas() {
   const [location] = useLocation();
-  const isChallengeRoute = /^\/(lab|target|workspace)\//.test(location);
+  const isChallengeRoute = /^\/(lab|target|workspace|prototype)\//.test(location);
 
   return (
     <>
