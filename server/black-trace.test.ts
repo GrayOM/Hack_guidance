@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { blackTraceStageById, blackTraceStages } from "../shared/black-trace";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
+const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
 const traceFunction = readFileSync(new URL("../supabase/functions/black-trace/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.url), "utf8");
@@ -33,5 +34,11 @@ describe("OPERATION BLACK TRACE", () => {
     expect(learningFunction).toContain('action === "blackTraceProgress"');
     expect(learningFunction).toContain("stage > firstOpen");
     expect(learningFunction).toContain("FLAG{two_places_one_key}");
+  });
+
+  it("keeps the main console navigation on the operation board only", () => {
+    expect(directorySource).toContain('import { ConsoleNav } from "@/components/ConsoleNav"');
+    expect(directorySource).toContain("<ConsoleNav />");
+    expect(stageSource).not.toContain("ConsoleNav");
   });
 });

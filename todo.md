@@ -548,3 +548,8 @@
 # GitHub Pages 공개 운영 복구
 - [x] 사용자 요청에 따라 `GrayOM/Hack_guidance` 저장소를 다시 공개로 전환한다.
 - [x] 공개 전환 후 GitHub Pages 운영 주소와 BLACK TRACE 경로가 복구되는지 확인한다. GitHub Settings → Pages에서 `GitHub Actions`를 다시 활성화했고, 배포 워크플로 `32462224558` 성공 후 운영 BLACK TRACE 작전 보드와 Stage 01 활성 상태가 정상 렌더링되는 것을 확인했다.
+
+# BLACK TRACE 전역 메뉴 복원
+- [x] 작전 보드와 Stage 화면에 홈·작전 보드·해결 기록·랭킹·계정 진입을 제공하는 메인 전역 메뉴를 연결한다. 사용자 정정으로 Stage 적용 범위는 취소하고 작전 보드 전용으로 변경한다.
+- [x] 작전 보드에만 홈·작전 보드·해결 기록·랭킹·계정 진입을 제공하는 메인 전역 메뉴를 연결하고, Stage 문제 화면은 독립 조사 화면으로 유지한다.
+- [x] 작전 보드의 전역 메뉴와 Stage의 독립 헤더가 의도대로 분리되는지 데스크톱에서 검증한다. TypeScript 검사와 BLACK TRACE 4개 회귀 테스트를 통과했고, 작전 보드에는 메인 ConsoleNav가, Stage 01에는 OPERATION BOARD 독립 헤더만 보이는 것을 확인했다.
