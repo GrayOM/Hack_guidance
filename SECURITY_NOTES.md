@@ -2,7 +2,7 @@
 
 이 문서는 Hack Guidance의 **플래그 발급·검증, 풀이 기록, 공개 랭킹 및 계정 운영**에 실제로 적용된 서버 경계를 정리한 운영용 문서입니다. 실제 비밀값과 접속 정보는 이 문서와 저장소에 기록하지 않습니다.
 
-운영 구성은 정적 프런트엔드(GitHub Pages) + Supabase Edge Function 2개(`hg-learning`, `hg-black-trace`) + Supabase Postgres입니다. 저장소의 `server/` 디렉터리(Express·tRPC·Drizzle)는 현재 배포 경로에 포함되지 않습니다.
+운영 구성은 정적 프런트엔드(GitHub Pages) + Supabase Edge Function 2개(`hg-learning`, `hg-black-trace`) + Supabase Postgres입니다. 배포 경로에 포함되지 않던 Express·tRPC·Drizzle 런타임은 제거했으므로, 서버 경계는 두 Edge Function과 데이터베이스 권한뿐입니다. 회귀 테스트는 `tests/`에 있습니다.
 
 ## 적용된 통제
 
