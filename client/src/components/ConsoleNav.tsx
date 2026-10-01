@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
-import { Activity, Home, KeyRound, List, LogOut, Mail, ScrollText, Trophy, UserRound, X } from "lucide-react";
+import { Activity, Award, Home, KeyRound, List, LogOut, Mail, ScrollText, Trophy, UserRound, X } from "lucide-react";
 import { isExternalSupabaseDeployment } from "@/lib/external-supabase";
 import { clearPendingLogin, consumePendingLogin, isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword, usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useDisplayNameAvailability } from "@/hooks/useLearningApi";
@@ -11,6 +11,7 @@ const items = [
   { path: "/black-trace", label: "작전 보드", icon: List },
   { path: "/records", label: "해결 기록", icon: ScrollText },
   { path: "/ranking", label: "랭킹", icon: Trophy },
+  { path: "/certificate", label: "수료증", icon: Award },
 ];
 
 type AuthMode = "signup" | "signin" | "recovery";
