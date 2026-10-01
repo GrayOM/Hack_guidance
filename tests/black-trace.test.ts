@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceStageById, blackTraceStages, composeTrace, vaultTraceSuffix } from "../shared/black-trace";
+import { blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, vaultTraceSuffix } from "../shared/black-trace";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -103,6 +103,29 @@ describe("OPERATION BLACK TRACE", () => {
       // The header set is built per request, so the reflected origin cannot be shared.
       expect(source).toContain("corsHeadersFor(request");
     }
+  });
+
+  it("names the browser tool each node is solved with", () => {
+    // Without this a beginner faces a single button and no idea what to do with it.
+    expect(blackTraceStages.every(stage => stage.toolHint.length > 0)).toBe(true);
+    expect(blackTraceStageById(4)?.toolHint).toContain("Cookies");
+    expect(blackTraceStageById(5)?.toolHint).toContain("주소창");
+    expect(blackTraceStageById(9)?.toolHint).toContain("robots.txt");
+    expect(stageSource).toContain("bt-fieldkit");
+    expect(stageSource).toContain("stage.toolHint");
+    // Developer tools do not exist on a phone, so the operation cannot be run there.
+    expect(stageSource).toContain("PC 브라우저에서 진행하세요");
+  });
+
+  it("shows progression: what the next node unlocks, and that a node was recovered", () => {
+    expect(nextBlackTraceRank(1)?.name).toBe("ANALYST");
+    expect(nextBlackTraceRank(4)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(7)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(10)).toBeNull();
+    expect(directorySource).toContain("다음 등급");
+    // Recovering a node is the only reward, so it is shown rather than only logged.
+    expect(stageSource).toContain("NodeCleared");
+    expect(stageSource).toContain("bt-cleared");
   });
 
   it("keeps the main console navigation on the operation board only", () => {
