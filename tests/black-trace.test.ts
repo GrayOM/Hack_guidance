@@ -119,6 +119,24 @@ describe("OPERATION BLACK TRACE", () => {
     expect(stageSource).toContain("bt-scene__verdict");
   });
 
+  it("prints evidence into the scene whose counts do not add up", () => {
+    // A scan that only writes to the console leaves the scene an empty rectangle. The readout is
+    // what the operator actually sees come out of the action.
+    expect(blackTraceStages.every(stage => stage.scan.reveal.rows.length >= 2)).toBe(true);
+    expect(new Set(blackTraceStages.map(stage => stage.scan.reveal.title)).size).toBe(10);
+    expect(blackTraceStageById(1)?.scan.reveal.rows).toContainEqual(["comment nodes", "1"]);
+    expect(blackTraceStageById(1)?.scan.reveal.note).toContain("3개만");
+    // The readout never carries the trace itself, only the discrepancy that points at it.
+    for (const stage of blackTraceStages) {
+      const printed = JSON.stringify(stage.scan.reveal);
+      expect(printed).not.toContain("FLAG");
+      expect(printed).not.toMatch(/F12|개발자도구|Elements|Network|Application/);
+    }
+    expect(stageSource).toContain("ScanReadout");
+    // The injected comment lives on its own node so React never reconciles around it.
+    expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');
+  });
+
   it("keeps intel suggestive and opt-in rather than naming the tool", () => {
     expect(blackTraceStages.every(stage => stage.intel.length > 0)).toBe(true);
     // Naming the tool outright removes the puzzle, so the intel never does.
