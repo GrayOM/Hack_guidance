@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceStageById, blackTraceStages } from "../shared/black-trace";
+import { blackTraceStageById, blackTraceStages, composeTrace, vaultTraceSuffix } from "../shared/black-trace";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -19,23 +19,43 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStageById(10)?.access).toBe("OPERATOR");
   });
 
-  it("places the intended beginner traces in DOM, cookie, URL, response, header, and robots surfaces", () => {
-    expect(stageSource).toContain("deleted_record: FLAG{ghost_in_the_source}");
+  it("plants the browser traces through the per-operator surface instead of a bundled constant", () => {
+    expect(stageSource).toContain("useBlackTraceSurface");
+    expect(stageSource).toContain("deleted_record: ${trace}");
+    expect(stageSource).toContain("trace_id=${trace}");
+    expect(stageSource).toContain("data-note={trace}");
+    expect(stageSource).toContain("data-fragment={trace}");
     expect(stageSource).toContain("legacy_note");
-    expect(stageSource).toContain("data-note=\"FLAG{attributes_tell_more}\"");
-    expect(stageSource).toContain("trace_id=FLAG{cookies_leave_traces}");
-    expect(stageSource).toContain("FLAG%7Bread_the_address%7D");
+    // A readable answer in the client bundle would hand every visitor the whole operation.
+    expect(stageSource).not.toMatch(/FLAG\{(?!_)[a-z]/);
+  });
+
+  it("derives a distinct trace per operator and keeps the stage 10 split intact", () => {
+    expect(composeTrace(1, null)).toBe("FLAG{ghost_in_the_source}");
+    expect(composeTrace(1, "a1b2c3")).toBe("FLAG{ghost_in_the_source_a1b2c3}");
+    expect(composeTrace(1, "a1b2c3")).not.toBe(composeTrace(1, "d4e5f6"));
+    expect(composeTrace(10, "a1b2c3")).toBe("FLAG{two_places_a1b2c3_");
+    expect(`${composeTrace(10, "a1b2c3")}${vaultTraceSuffix}`).toBe("FLAG{two_places_a1b2c3_one_key}");
+    expect(composeTrace(6, "a1b2c3")).toBeNull();
+  });
+
+  it("keeps the channel-issued traces on the request surfaces", () => {
     expect(traceFunction).toContain("FLAG{the_server_did_answer}");
     expect(traceFunction).toContain("FLAG%7Bfollow_the_location%7D");
     expect(traceFunction).toContain("X-Trace-Note");
     expect(robots).toContain("FLAG{robots_know_the_way}");
   });
 
-  it("keeps flag submission and sequential progress validation on the learning edge function", () => {
+  it("keeps flag submission, trace issuance, and sequential progress validation on the learning edge function", () => {
     expect(learningFunction).toContain('action === "blackTraceSubmit"');
     expect(learningFunction).toContain('action === "blackTraceProgress"');
+    expect(learningFunction).toContain('action === "blackTraceSurface"');
     expect(learningFunction).toContain("stage > firstOpen");
-    expect(learningFunction).toContain("FLAG{two_places_one_key}");
+    expect(learningFunction).toContain("BLACK_TRACE_SECRET");
+    expect(learningFunction).toContain("deriveTraceToken");
+    // A trace is never issued for a node the operator has not reached.
+    expect(learningFunction).toContain("firstOpenStage(completedStages)");
+    expect(learningFunction).toContain("expectedTrace(user.id, stage)");
   });
 
   it("keeps the main console navigation on the operation board only", () => {

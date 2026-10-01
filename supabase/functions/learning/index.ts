@@ -6,18 +6,61 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
-const blackTraceFlags: Record<number, string> = {
-  1: "FLAG{ghost_in_the_source}",
-  2: "FLAG{hidden_fields_remember}",
-  3: "FLAG{attributes_tell_more}",
-  4: "FLAG{cookies_leave_traces}",
-  5: "FLAG{read_the_address}",
+// Traces the client plants in the browser. Their value is derived per operator so that reading
+// the JavaScript bundle, or copying someone else's answer, yields nothing usable.
+const traceLabels: Record<number, string> = {
+  1: "ghost_in_the_source",
+  2: "hidden_fields_remember",
+  3: "attributes_tell_more",
+  4: "cookies_leave_traces",
+  5: "read_the_address",
+  10: "two_places",
+};
+const vaultTraceSuffix = "one_key}";
+
+// Traces the operator can only obtain by making the request, so they are not bundle-readable.
+const channelFlags: Record<number, string> = {
   6: "FLAG{the_server_did_answer}",
   7: "FLAG{follow_the_location}",
   8: "FLAG{headers_can_whisper}",
   9: "FLAG{robots_know_the_way}",
-  10: "FLAG{two_places_one_key}",
 };
+
+const traceSecret = Deno.env.get("BLACK_TRACE_SECRET") ?? "";
+const traceEncoder = new TextEncoder();
+
+async function deriveTraceToken(userId: string, stage: number) {
+  const key = await crypto.subtle.importKey("raw", traceEncoder.encode(traceSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signature = await crypto.subtle.sign("HMAC", key, traceEncoder.encode(`black-trace:${userId}:${stage}`));
+  return Array.from(new Uint8Array(signature)).map(byte => byte.toString(16).padStart(2, "0")).join("").slice(0, 12);
+}
+
+function composeTrace(stage: number, token: string | null) {
+  const label = traceLabels[stage];
+  if (!label) return null;
+  const body = token ? `${label}_${token}` : label;
+  return stage === 10 ? `FLAG{${body}_` : `FLAG{${body}}`;
+}
+
+/** Without BLACK_TRACE_SECRET the derived stages fall back to their pre-rotation values, so a
+ *  deployment that forgets the secret keeps the operation solvable instead of breaking it. */
+async function expectedTrace(userId: string, stage: number) {
+  if (channelFlags[stage]) return channelFlags[stage];
+  if (!traceLabels[stage]) return null;
+  const token = traceSecret ? await deriveTraceToken(userId, stage) : null;
+  const planted = composeTrace(stage, token);
+  return stage === 10 ? `${planted}${vaultTraceSuffix}` : planted;
+}
+
+async function completedStagesFor(service: { from: (table: string) => any }, userId: string) {
+  const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", userId).order("stage");
+  if (error) return null;
+  return (data ?? []).map((row: { stage: number }) => row.stage);
+}
+
+function firstOpenStage(completedStages: number[]) {
+  return Array.from({ length: 10 }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? 10;
+}
 
 function blackTraceAccess(stage: number) {
   if (stage >= 10) return "OPERATOR";
@@ -114,6 +157,19 @@ Deno.serve(async request => {
     return metadataError ? json({ error: "Unable to synchronize profile" }, 500) : json({ profile: { displayName: profile.display_name, updatedAt: profile.updated_at } });
   }
 
+  if (action === "blackTraceSurface") {
+    const stage = typeof payload?.stage === "number" ? payload.stage : 0;
+    if (!traceLabels[stage]) return json({ stage, token: null });
+    const completedStages = await completedStagesFor(service, user.id);
+    if (!completedStages) return json({ error: "Unable to verify operation progress" }, 500);
+    // A trace is never handed out for a node the operator has not reached, so future answers
+    // cannot be collected ahead of time.
+    if (stage > firstOpenStage(completedStages) && !completedStages.includes(stage)) {
+      return json({ error: "Clear the previous node first" }, 409);
+    }
+    return json({ stage, token: traceSecret ? await deriveTraceToken(user.id, stage) : null });
+  }
+
   if (action === "blackTraceProgress") {
     const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
     if (error) return json({ error: "Unable to load operation progress" }, 500);
@@ -126,7 +182,7 @@ Deno.serve(async request => {
     const stage = typeof payload?.stage === "number" ? payload.stage : 0;
     const flag = typeof payload?.flag === "string" ? payload.flag.trim() : "";
     const hintCount = typeof payload?.hintCount === "number" ? Math.max(0, Math.min(2, Math.floor(payload.hintCount))) : 0;
-    const expected = blackTraceFlags[stage];
+    const expected = await expectedTrace(user.id, stage);
     if (!expected) return json({ correct: false, message: "Unknown operation node" }, 400);
     const { data: existing, error: progressError } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
     if (progressError) return json({ error: "Unable to verify operation progress" }, 500);

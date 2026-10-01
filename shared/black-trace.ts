@@ -24,5 +24,33 @@ export const blackTraceStages: BlackTraceStage[] = [
   { id: 10, code: "CASE #010", title: "Fragmented Key", target: "vault-node-01.lab", access: "OPERATOR", sceneLabel: "SIGNAL: FRAGMENTED", narrative: "MASTER ACCESS KEY가 손상되어 있다. 복구 가능한 조각은 두 개다.", actionLabel: "RECOVER VAULT", hints: ["첫 번째 조각은 이 화면의 구조에 남아 있다.", "두 번째 조각은 복구 요청 뒤에 도착한다."], surface: "vault" },
 ];
 
+/**
+ * Stages whose trace the client itself plants in the browser (DOM, cookie, URL). Their value
+ * must therefore be derived per operator on the server, or the single JavaScript bundle hands
+ * every visitor the whole answer sheet. The remaining stages are issued by the trace channel.
+ */
+export const traceLabels: Record<number, string> = {
+  1: "ghost_in_the_source",
+  2: "hidden_fields_remember",
+  3: "attributes_tell_more",
+  4: "cookies_leave_traces",
+  5: "read_the_address",
+  10: "two_places",
+};
+
+/** Stage 10 is split in two: the browser holds part one, the trace channel answers with this. */
+export const vaultTraceSuffix = "one_key}";
+
+/**
+ * Builds the trace planted in the browser for a stage. A null token reproduces the pre-rotation
+ * value, which keeps the stages solvable while the learning function has no operator secret.
+ */
+export function composeTrace(stage: number, token: string | null) {
+  const label = traceLabels[stage];
+  if (!label) return null;
+  const body = token ? `${label}_${token}` : label;
+  return stage === 10 ? `FLAG{${body}_` : `FLAG{${body}}`;
+}
+
 export const blackTraceStageById = (id: number) => blackTraceStages.find(stage => stage.id === id);
 export const blackTraceAccessForStage = (stage: number) => blackTraceStageById(stage)?.access ?? "GUEST";
