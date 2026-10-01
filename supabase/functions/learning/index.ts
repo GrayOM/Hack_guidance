@@ -31,6 +31,8 @@ const traceLabels: Record<number, string> = {
   10: "two_places",
 };
 const vaultTraceSuffix = "one_key}";
+const blackTraceCourseCode = "black-trace-10-node-clearance";
+const blackTraceNodeCount = 10;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<number, string> = {
@@ -159,7 +161,27 @@ Deno.serve(async request => {
     });
     return json({ ranking });
   }
-  if (action === "verifyCertificate") return json({ certificate: null });
+  if (action === "verifyCertificate") {
+    const code = typeof payload?.certificateCode === "string" ? payload.certificateCode.trim().toUpperCase() : "";
+    // The printed code is the only input, so its shape is checked before touching the table.
+    if (!/^HG-WSF-[0-9]{4}-[A-F0-9]{18}$/.test(code)) return json({ certificate: null });
+    const { data, error } = await service
+      .from("hg_public_certificate_verification")
+      .select("certificate_code, course_code, completed_modules, issued_at, display_name")
+      .eq("certificate_code", code)
+      .maybeSingle();
+    if (error) return json({ error: "Unable to verify the certificate" }, 500);
+    if (!data) return json({ certificate: null });
+    return json({
+      certificate: {
+        certificateCode: data.certificate_code,
+        courseCode: data.course_code,
+        completedModules: data.completed_modules,
+        issuedAt: data.issued_at,
+        learnerName: data.display_name,
+      },
+    });
+  }
 
   const user = await requireUser(request);
   if (!user) return json({ error: "Please sign in" }, 401);
@@ -185,7 +207,25 @@ Deno.serve(async request => {
       service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id),
     ]);
     if (profileError || progressError || !profile) return json({ error: "Unable to load profile" }, 500);
-    return json({ profile: { displayName: profile.display_name, createdAt: profile.created_at, updatedAt: profile.updated_at }, summary: { solvedCount: progress?.length ?? 0, defenseReviewCount: 0, hasCertificate: false } });
+    const { data: certificate } = await service
+      .from("hg_course_certificates")
+      .select("certificate_code, completed_modules, issued_at")
+      .eq("user_id", user.id)
+      .eq("course_code", blackTraceCourseCode)
+      .maybeSingle();
+    const solvedCount = progress?.length ?? 0;
+    return json({
+      profile: { displayName: profile.display_name, createdAt: profile.created_at, updatedAt: profile.updated_at },
+      summary: {
+        solvedCount,
+        defenseReviewCount: 0,
+        hasCertificate: Boolean(certificate),
+        certificateEligible: solvedCount >= blackTraceNodeCount,
+      },
+      certificate: certificate
+        ? { certificateCode: certificate.certificate_code, completedModules: certificate.completed_modules, issuedAt: certificate.issued_at }
+        : null,
+    });
   }
 
   if (action === "updateDisplayName") {
@@ -257,7 +297,14 @@ Deno.serve(async request => {
   if (action === "practice") return json({ verified: false, message: "현재 등록된 문제가 없습니다." }, 410);
   if (action === "submit") return json({ correct: false, message: "현재 등록된 문제가 없습니다." });
   if (action === "reviewDefense") return json({ success: false, message: "현재 등록된 문제가 없습니다." });
-  if (action === "issueCertificate") return json({ issued: false, remaining: { modules: null } });
+  if (action === "issueCertificate") {
+    const { data, error } = await service.rpc("hg_issue_clearance_certificate", { p_user_id: user.id });
+    if (error) return json({ error: "Unable to issue the certificate" }, 500);
+    // The routine returns a single row: (issued, certificate_code, remaining_modules).
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row?.issued) return json({ issued: false, remaining: { modules: row?.remaining_modules ?? blackTraceNodeCount } });
+    return json({ issued: true, certificateCode: row.certificate_code, remaining: { modules: 0 } });
+  }
 
   return json({ error: "Unsupported action" }, 400);
 });
