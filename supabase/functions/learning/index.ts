@@ -1,10 +1,24 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") ?? "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// Responses are reflected back only to origins on this list. "*" let any site call these
+// endpoints with a visitor's bearer token, so the production origin is the default and local
+// development ports are kept so a dev build still reaches the same project.
+const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") ?? Deno.env.get("ALLOWED_ORIGIN") ?? "https://grayom.github.io,http://localhost:5173,http://localhost:3000")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+function corsHeadersFor(request: Request, methods: string) {
+  const origin = request.headers.get("Origin") ?? "";
+  // An unlisted origin receives the canonical one, which the browser then rejects.
+  const allowed = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": methods,
+    Vary: "Origin",
+  };
+}
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 // Traces the client plants in the browser. Their value is derived per operator so that reading
 // the JavaScript bundle, or copying someone else's answer, yields nothing usable.
@@ -87,8 +101,9 @@ function blackTraceAccess(stage: number) {
   return "TRAINEE";
 }
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" } });
+function jsonWriter(cors: Record<string, string>) {
+  return (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json; charset=utf-8" } });
 }
 
 async function requireUser(request: Request) {
@@ -100,6 +115,8 @@ async function requireUser(request: Request) {
 }
 
 Deno.serve(async request => {
+  const corsHeaders = corsHeadersFor(request, "POST, OPTIONS");
+  const json = jsonWriter(corsHeaders);
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 

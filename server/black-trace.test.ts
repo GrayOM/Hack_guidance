@@ -92,6 +92,19 @@ describe("OPERATION BLACK TRACE", () => {
     expect(stageSource).toContain("error instanceof Error && error.message");
   });
 
+  it("answers only the operation's own origins instead of any site", () => {
+    for (const source of [learningFunction, traceFunction]) {
+      // "*" let any page call these endpoints with a visitor's bearer token.
+      expect(source).not.toContain('"Access-Control-Allow-Origin": "*"');
+      expect(source).not.toContain('?? "*"');
+      expect(source).toContain("allowedOrigins");
+      expect(source).toContain("https://grayom.github.io");
+      expect(source).toContain('Vary: "Origin"');
+      // The header set is built per request, so the reflected origin cannot be shared.
+      expect(source).toContain("corsHeadersFor(request");
+    }
+  });
+
   it("keeps the main console navigation on the operation board only", () => {
     expect(directorySource).toContain('import { ConsoleNav } from "@/components/ConsoleNav"');
     expect(directorySource).toContain("<ConsoleNav />");
