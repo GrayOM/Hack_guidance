@@ -62,11 +62,13 @@ function firstOpenStage(completedStages: number[]) {
   return Array.from({ length: 10 }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? 10;
 }
 
+// GUEST means "not signed in" and is never returned here: these actions require a session, so
+// the entry tier of a signed-in operator is TRAINEE.
 function blackTraceAccess(stage: number) {
   if (stage >= 10) return "OPERATOR";
   if (stage >= 7) return "FIELD OPERATOR";
   if (stage >= 4) return "ANALYST";
-  return "GUEST";
+  return "TRAINEE";
 }
 
 function json(body: unknown, status = 200) {
@@ -132,7 +134,16 @@ Deno.serve(async request => {
 
   if (action === "provisionProfile") {
     const { data: displayName, error } = await service.rpc("hg_provision_confirmed_profile", { p_user_id: user.id });
-    return error ? json({ error: "Unable to create learner profile" }, 500) : json({ profile: { displayName } });
+    if (error) {
+      // A stable reason lets the browser explain the failure without exposing database detail.
+      const code = typeof (error as { code?: unknown }).code === "string" ? (error as { code: string }).code : "";
+      const reason = code === "42501" ? "email_not_confirmed" : code === "22023" ? "display_name_required" : "profile_unavailable";
+      return json({ error: "Unable to create learner profile", reason }, 500);
+    }
+    // Accounts created outside the sign-up form hold no name metadata, so their profile carries a
+    // generated default that the operator should replace on the profile screen.
+    const metadataName = typeof user.user_metadata?.name === "string" ? user.user_metadata.name.trim() : "";
+    return json({ profile: { displayName }, namePending: !displayNamePattern.test(metadataName) });
   }
 
   if (action === "profile") {

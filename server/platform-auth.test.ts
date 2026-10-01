@@ -1,10 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 
-const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
+const toast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn(), warning: vi.fn() }));
 
 vi.mock("sonner", () => ({ toast }));
 
-import { isValidAccountEmail, isValidAccountPassword, isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword } from "../client/src/hooks/usePlatformAuth";
+import { isValidAccountEmail, isValidAccountPassword, isValidDisplayName, provisioningFailureMessage, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword } from "../client/src/hooks/usePlatformAuth";
+
+describe("learner profile provisioning feedback", () => {
+  it("explains why a successful sign-in did not produce a learner profile", () => {
+    expect(provisioningFailureMessage(Object.assign(new Error("x"), { reason: "email_not_confirmed" })))
+      .toBe("이메일 인증을 완료한 뒤 로그인할 수 있습니다.");
+    expect(provisioningFailureMessage(Object.assign(new Error("x"), { reason: "display_name_required" })))
+      .toContain("공개명을 설정해야 합니다");
+    expect(provisioningFailureMessage(Object.assign(new Error("x"), { reason: "profile_unavailable" })))
+      .toBe("학습자 프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    // An error without a reason, and a non-error value, still produce an actionable message.
+    expect(provisioningFailureMessage(new Error("boom"))).toContain("학습자 프로필을 준비하지 못했습니다");
+    expect(provisioningFailureMessage(null)).toContain("학습자 프로필을 준비하지 못했습니다");
+  });
+});
 
 describe("Supabase independent email and password account", () => {
   it("rejects malformed registration input before making an Auth request", async () => {

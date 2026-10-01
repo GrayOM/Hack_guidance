@@ -24,7 +24,12 @@ export async function invokeLearning<T>(action: string, payload: Record<string, 
     },
     body: JSON.stringify({ action, ...payload }),
   });
-  const body = await response.json().catch(() => ({})) as T & { error?: string; message?: string };
-  if (!response.ok) throw new Error(body.error ?? body.message ?? "학습 서버에 연결하지 못했습니다.");
+  const body = await response.json().catch(() => ({})) as T & { error?: string; message?: string; reason?: string };
+  if (!response.ok) {
+    // The reason code travels with the error so callers can explain the failure to the operator.
+    const failure = new Error(body.error ?? body.message ?? "학습 서버에 연결하지 못했습니다.") as Error & { reason?: string };
+    if (typeof body.reason === "string") failure.reason = body.reason;
+    throw failure;
+  }
   return body;
 }
