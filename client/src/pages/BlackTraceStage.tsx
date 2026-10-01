@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle2, ChevronRight, CircleHelp, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { blackTraceStageById, composeTrace } from "@shared/black-trace";
 import { useBlackTraceProgress, useBlackTraceSubmit, useBlackTraceSurface } from "@/hooks/useBlackTrace";
@@ -20,13 +20,18 @@ export default function BlackTraceStage() {
   const surface = useBlackTraceSurface(id, isAuthenticated);
   // The planted trace is derived per operator, so it is never the same string for two accounts.
   const trace = composeTrace(id, surface.data?.token ?? null) ?? "";
-  const [hintCount, setHintCount] = useState(0);
+  // The field kit replaces the old two-step hint list: one suggestive line, opened only if the
+  // operator asks for it. Being handed the tool by name is not the game.
+  const [intelOpen, setIntelOpen] = useState(false);
   const [flag, setFlag] = useState("");
   const [terminal, setTerminal] = useState<string[]>([]);
   // Boot chatter keeps the console alive before the first action, without ever mixing into the
   // operator's own log: whatever an action writes replaces it entirely.
   const [bootLog, setBootLog] = useState<string[]>([]);
   const isMobile = useIsMobile();
+  // Nodes 01~03 and 09 hide their trace in the page itself, so the button used to return
+  // without doing anything at all. The scan gives the action a visible consequence.
+  const [scan, setScan] = useState<"idle" | "running" | "done">("idle");
   const [result, setResult] = useState<"idle" | "success" | "error">("idle");
   const commentAnchor = useRef<HTMLDivElement>(null);
   const completed = progress.data?.completedStages ?? [];
@@ -48,19 +53,31 @@ export default function BlackTraceStage() {
   if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>이 노드는 이전 흔적을 회수한 뒤 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
 
   const runAction = async () => {
-    if (stage.surface === "route") { setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`); return; }
-    if (!(["response", "redirect", "header", "vault"] as string[]).includes(stage.surface)) return;
-    setTerminal(["> establishing connection...", "> handshake accepted...", "> requesting remote status..."]);
-    try { const response = await fetch(traceEndpoint(stage.id, stage.surface), { headers: { apikey: supabasePublishableKey }, redirect: stage.surface === "redirect" ? "manual" : "follow" }); if (!response.ok && stage.surface !== "redirect") throw new Error("failed"); setTimeout(() => setTerminal(stage.surface === "response" ? ["> establishing connection...", "> handshake accepted", "> ERROR: response discarded", "CONNECTION FAILED"] : stage.surface === "redirect" ? ["> movement trace sent", "> RECORD NOT FOUND"] : stage.surface === "header" ? ["> status received", "STATUS: ONLINE", "MESSAGE: NO DATA"] : ["> vault recovery pending", "STATUS: PARTIAL"]), 240); } catch { setTerminal(["> connection interrupted", "CONNECTION FAILED"]); }
+    if (scan === "running") return;
+    const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+    if (stage.surface === "route") { setTerminal(stage.scan.lines); setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`); return; }
+    setScan("running");
+    setTerminal([]);
+    // The remote nodes are solved by observing the request itself, so it is sent for real
+    // before the scripted report plays.
+    if ((["response", "redirect", "header", "vault"] as string[]).includes(stage.surface)) {
+      try {
+        await fetch(traceEndpoint(stage.id, stage.surface), { headers: { apikey: supabasePublishableKey }, redirect: stage.surface === "redirect" ? "manual" : "follow" });
+      } catch { /* the console reports the outcome either way */ }
+    }
+    for (const line of stage.scan.lines) {
+      await wait(360);
+      setTerminal(previous => [...previous, line]);
+    }
+    setScan("done");
   };
-  const submitFlag = (event: React.FormEvent) => { event.preventDefault(); if (!isAuthenticated) { setResult("error"); setTerminal(["[-] SESSION REQUIRED", "> opening operator login..."]); startPlatformLogin(); setLocation("/black-trace"); return; } if (!flag.trim()) return; setResult("idle"); setTerminal(["> transmitting recovered key..."]); submit.mutate({ stage: id, flag: flag.trim(), hintCount }); };
+  const submitFlag = (event: React.FormEvent) => { event.preventDefault(); if (!isAuthenticated) { setResult("error"); setTerminal(["[-] SESSION REQUIRED", "> opening operator login..."]); startPlatformLogin(); setLocation("/black-trace"); return; } if (!flag.trim()) return; setResult("idle"); setTerminal(["> transmitting recovered key..."]); submit.mutate({ stage: id, flag: flag.trim(), hintCount: intelOpen ? 1 : 0 }); };
 
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className="bt-scene__center" ref={commentAnchor}>{renderScene(stage.surface, stage.actionLabel, runAction, trace)}</div><p className="bt-scene__narrative">{stage.narrative}</p>
-        <div className="bt-fieldkit"><Wrench size={14} /><span>FIELD KIT</span><strong>{stage.toolHint}</strong></div>
-        {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setHintCount(value => Math.min(2, value + 1))}><CircleHelp size={15} /> INTEL {hintCount} / 2</button>{hintCount > 0 ? <p>{stage.hints[hintCount - 1]}</p> : <p>신호가 불완전합니다. 필요하면 INTEL을 열어 보세요.</p>}</div></section>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`} ref={commentAnchor}>{renderScene(stage.surface, stage.actionLabel, runAction, trace)}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+        {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className="bt-terminal__log">{(terminal.length ? terminal : bootLog).map((line, index) => <p key={`${line}-${index}`} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!terminal.length && !bootLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form"><label>&gt; submit_flag</label><input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" /><button disabled={submit.isPending}>{submit.isPending ? "VERIFYING" : "SUBMIT"} <ChevronRight size={15} /></button></form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
     {result === "success" ? <NodeCleared id={id} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
@@ -86,10 +103,10 @@ function NodeCleared({ id, onNext, onBoard }: { id: number; onNext: () => void; 
 
 function renderScene(surface: string, actionLabel: string | undefined, action: () => void, trace: string) {
   if (surface === "field") return <div className="bt-auth-unit"><span>USER ID</span><input readOnly aria-label="사용자 ID" /><button type="button" onClick={action}>{actionLabel}</button><input type="hidden" name="legacy_note" value={trace} /></div>;
-  if (surface === "identity") return <div className="bt-identity-card" data-note={trace}><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></div>;
+  if (surface === "identity") return <div className="bt-identity-stack"><div className="bt-identity-card" data-note={trace}><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></div><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
   if (surface === "route") return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
   if (surface === "response" || surface === "redirect" || surface === "header") return <div className="bt-remote-unit"><Wifi size={31} /><p>{surface === "response" ? "REMOTE NODE CONNECTION" : surface === "redirect" ? "PERSONNEL TRACE" : "COMMUNICATION NODE"}</p><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  if (surface === "robots") return <div className="bt-robot-unit"><pre>{"[ o_o ]\n /|_|\\\n  / \\"}</pre><p>AUTOMATED SECURITY NODE</p><span>INDEXING PERIMETER...</span></div>;
+  if (surface === "robots") return <div className="bt-robot-unit"><pre>{"[ o_o ]\n /|_|\\\n  / \\"}</pre><p>AUTOMATED SECURITY NODE</p><span>INDEXING PERIMETER...</span><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
   if (surface === "vault") return <div className="bt-vault-unit" id="vault-core" data-fragment={trace}><LockKeyhole size={38} /><p>MASTER KEY</p><span>PART 01: UNKNOWN</span><span>PART 02: UNKNOWN</span><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  return <button type="button" className="bt-action-button" onClick={action}>INSPECT RECORD <ChevronRight size={18} /></button>;
+  return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
 }
