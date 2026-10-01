@@ -105,16 +105,30 @@ describe("OPERATION BLACK TRACE", () => {
     }
   });
 
-  it("names the browser tool each node is solved with", () => {
-    // Without this a beginner faces a single button and no idea what to do with it.
-    expect(blackTraceStages.every(stage => stage.toolHint.length > 0)).toBe(true);
-    expect(blackTraceStageById(4)?.toolHint).toContain("Cookies");
-    expect(blackTraceStageById(5)?.toolHint).toContain("주소창");
-    expect(blackTraceStageById(9)?.toolHint).toContain("robots.txt");
-    expect(stageSource).toContain("bt-fieldkit");
-    expect(stageSource).toContain("stage.toolHint");
-    // Developer tools do not exist on a phone, so the operation cannot be run there.
-    expect(stageSource).toContain("PC 브라우저에서 진행하세요");
+  it("gives every node an action and a scan that matches its own subject", () => {
+    // Nodes 01~04 and 09 had a button that returned without doing anything, and 03 and 09 had
+    // no button at all, so inspecting them produced no visible consequence whatsoever.
+    expect(blackTraceStages.every(stage => (stage.actionLabel ?? "").length > 0)).toBe(true);
+    expect(blackTraceStages.every(stage => stage.scan.lines.length >= 2 && stage.scan.verdict.length > 0)).toBe(true);
+    // Each node reports in its own terms rather than a shared generic sweep.
+    expect(new Set(blackTraceStages.map(stage => stage.scan.verdict)).size).toBe(10);
+    expect(blackTraceStageById(2)?.scan.verdict).toBe("AUTH REJECTED");
+    expect(blackTraceStageById(4)?.scan.verdict).toBe("SESSION ENDED");
+    expect(blackTraceStageById(9)?.scan.verdict).toBe("POLICY NOT RENDERED");
+    expect(stageSource).toContain("stage.scan.lines");
+    expect(stageSource).toContain("bt-scene__verdict");
+  });
+
+  it("keeps intel suggestive and opt-in rather than naming the tool", () => {
+    expect(blackTraceStages.every(stage => stage.intel.length > 0)).toBe(true);
+    // Naming the tool outright removes the puzzle, so the intel never does.
+    for (const stage of blackTraceStages) {
+      expect(stage.intel).not.toMatch(/F12|개발자도구|Elements|Network|Application|robots\.txt/);
+    }
+    // It is read only when the operator asks, and opening it is recorded.
+    expect(stageSource).toContain("OPEN FIELD KIT");
+    expect(stageSource).toContain("hintCount: intelOpen ? 1 : 0");
+    expect(stageSource).not.toContain("INTEL {hintCount}");
   });
 
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
