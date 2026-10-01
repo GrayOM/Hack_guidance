@@ -76,7 +76,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`} ref={commentAnchor}>{renderScene(stage.surface, stage.actionLabel, runAction, trace)}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" />{renderScene(stage.surface, stage.actionLabel, runAction, trace)}{scan === "running" ? <ScanReadout title={stage.scan.reveal.title} /> : null}{scan === "done" ? <ScanReadout title={stage.scan.reveal.title} rows={stage.scan.reveal.rows} note={stage.scan.reveal.note} /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className="bt-terminal__log">{(terminal.length ? terminal : bootLog).map((line, index) => <p key={`${line}-${index}`} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!terminal.length && !bootLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form"><label>&gt; submit_flag</label><input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" /><button disabled={submit.isPending}>{submit.isPending ? "VERIFYING" : "SUBMIT"} <ChevronRight size={15} /></button></form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
@@ -98,6 +98,21 @@ function NodeCleared({ id, onNext, onBoard }: { id: number; onNext: () => void; 
         <button className="bt-cleared__ghost" onClick={onBoard}>작전 보드</button>
       </div>
     </div>
+  </div>;
+}
+
+/**
+ * What the scan prints into the scene. The counts are deliberately inconsistent: the operator is
+ * shown that something exists which the screen is not drawing, and has to go find it themselves.
+ */
+function ScanReadout({ title, rows, note }: { title: string; rows?: Array<[string, string]>; note?: string }) {
+  if (!rows) {
+    return <div className="bt-readout is-loading"><p className="bt-readout__title">{title}</p><div className="bt-readout__bars"><i /><i /><i /></div></div>;
+  }
+  return <div className="bt-readout">
+    <p className="bt-readout__title">{title}</p>
+    <dl>{rows.map(([label, value], index) => <div key={label} style={{ animationDelay: `${70 * index}ms` }}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+    <p className="bt-readout__note">{note}</p>
   </div>;
 }
 

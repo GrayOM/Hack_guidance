@@ -58,3 +58,21 @@
 .bt-intel__line{border-left:2px solid rgba(240,205,104,.5);padding-left:11px;color:#efe0ae !important;animation:bt-fade-up .3s ease-out both}
 .bt-identity-stack{display:grid;justify-items:center;gap:20px}
 .bt-robot-unit button{margin-top:6px}
+
+/* The scan has to put something on the screen, or the node reads as a button that does nothing. */
+.bt-scene__center{align-content:center;gap:20px;padding:26px 22px}
+.bt-scene__anchor{display:none}
+.bt-readout{width:min(420px,100%);border:1px solid rgba(91,224,219,.32);background:rgba(3,16,21,.82);padding:14px 16px;text-align:left;animation:bt-fade-up .32s ease-out both}
+.bt-readout__title{margin:0 0 11px;color:#5be0db;font-size:9px;letter-spacing:.18em}
+.bt-readout dl{display:grid;gap:7px;margin:0}
+.bt-readout dl>div{display:flex;justify-content:space-between;gap:14px;border-bottom:1px dotted rgba(117,187,196,.18);padding-bottom:6px;animation:bt-row-in .3s ease-out both}
+.bt-readout dt{color:#7fa0a5;font-size:10px;letter-spacing:.04em}
+.bt-readout dd{margin:0;color:#dff3f4;font-size:11px}
+.bt-readout__note{margin:12px 0 0;color:#f0cd68;font:11px/1.6 ui-sans-serif,system-ui,sans-serif}
+.bt-readout.is-loading .bt-readout__bars{display:grid;gap:9px}
+.bt-readout.is-loading i{height:9px;background:linear-gradient(90deg,rgba(91,224,219,.08),rgba(91,224,219,.3),rgba(91,224,219,.08));background-size:220% 100%;animation:bt-shimmer 1s linear infinite}
+.bt-readout.is-loading i:nth-child(2){width:78%}
+.bt-readout.is-loading i:nth-child(3){width:54%}
+@keyframes bt-row-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes bt-shimmer{to{background-position:-220% 0}}
+@media(prefers-reduced-motion:reduce){.bt-readout,.bt-readout dl>div,.bt-readout.is-loading i{animation:none}}
