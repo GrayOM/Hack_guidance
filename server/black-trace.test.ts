@@ -9,6 +9,7 @@ const myPageSource = readFileSync(new URL("../client/src/pages/MyPage.tsx", impo
 const traceFunction = readFileSync(new URL("../supabase/functions/black-trace/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.url), "utf8");
+const provisionMigration = readFileSync(new URL("../supabase/migrations/20260822000000_default_public_name.sql", import.meta.url), "utf8");
 
 describe("OPERATION BLACK TRACE", () => {
   it("defines ten progressive browser-inspection stages with the requested access levels", () => {
@@ -17,6 +18,25 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStageById(4)?.access).toBe("ANALYST");
     expect(blackTraceStageById(7)?.access).toBe("FIELD OPERATOR");
     expect(blackTraceStageById(10)?.access).toBe("OPERATOR");
+  });
+
+  it("never labels a signed-in operator GUEST", () => {
+    // GUEST is reserved for a visitor without a session, so no stage and no progress response
+    // may report it: the entry tier is TRAINEE.
+    expect(blackTraceStages.map(stage => stage.access)).not.toContain("GUEST");
+    expect(blackTraceStageById(1)?.access).toBe("TRAINEE");
+    expect(blackTraceStageById(3)?.access).toBe("TRAINEE");
+    expect(learningFunction).toContain('return "TRAINEE"');
+    expect(learningFunction).not.toContain('return "GUEST"');
+  });
+
+  it("provisions a profile for an account without name metadata and flags it for renaming", () => {
+    expect(provisionMigration).toContain("hg_sanitize_display_name");
+    // A confirmed account is never turned away for missing name metadata.
+    expect(provisionMigration).not.toContain("A valid public name is required");
+    expect(provisionMigration).toContain("errcode = '42501'");
+    expect(learningFunction).toContain("namePending: !displayNamePattern.test(metadataName)");
+    expect(learningFunction).toContain('reason = code === "42501"');
   });
 
   it("plants the browser traces through the per-operator surface instead of a bundled constant", () => {

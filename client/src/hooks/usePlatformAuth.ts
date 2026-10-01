@@ -1,9 +1,25 @@
 import { invokeLearning, isExternalSupabaseDeployment, supabase } from "@/lib/external-supabase";
 import type { User } from "@supabase/supabase-js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type PlatformUser = { id: string; name?: string | null; email?: string | null };
+
+type ProvisionResult = { profile?: { displayName?: string | null }; namePending?: boolean };
+
+const NAME_PENDING_NOTICE = "공개명을 설정해야 합니다. 마이페이지에서 공개명을 입력해 주세요.";
+
+/**
+ * Sign-in can succeed while the learner profile cannot be created, which used to leave the
+ * operator signed in as a guest with only a success toast on screen. The reason the Edge
+ * Function reports is turned into an explanation the operator can act on.
+ */
+export function provisioningFailureMessage(error: unknown) {
+  const reason = typeof error === "object" && error !== null ? (error as { reason?: unknown }).reason : undefined;
+  if (reason === "email_not_confirmed") return "이메일 인증을 완료한 뒤 로그인할 수 있습니다.";
+  if (reason === "display_name_required") return NAME_PENDING_NOTICE;
+  return "학습자 프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+}
 
 type PasswordAuthClient = {
   auth: {
@@ -82,6 +98,24 @@ function useSupabaseAuth() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [namePending, setNamePending] = useState(false);
+  // The profile is provisioned on every auth state change; the notice is shown once per session.
+  const namePendingNotified = useRef(false);
+  // The auth listener also fires on token refresh, so a standing failure is announced once
+  // rather than on every event. A success clears it, so a later failure is announced again.
+  const failureNotified = useRef(false);
+  const announceNamePending = useCallback((pending: boolean) => {
+    setNamePending(pending);
+    if (!pending || namePendingNotified.current) return;
+    namePendingNotified.current = true;
+    toast.warning(NAME_PENDING_NOTICE);
+  }, []);
+  const announceFailure = useCallback((message: string) => {
+    setError(new Error(message));
+    if (failureNotified.current) return;
+    failureNotified.current = true;
+    toast.error(message);
+  }, []);
   useEffect(() => {
     if (!supabase) return;
     let mounted = true;
@@ -93,20 +127,22 @@ function useSupabaseAuth() {
       if (!authUser.email_confirmed_at) {
         if (mounted) {
           setUser(null);
-          setError(new Error("이메일 인증을 완료한 뒤 로그인할 수 있습니다."));
+          announceFailure("이메일 인증을 완료한 뒤 로그인할 수 있습니다.");
         }
         return;
       }
       try {
-        await invokeLearning("provisionProfile");
+        const provision = await invokeLearning<ProvisionResult>("provisionProfile");
         if (mounted) {
           setUser(mapUser(authUser));
           setError(null);
+          failureNotified.current = false;
+          announceNamePending(Boolean(provision?.namePending));
         }
-      } catch {
+      } catch (provisionError) {
         if (mounted) {
           setUser(null);
-          setError(new Error("인증된 학습자 프로필을 준비하지 못했습니다."));
+          announceFailure(provisioningFailureMessage(provisionError));
         }
       }
     };
@@ -124,14 +160,19 @@ function useSupabaseAuth() {
       if (mounted) setLoading(false);
     });
     return () => { mounted = false; listener.subscription.unsubscribe(); };
-  }, []);
-  const logout = useCallback(async () => { await supabase?.auth.signOut(); setUser(null); setPasswordRecovery(false); }, []);
+  }, [announceFailure, announceNamePending]);
+  const logout = useCallback(async () => { await supabase?.auth.signOut(); setUser(null); setPasswordRecovery(false); setNamePending(false); namePendingNotified.current = false; failureNotified.current = false; }, []);
   const clearPasswordRecovery = useCallback(() => setPasswordRecovery(false), []);
-  return useMemo(() => ({ user, loading, error, isAuthenticated: Boolean(user), passwordRecovery, clearPasswordRecovery, refresh: async () => {
+  return useMemo(() => ({ user, loading, error, isAuthenticated: Boolean(user), passwordRecovery, clearPasswordRecovery, namePending, refresh: async () => {
     const { data, error: authError } = await supabase?.auth.getUser() ?? { data: { user: null }, error: null };
     if (authError || !data.user?.email_confirmed_at) { setUser(null); return; }
-    try { await invokeLearning("provisionProfile"); setUser(mapUser(data.user)); } catch { setUser(null); }
-  }, logout }), [clearPasswordRecovery, error, loading, logout, passwordRecovery, user]);
+    try {
+      const provision = await invokeLearning<ProvisionResult>("provisionProfile");
+      setUser(mapUser(data.user));
+      setNamePending(Boolean(provision?.namePending));
+      failureNotified.current = false;
+    } catch (provisionError) { setUser(null); announceFailure(provisioningFailureMessage(provisionError)); }
+  }, logout }), [announceFailure, clearPasswordRecovery, error, loading, logout, namePending, passwordRecovery, user]);
 }
 
 /** Stable auth contract for Hack Guidance's independent Supabase account system. */
