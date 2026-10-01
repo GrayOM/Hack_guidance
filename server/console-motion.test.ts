@@ -1,25 +1,21 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { getCurrentRankingPosition, getRankingFingerprint, getRankingStreamEvent } from "../client/src/lib/ranking-feedback";
-import { SIGNAL_LOCK_DURATION_MS, shouldStartSignalLock } from "../client/src/lib/signal-feedback";
 
 const appSource = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
 const rankingSource = readFileSync(new URL("../client/src/pages/Ranking.tsx", import.meta.url), "utf8");
-const signalLockSource = readFileSync(new URL("../client/src/components/SignalLockOverlay.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
   it("keeps main-console ambient pointer response without retired challenge workspace dependencies", () => {
     expect(appSource).toContain("PointerAmbient");
     expect(appSource).not.toContain("ConsoleMotion");
-    expect(styles).toContain(".signal-lock");
     expect(styles).toContain(".pointer-ambient");
+    // The signal-lock overlay had no consumer and was removed with its helper and styles.
+    expect(styles).not.toContain(".signal-lock");
+    expect(appSource).not.toContain("SignalLockOverlay");
     expect(styles).not.toContain("pointer-ambient__reticle");
     expect(styles).not.toContain("POINTER LINK");
-    expect(shouldStartSignalLock(false, true)).toBe(true);
-    expect(shouldStartSignalLock(true, true)).toBe(false);
-    expect(SIGNAL_LOCK_DURATION_MS).toBe(1_800);
-    expect(signalLockSource).toContain("setTimeout(() => setVisible(false), SIGNAL_LOCK_DURATION_MS)");
   });
 
   it("refreshes public ranking data and renders a temporary stream on changes", () => {
