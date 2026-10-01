@@ -259,45 +259,6 @@ html:has(.challenge-shell), body:has(.challenge-shell), #root:has(.challenge-she
   .hnet-header nav { margin-inline: -0.25rem; padding-inline: 0.25rem; }
 }
 
-/* Event-only feedback: success is visible, routine pointer movement stays quiet. */
-.signal-lock {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  padding: 1.25rem;
-  background: radial-gradient(circle at center, rgba(17, 244, 178, 0.15), rgba(4, 14, 16, 0.20) 46%, rgba(3, 10, 12, 0.66));
-  animation: signal-lock-fade 1800ms cubic-bezier(0.23, 1, 0.32, 1) both;
-}
-
-.signal-lock__frame {
-  position: relative;
-  display: flex;
-  width: min(100%, 34rem);
-  align-items: center;
-  gap: 0.9rem;
-  overflow: hidden;
-  border: 1px solid rgba(86, 255, 206, 0.66);
-  background: linear-gradient(120deg, rgba(6, 27, 28, 0.98), rgba(11, 48, 43, 0.94));
-  padding: 1.2rem 1.25rem;
-  box-shadow: 0 0 0 5px rgba(50, 255, 191, 0.05), 0 0 40px rgba(0, 255, 183, 0.26);
-  animation: signal-lock-frame 560ms cubic-bezier(0.23, 1, 0.32, 1) both;
-}
-
-.signal-lock__icon { display: grid; flex: 0 0 auto; place-items: center; color: #83fbd6; text-shadow: 0 0 18px rgba(48, 255, 189, 0.65); }
-.signal-lock__radio { margin-left: auto; flex: 0 0 auto; color: #8fffe0; animation: signal-lock-radio 760ms ease-in-out 2; }
-.signal-lock__scan { position: absolute; inset: -30% 0; pointer-events: none; background: linear-gradient(180deg, transparent 40%, rgba(104, 255, 207, 0.38) 50%, transparent 60%); animation: signal-lock-scan 720ms cubic-bezier(0.23, 1, 0.32, 1) both; }
-
-@keyframes signal-lock-frame { from { transform: translateY(14px) scale(0.96); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-@keyframes signal-lock-scan { from { transform: translateY(-55%); } to { transform: translateY(55%); } }
-@keyframes signal-lock-radio { 50% { filter: drop-shadow(0 0 8px rgba(78, 255, 197, 0.9)); opacity: 0.45; } }
-@keyframes signal-lock-fade { 0%, 78% { opacity: 1; } 100% { opacity: 0; } }
-
-@media (max-width: 639px) { .signal-lock__frame { align-items: flex-start; padding: 1rem; } .signal-lock__radio { display: none; } }
-@media (max-width: 639px), (prefers-reduced-motion: reduce) { .signal-lock, .signal-lock__frame, .signal-lock__scan, .signal-lock__radio { animation: none; } }
-
 .ranking-console { position: relative; }
 .ranking-row { transition: background-color 180ms cubic-bezier(0.23, 1, 0.32, 1), color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
 .my-rank-signal { position: relative; display: grid; grid-template-columns: 116px minmax(0, 1fr) 132px minmax(150px, 0.8fr); align-items: stretch; overflow: hidden; border: 1px solid rgba(86, 255, 204, 0.58); background: linear-gradient(104deg, rgba(3, 42, 41, 0.92), rgba(8, 27, 30, 0.96) 62%, rgba(9, 20, 23, 0.98)); box-shadow: inset 0 0 0 1px rgba(180, 255, 228, 0.06), 0 0 28px rgba(0, 249, 179, 0.10); }
