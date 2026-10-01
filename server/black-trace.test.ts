@@ -78,6 +78,20 @@ describe("OPERATION BLACK TRACE", () => {
     expect(learningFunction).toContain("expectedTrace(user.id, stage)");
   });
 
+  it("bounds flag submission with the per-minute ledger that already existed in the database", () => {
+    expect(learningFunction).toContain("hg_consume_submission_slot");
+    expect(learningFunction).toContain("allowSubmission(service, user.id)");
+    expect(learningFunction).toContain('reason: "rate_limited"');
+    // A limiter outage must not lock an honest operator out of submitting.
+    expect(learningFunction).toContain("submission rate limit unavailable");
+    // The slot is consumed before any other work, so malformed attempts are bounded too.
+    const submitBranch = learningFunction.slice(learningFunction.indexOf('action === "blackTraceSubmit"'));
+    expect(submitBranch.indexOf("allowSubmission")).toBeGreaterThan(-1);
+    expect(submitBranch.indexOf("allowSubmission")).toBeLessThan(submitBranch.indexOf("expectedTrace"));
+    // The operator sees why the submission was refused instead of a fixed session message.
+    expect(stageSource).toContain("error instanceof Error && error.message");
+  });
+
   it("keeps the main console navigation on the operation board only", () => {
     expect(directorySource).toContain('import { ConsoleNav } from "@/components/ConsoleNav"');
     expect(directorySource).toContain("<ConsoleNav />");

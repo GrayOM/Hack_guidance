@@ -52,6 +52,22 @@ async function expectedTrace(userId: string, stage: number) {
   return stage === 10 ? `${planted}${vaultTraceSuffix}` : planted;
 }
 
+/**
+ * Consumes one of the operator's submissions for the current minute. The ledger and the routine
+ * already existed in the database but nothing called them, so flag submission was unbounded.
+ *
+ * A limiter failure must not stop an honest operator from submitting, so this fails open and
+ * records the problem in the function log instead.
+ */
+async function allowSubmission(service: { rpc: (name: string, args: Record<string, unknown>) => any }, userId: string) {
+  const { data, error } = await service.rpc("hg_consume_submission_slot", { p_user_id: userId });
+  if (error) {
+    console.error("submission rate limit unavailable", error);
+    return true;
+  }
+  return data !== false;
+}
+
 async function completedStagesFor(service: { from: (table: string) => any }, userId: string) {
   const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", userId).order("stage");
   if (error) return null;
@@ -190,6 +206,10 @@ Deno.serve(async request => {
   }
 
   if (action === "blackTraceSubmit") {
+    // Counted before any other work so that malformed and repeated attempts are bounded too.
+    if (!await allowSubmission(service, user.id)) {
+      return json({ error: "제출이 너무 빠릅니다. 잠시 후 다시 시도해 주세요.", reason: "rate_limited" }, 429);
+    }
     const stage = typeof payload?.stage === "number" ? payload.stage : 0;
     const flag = typeof payload?.flag === "string" ? payload.flag.trim() : "";
     const hintCount = typeof payload?.hintCount === "number" ? Math.max(0, Math.min(2, Math.floor(payload.hintCount))) : 0;
