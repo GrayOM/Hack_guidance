@@ -30,6 +30,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Check types
+        run: pnpm check
+      - name: Run tests
+        run: pnpm test
       - name: Build static app
         env:
           VITE_EXTERNAL_SUPABASE: "true"
