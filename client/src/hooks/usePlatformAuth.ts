@@ -136,4 +136,26 @@ function useSupabaseAuth() {
 
 /** Stable auth contract for Hack Guidance's independent Supabase account system. */
 export function usePlatformAuth() { return useSupabaseAuth(); }
-export function startPlatformLogin() { window.dispatchEvent(new Event("hack-guidance:open-auth")); }
+const PENDING_LOGIN_KEY = "hack-guidance:pending-login";
+
+/**
+ * Requests the login panel. The panel is rendered by ConsoleNav, which the stage screens
+ * deliberately do not mount, so the request is also persisted and picked up by the next
+ * ConsoleNav that mounts. Without this, a login request from a stage screen was silently lost.
+ */
+export function startPlatformLogin() {
+  try { window.sessionStorage.setItem(PENDING_LOGIN_KEY, "1"); } catch { /* storage unavailable */ }
+  window.dispatchEvent(new Event("hack-guidance:open-auth"));
+}
+
+export function consumePendingLogin() {
+  try {
+    if (window.sessionStorage.getItem(PENDING_LOGIN_KEY) !== "1") return false;
+    window.sessionStorage.removeItem(PENDING_LOGIN_KEY);
+    return true;
+  } catch { return false; }
+}
+
+export function clearPendingLogin() {
+  try { window.sessionStorage.removeItem(PENDING_LOGIN_KEY); } catch { /* storage unavailable */ }
+}

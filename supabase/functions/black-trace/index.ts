@@ -20,7 +20,9 @@ Deno.serve(request => {
 
   if (stage === 6 && mode === "response") return response({ status: "closed", message: "connection refused", trace: "FLAG{the_server_did_answer}" });
   if (stage === 7 && mode === "redirect") {
-    const destination = `${url.origin}/functions/v1/hg-black-trace?stage=7&mode=archive&access=FLAG%7Bfollow_the_location%7D`;
+    // The gateway hands this function an http:// request URL, so url.origin would emit a
+    // mixed-content Location that the browser blocks on the https:// site.
+    const destination = `https://${url.host}/functions/v1/hg-black-trace?stage=7&mode=archive&access=FLAG%7Bfollow_the_location%7D`;
     return new Response(null, { status: 302, headers: { ...corsHeaders, Location: destination } });
   }
   if (stage === 7 && mode === "archive") return response({ status: "not_found", message: "RECORD NOT FOUND" });

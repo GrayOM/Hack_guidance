@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Activity, Home, KeyRound, List, LogOut, Mail, ScrollText, Trophy, UserRound, X } from "lucide-react";
 import { isExternalSupabaseDeployment } from "@/lib/external-supabase";
-import { isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword, usePlatformAuth } from "@/hooks/usePlatformAuth";
+import { clearPendingLogin, consumePendingLogin, isValidDisplayName, registerSupabaseAccount, sendPasswordResetEmail, signInSupabaseAccount, updateSupabasePassword, usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useDisplayNameAvailability } from "@/hooks/useLearningApi";
 import { SignalLogo } from "@/components/SignalLogo";
 
@@ -48,11 +48,14 @@ export function ConsoleNav() {
 
   useEffect(() => {
     const openRequestedAuth = () => {
+      clearPendingLogin();
       if (isExternalSupabaseDeployment) openLogin();
     };
     window.addEventListener("hack-guidance:open-auth", openRequestedAuth);
+    // A stage screen can request login while no ConsoleNav is mounted; honour it on arrival.
+    if (consumePendingLogin() && isExternalSupabaseDeployment) openLogin();
     return () => window.removeEventListener("hack-guidance:open-auth", openRequestedAuth);
-  });
+  }, []);
 
   useEffect(() => {
     if (!passwordRecovery) return;
