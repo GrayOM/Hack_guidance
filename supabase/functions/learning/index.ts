@@ -284,19 +284,11 @@ Deno.serve(async request => {
     return json({ correct: true, alreadyCompleted: completedStages.includes(stage), completedStages: nextStages, accessLevel: blackTraceAccess(stage), operationComplete: nextStages.length === 10 });
   }
 
-  if (action === "dashboard") {
-    const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
-    if (error) return json({ error: "Unable to load operation dashboard" }, 500);
-    return json({ completedIds: (data ?? []).map(record => record.stage), defenseReviewedIds: [], certificate: null });
-  }
   if (action === "records") {
     const { data, error } = await service.from("hg_black_trace_progress").select("stage, hint_count, completed_at").eq("user_id", user.id).order("stage");
     if (error) return json({ error: "Unable to load operation records" }, 500);
     return json({ records: (data ?? []).map(record => ({ stage: record.stage, hintCount: record.hint_count, completedAt: record.completed_at })) });
   }
-  if (action === "practice") return json({ verified: false, message: "현재 등록된 문제가 없습니다." }, 410);
-  if (action === "submit") return json({ correct: false, message: "현재 등록된 문제가 없습니다." });
-  if (action === "reviewDefense") return json({ success: false, message: "현재 등록된 문제가 없습니다." });
   if (action === "issueCertificate") {
     const { data, error } = await service.rpc("hg_issue_clearance_certificate", { p_user_id: user.id });
     if (error) return json({ error: "Unable to issue the certificate" }, 500);
