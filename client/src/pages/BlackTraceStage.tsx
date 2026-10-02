@@ -52,6 +52,14 @@ export default function BlackTraceStage() {
   if (!stage) return <div className="bt-shell bt-empty">UNKNOWN NODE</div>;
   if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>이 노드는 이전 흔적을 회수한 뒤 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
 
+  /** The second fragment only exists in the response, so the request has to really happen. */
+  // These nodes carry their own instrument, which already reports what the generic readout would.
+  const hasOwnInstrument = stage?.surface === "cookie" || stage?.surface === "vault";
+
+  const recoverFragment = async () => {
+    try { await fetch(traceEndpoint(10, "vault"), { headers: { apikey: supabasePublishableKey } }); } catch { /* the console reports it */ }
+  };
+
   const runAction = async () => {
     if (scan === "running") return;
     const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
@@ -76,7 +84,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" />{renderScene(stage.surface, stage.actionLabel, runAction, trace)}{scan === "running" ? <ScanReadout title={stage.scan.reveal.title} /> : null}{scan === "done" ? <ScanReadout title={stage.scan.reveal.title} rows={stage.scan.reveal.rows} note={stage.scan.reveal.note} /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" />{stage.surface === "cookie" ? <StorageProbe onLog={setTerminal} onDone={() => setScan("done")} /> : stage.surface === "vault" ? <VaultAssembly trace={trace} actionLabel={stage.actionLabel} onLog={setTerminal} onRecover={recoverFragment} onDone={() => setScan("done")} /> : renderScene(stage.surface, stage.actionLabel, runAction, trace)}{hasOwnInstrument ? null : scan === "running" ? <ScanReadout title={stage.scan.reveal.title} /> : null}{hasOwnInstrument || scan !== "done" ? null : <ScanReadout title={stage.scan.reveal.title} rows={stage.scan.reveal.rows} note={stage.scan.reveal.note} />}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className="bt-terminal__log">{(terminal.length ? terminal : bootLog).map((line, index) => <p key={`${line}-${index}`} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!terminal.length && !bootLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form"><label>&gt; submit_flag</label><input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" /><button disabled={submit.isPending}>{submit.isPending ? "VERIFYING" : "SUBMIT"} <ChevronRight size={15} /></button></form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
@@ -98,6 +106,67 @@ function NodeCleared({ id, onNext, onBoard }: { id: number; onNext: () => void; 
         <button className="bt-cleared__ghost" onClick={onBoard}>작전 보드</button>
       </div>
     </div>
+  </div>;
+}
+
+/**
+ * Node 04 is about knowing which store a browser keeps per site, so it is probed store by store
+ * instead of being reported in one go. The key that survives is named; its value never is.
+ */
+function StorageProbe({ onLog, onDone }: { onLog: (lines: string[]) => void; onDone: () => void }) {
+  const [probed, setProbed] = useState<string[]>([]);
+  const stores = [
+    { id: "localStorage", entries: 0, key: null },
+    { id: "sessionStorage", entries: 0, key: null },
+    { id: "cookie", entries: 1, key: "trace_id" },
+  ];
+  const probe = (id: string) => {
+    if (probed.includes(id)) return;
+    const next = [...probed, id];
+    setProbed(next);
+    const store = stores.find(item => item.id === id)!;
+    onLog([`> probing ${id}...`, `> entries: ${store.entries}`, store.key ? `[!] surviving key: ${store.key}` : "> nothing retained"]);
+    if (next.length === stores.length) onDone();
+  };
+  return <div className="bt-probe">
+    <p className="bt-probe__title">SESSION MONITOR // LOCAL STORES</p>
+    {stores.map(store => {
+      const done = probed.includes(store.id);
+      return <div key={store.id} className={`bt-probe__row${done ? " is-probed" : ""}`}>
+        <code>{store.id}</code>
+        {done
+          ? <span className="bt-probe__result">{store.key ? <>1 entry · <strong>{store.key}</strong> = <em>████████</em></> : "0 entries"}</span>
+          : <button type="button" onClick={() => probe(store.id)}>PROBE</button>}
+      </div>;
+    })}
+    <p className="bt-probe__note">{probed.length < stores.length ? `${probed.length} / ${stores.length} 검사함` : "하나만 살아남았다. 값은 이 화면에 없다."}</p>
+  </div>;
+}
+
+/**
+ * Node 10 is about two halves arriving from two different places, so the bay shows both slots and
+ * fills only the one the request answers. The other stays empty on purpose.
+ */
+function VaultAssembly({ trace, actionLabel, onLog, onRecover, onDone }: { trace: string; actionLabel?: string; onLog: (lines: string[]) => void; onRecover: () => Promise<void>; onDone: () => void }) {
+  const [slot, setSlot] = useState<"idle" | "loading" | "received">("idle");
+  const recover = async () => {
+    if (slot !== "idle") return;
+    setSlot("loading");
+    onLog(["> vault recovery requested...", "> negotiating with vault-node-01.lab"]);
+    await onRecover();
+    setSlot("received");
+    onLog(["> vault recovery requested...", "> fragment 02 delivered in response body", "STATUS: PARTIAL", "[!] KEY INCOMPLETE"]);
+    onDone();
+  };
+  return <div className="bt-vault-unit" id="vault-core" data-fragment={trace}>
+    <LockKeyhole size={30} />
+    <p>MASTER KEY // ASSEMBLY BAY</p>
+    <div className="bt-vault-slots">
+      <div className="bt-vault-slot"><span>SLOT 01</span><strong>EMPTY</strong><small>source: this page</small></div>
+      <div className={`bt-vault-slot${slot === "received" ? " is-filled" : ""}`}><span>SLOT 02</span><strong>{slot === "received" ? "RECEIVED" : slot === "loading" ? "····" : "EMPTY"}</strong><small>source: remote response</small></div>
+    </div>
+    <p className="bt-vault-state">ASSEMBLED: {slot === "received" ? "1 / 2" : "0 / 2"}</p>
+    <button type="button" className="bt-action-button" onClick={recover} disabled={slot !== "idle"}>{slot === "idle" ? actionLabel : slot === "loading" ? "RECOVERING" : "FRAGMENT 02 RECEIVED"} <ChevronRight size={18} /></button>
   </div>;
 }
 
@@ -127,6 +196,5 @@ function renderScene(surface: string, actionLabel: string | undefined, action: (
   if (surface === "route") return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
   if (surface === "response" || surface === "redirect" || surface === "header") return <div className="bt-remote-unit"><Wifi size={31} /><p>{surface === "response" ? "REMOTE NODE CONNECTION" : surface === "redirect" ? "PERSONNEL TRACE" : "COMMUNICATION NODE"}</p><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
   if (surface === "robots") return <div className="bt-robot-unit"><pre>{"[ o_o ]\n /|_|\\\n  / \\"}</pre><p>AUTOMATED SECURITY NODE</p><span>INDEXING PERIMETER...</span><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  if (surface === "vault") return <div className="bt-vault-unit" id="vault-core" data-fragment={trace}><LockKeyhole size={38} /><p>MASTER KEY</p><span>PART 01: UNKNOWN</span><span>PART 02: UNKNOWN</span><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
   return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
 }

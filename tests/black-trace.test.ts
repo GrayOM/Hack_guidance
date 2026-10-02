@@ -137,6 +137,22 @@ describe("OPERATION BLACK TRACE", () => {
     expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');
   });
 
+  it("gives distinct nodes their own instrument instead of one shared button", () => {
+    // Ten nodes sharing one button, one console and one readout made every node feel the same.
+    // 04 probes each store separately; 10 fills two slots from two different sources.
+    expect(stageSource).toContain("StorageProbe");
+    expect(stageSource).toContain("VaultAssembly");
+    // Those two report through their own instrument, so the shared readout must not double up.
+    expect(stageSource).toContain("hasOwnInstrument");
+    // The store that kept something is named; its value is never printed on screen.
+    expect(stageSource).toContain("surviving key");
+    expect(stageSource).toContain("████████");
+    // The in-page fragment stays discoverable, and both slots are shown even when one is empty.
+    expect(stageSource).toContain("data-fragment={trace}");
+    expect(stageSource).toContain("SLOT 01");
+    expect(stageSource).toContain("SLOT 02");
+  });
+
   it("keeps intel suggestive and opt-in rather than naming the tool", () => {
     expect(blackTraceStages.every(stage => stage.intel.length > 0)).toBe(true);
     // Naming the tool outright removes the puzzle, so the intel never does.
