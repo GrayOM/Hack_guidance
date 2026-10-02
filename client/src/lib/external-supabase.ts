@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-export const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "https://xouowashfoyobgcdtagt.supabase.co";
-export const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "sb_publishable_3hgnIxSMX-B5D_C8Y8Eh_Q_hUtC9qnl";
+// The project address and publishable key are deployment configuration, not application source.
+// Baking defaults in here meant rotating them required a code change, and the build could not
+// tell a missing configuration apart from the fallback. They now come from the build environment.
+export const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+export const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
 const url = supabaseUrl;
 const publishableKey = supabasePublishableKey;
 const configured = Boolean(url && publishableKey);

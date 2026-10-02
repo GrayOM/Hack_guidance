@@ -84,6 +84,29 @@ async function allowSubmission(service: { rpc: (name: string, args: Record<strin
   return data !== false;
 }
 
+/**
+ * The unauthenticated actions have no session to meter, so they are metered per caller instead.
+ * The address is hashed before it reaches the ledger: the limiter needs to tell callers apart,
+ * not to know who they are. A generous ceiling keeps shared networks working while bounding a
+ * loop that would otherwise run the function and the database without end.
+ */
+async function publicClientKey(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for") ?? "";
+  const address = forwarded.split(",")[0].trim() || "unknown";
+  const digest = await crypto.subtle.digest("SHA-256", traceEncoder.encode(`public-rate:${traceSecret}:${address}`));
+  return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
+async function allowPublicCall(service: { rpc: (name: string, args: Record<string, unknown>) => any }, request: Request) {
+  const { data, error } = await service.rpc("hg_consume_public_slot", { p_client_key: await publicClientKey(request), p_limit: 120 });
+  if (error) {
+    // A limiter outage must not take the public pages down with it.
+    console.error("public rate limit unavailable", error);
+    return true;
+  }
+  return data !== false;
+}
+
 async function completedStagesFor(service: { from: (table: string) => any }, userId: string) {
   const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", userId).order("stage");
   if (error) return null;
@@ -125,6 +148,11 @@ Deno.serve(async request => {
   const service = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const payload = await request.json().catch(() => null) as Record<string, unknown> | null;
   const action = typeof payload?.action === "string" ? payload.action : "";
+
+  // Metered before any unauthenticated work is done, so a loop cannot run the database either.
+  if ((["checkDisplayName", "ranking", "verifyCertificate"] as string[]).includes(action) && !await allowPublicCall(service, request)) {
+    return json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", reason: "rate_limited" }, 429);
+  }
 
   if (action === "checkDisplayName") {
     const displayName = typeof payload?.displayName === "string" ? payload.displayName.trim() : "";

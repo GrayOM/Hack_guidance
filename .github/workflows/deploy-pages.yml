@@ -34,10 +34,21 @@ jobs:
         run: pnpm check
       - name: Run tests
         run: pnpm test
+      - name: Verify client configuration
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://xouowashfoyobgcdtagt.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_3hgnIxSMX-B5D_C8Y8Eh_Q_hUtC9qnl' }}
+        run: |
+          test -n "$VITE_SUPABASE_URL" || { echo "VITE_SUPABASE_URL is empty"; exit 1; }
+          test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "VITE_SUPABASE_PUBLISHABLE_KEY is empty"; exit 1; }
       - name: Build static app
         env:
           VITE_EXTERNAL_SUPABASE: "true"
           VITE_SUPABASE_AUTH_PROVIDER: "email"
+          # Repository variables of the same name override these. Rotating the key is a settings
+          # change, not a code change. The publishable key is public by design.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://xouowashfoyobgcdtagt.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_3hgnIxSMX-B5D_C8Y8Eh_Q_hUtC9qnl' }}
         run: pnpm build:github-pages
       - name: Provide SPA route fallback
         run: cp dist/public/index.html dist/public/404.html
