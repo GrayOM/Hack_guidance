@@ -83,3 +83,27 @@
 .bt-auth-unit__field input{flex:1;cursor:not-allowed;border-color:rgba(121,162,168,.22) !important;background:#060f14 !important;color:#5d7378 !important}
 .bt-auth-unit__field svg{position:absolute;right:11px;color:#6d8a8f;pointer-events:none}
 .bt-auth-unit__sealed{margin:-2px 0 2px;color:#7f9398;font-size:9px;letter-spacing:.11em}
+
+/* Node 04 probes each store separately: the operator finds which one kept something. */
+.bt-probe{width:min(430px,100%);border:1px solid rgba(91,224,219,.3);background:rgba(3,16,21,.85);padding:16px;text-align:left}
+.bt-probe__title{margin:0 0 13px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-probe__row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px dotted rgba(117,187,196,.18);padding:9px 0}
+.bt-probe__row code{color:#a9c6ca;font-size:11px}
+.bt-probe__row button{border:1px solid rgba(91,224,219,.45);background:rgba(6,26,32,.7);padding:5px 11px;color:#7fdedb;font:inherit;font-size:9px;letter-spacing:.11em;cursor:pointer;transition:.15s ease}
+.bt-probe__row button:hover{background:rgba(51,189,195,.22);transform:translateY(-1px)}
+.bt-probe__row.is-probed code{color:#dff3f4}
+.bt-probe__result{color:#8da8ac;font-size:10px;animation:bt-row-in .26s ease-out both}
+.bt-probe__result strong{color:#f0cd68;font-weight:500}
+.bt-probe__result em{color:#6d8a8f;font-style:normal;letter-spacing:-.05em}
+.bt-probe__note{margin:13px 0 0;color:#f0cd68;font:11px/1.6 ui-sans-serif,system-ui,sans-serif}
+/* Node 10 shows both halves and fills only the one the request answers. */
+.bt-vault-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(420px,100%)}
+.bt-vault-slot{border:1px dashed rgba(240,205,104,.35);background:rgba(240,205,104,.04);padding:13px 11px;text-align:left}
+.bt-vault-slot span{display:block;color:#8e7f4f;font-size:9px;letter-spacing:.14em}
+.bt-vault-slot strong{display:block;margin-top:7px;color:#9aa6a1;font-size:13px;font-weight:500}
+.bt-vault-slot small{display:block;margin-top:6px;color:#6d8a8f;font-size:9px}
+.bt-vault-slot.is-filled{border-style:solid;border-color:rgba(110,231,183,.6);background:rgba(110,231,183,.07);animation:bt-row-in .3s ease-out both}
+.bt-vault-slot.is-filled strong{color:#6ce7b7}
+.bt-vault-state{margin:4px 0 0 !important;color:#f0cd68 !important;font-size:11px !important;letter-spacing:.1em}
+.bt-vault-unit button:disabled{opacity:.6;cursor:default}
+@media(max-width:650px){.bt-vault-slots{grid-template-columns:1fr}}
