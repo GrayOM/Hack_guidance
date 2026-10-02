@@ -58,7 +58,10 @@ end;
 $$;
 
 -- Public verification exposes only what the printed sheet shows. No email, no user identifier.
-create or replace view public.hg_public_certificate_verification with (security_invoker = true) as
+-- The previous view carried user_id, and CREATE OR REPLACE VIEW cannot drop a column (42P16),
+-- so the view is dropped first. Nothing depends on it: the Edge Function queries it directly.
+drop view if exists public.hg_public_certificate_verification;
+create view public.hg_public_certificate_verification with (security_invoker = true) as
 select
   c.certificate_code,
   c.course_code,

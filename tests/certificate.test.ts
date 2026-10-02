@@ -31,6 +31,9 @@ describe("BLACK TRACE clearance certificate", () => {
     const executedSql = migration.slice(migration.indexOf("begin;"));
     expect(executedSql).not.toContain("p.id as user_id");
     expect(executedSql).not.toContain("u.email");
+    // CREATE OR REPLACE VIEW cannot drop a column (42P16), and this view loses user_id.
+    expect(executedSql).toContain("drop view if exists public.hg_public_certificate_verification");
+    expect(executedSql).not.toContain("create or replace view public.hg_public_certificate_verification");
   });
 
   it("drops the retired 50-problem criteria from the printed sheet", () => {
