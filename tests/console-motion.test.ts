@@ -203,3 +203,16 @@ describe("node 08 resting panel", () => {
   });
 });
 
+describe("scene size", () => {
+  it("lets the panel take the column's spare height instead of leaving it empty", () => {
+    // The panel was pinned to a 310px box and the field kit was pushed to the bottom with
+    // margin-top:auto, so everything between the two was dead space.
+    expect(stageStyles).toContain(".bt-scene__center{flex:1");
+    // The kit was pushed past that gap; with the gap gone the push goes too, and it goes from the
+    // rule that set it rather than from a second rule further down disagreeing with the first.
+    expect(stageStyles).not.toContain(".bt-intel{margin-top:auto");
+    // The console column had the same shape of problem.
+    expect(stageStyles).toContain(".bt-terminal__log{flex:1");
+  });
+});
+
