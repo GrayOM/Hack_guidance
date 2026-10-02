@@ -5,6 +5,8 @@ import { getCurrentRankingPosition, getRankingFingerprint, getRankingStreamEvent
 const appSource = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
 const rankingSource = readFileSync(new URL("../client/src/pages/Ranking.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
+const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
+const stageStyles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
   it("keeps main-console ambient pointer response without retired challenge workspace dependencies", () => {
@@ -63,5 +65,49 @@ describe("event-driven console feedback", () => {
     expect(getCurrentRankingPosition(tiedRows)).toBeNull();
     expect(getCurrentRankingPosition(tiedRows, "missing")).toBeNull();
     expect(getCurrentRankingPosition(tiedRows, "current")).toMatchObject({ index: 1, rank: 2, row: { userId: "current" } });
+  });
+});
+
+describe("stage reaction", () => {
+  it("types the console a character at a time and keeps lines a burst repeats", () => {
+    // The instruments resend the lines already on screen before adding their own, so a typewriter
+    // that restarted on every burst would retype the whole session each call.
+    expect(stageSource).toContain("function useTypedLog");
+    expect(stageSource).toContain("settled.current[shared] === lines[shared]");
+    expect(stageSource).toContain("lines[row].slice(0, column)");
+    // The burst is no longer rendered straight from state.
+    expect(stageSource).not.toContain('{(terminal.length ? terminal : bootLog).map(');
+  });
+
+  it("shows the recovered key resolving instead of never showing it at all", () => {
+    expect(stageSource).toContain("function DecryptedKey");
+    expect(stageSource).toContain("setRecovered(assembled)");
+    expect(stageSource).toContain("<DecryptedKey value={recovered} />");
+    expect(stageStyles).toContain(".bt-cleared__key");
+  });
+
+  it("reacts to a rejected key with more than one red line", () => {
+    expect(stageSource).toContain("function BreachFlash");
+    // The timestamp restarts the alarm on a second identical rejection.
+    expect(stageSource).toContain("setBreachAt(Date.now())");
+    expect(stageSource).toContain("{breachAt ? <BreachFlash key={breachAt} /> : null}");
+    expect(stageStyles).toContain(".bt-shell.is-breached");
+    expect(stageStyles).toContain("@keyframes bt-jolt");
+  });
+
+  it("shows bytes moving while an instrument works and a meter while the server decides", () => {
+    expect(stageSource).toContain("function ScanNoise");
+    expect(stageSource).toContain('{scan === "running" ? <ScanNoise /> : null}');
+    expect(stageSource).toContain('{submit.isPending ? <div className="bt-verify"');
+    expect(stageStyles).toContain(".bt-noise");
+    expect(stageStyles).toContain(".bt-verify");
+  });
+
+  it("suppresses the motion but not the alarm's own dismissal under reduced motion", () => {
+    const reduced = stageStyles.slice(stageStyles.lastIndexOf("@media(prefers-reduced-motion:reduce)"));
+    expect(reduced).toContain(".bt-shell.is-breached");
+    expect(reduced).toContain(".bt-noise span");
+    // Without its fade the alarm would stay on screen for good: it is never cleared by state.
+    expect(reduced).not.toContain(".bt-breach,");
   });
 });

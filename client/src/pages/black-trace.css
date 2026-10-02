@@ -186,3 +186,42 @@
 .bt-terminal__split input{min-width:0}
 .bt-terminal__assembled{margin:9px 0 0;color:#8da8ac;font-size:10px;word-break:break-all;letter-spacing:.02em}
 .bt-terminal__form button:disabled{opacity:.45;cursor:not-allowed}
+
+/* --- Operator feedback ------------------------------------------------------------------------
+   The stage had atmosphere (CRT, sweep) but no reaction: the console printed whole bursts, a
+   rejected key changed one line to red, and the key the operator recovered was never shown back
+   to them. These four pieces are the reaction. */
+
+/* The caret belongs to the line being typed; a settled log keeps it on the last line. */
+.bt-terminal__log.is-typing p:last-child:after{animation:none;opacity:1}
+
+/* Bytes moving under the sweep, so the panel reads as data being lifted rather than a light bar. */
+.bt-noise{position:absolute;inset:0;display:grid;align-content:center;gap:9px;pointer-events:none;opacity:.17;overflow:hidden}
+.bt-noise span{display:block;color:#6ff3ea;font:10px/1 ui-monospace,SFMono-Regular,monospace;letter-spacing:.22em;white-space:nowrap;animation:bt-noise-slide 1.9s linear infinite}
+.bt-noise span:nth-child(2){animation-duration:2.6s;animation-direction:reverse;opacity:.72}
+.bt-noise span:nth-child(3){animation-duration:3.3s;opacity:.5}
+@keyframes bt-noise-slide{from{transform:translateX(-14%)}to{transform:translateX(14%)}}
+
+/* The recovered key resolves in place, so it needs a frame that does not resize as it settles. */
+.bt-cleared__key{margin:16px 0 0;padding:11px 12px;border:1px solid rgba(110,231,183,.3);background:rgba(2,18,20,.72)}
+.bt-cleared__key span{display:block;color:#5fb9a2;font-size:9px;letter-spacing:.14em}
+.bt-cleared__key code{display:block;margin-top:6px;color:#8affd2;font:12px/1.5 ui-monospace,SFMono-Regular,monospace;word-break:break-all;text-shadow:0 0 12px rgba(110,255,205,.45)}
+
+/* A rejected key trips the alarm: the shell jolts once and interference crosses the screen. */
+.bt-shell.is-breached{animation:bt-jolt .62s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes bt-jolt{0%,100%{transform:translate3d(0,0,0)}12%{transform:translate3d(-6px,1px,0)}26%{transform:translate3d(5px,-2px,0)}41%{transform:translate3d(-4px,2px,0)}58%{transform:translate3d(3px,-1px,0)}76%{transform:translate3d(-2px,1px,0)}}
+
+.bt-breach{position:fixed;inset:0;z-index:40;display:grid;place-items:center;pointer-events:none;animation:bt-breach-out 1s ease-out both}
+.bt-breach:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,74,92,.16) 0 2px,transparent 2px 5px);animation:bt-breach-static .5s steps(3) 2}
+.bt-breach:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 36%,rgba(255,52,74,.26))}
+.bt-breach p{position:relative;margin:0;padding:13px 26px;border:1px solid rgba(255,96,112,.75);background:rgba(28,4,8,.85);color:#ff8e92;font:600 15px ui-monospace,SFMono-Regular,monospace;letter-spacing:.3em;text-shadow:2px 0 rgba(0,229,255,.55),-2px 0 rgba(255,0,72,.55);animation:bt-breach-split .14s steps(2) 5}
+@keyframes bt-breach-out{0%{opacity:1}72%{opacity:1}100%{opacity:0}}
+@keyframes bt-breach-static{0%{transform:translateY(0)}100%{transform:translateY(5px)}}
+@keyframes bt-breach-split{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
+
+/* The server is deciding, so the wait is shown instead of only disabling the button. */
+.bt-verify{height:2px;margin-top:9px;background:rgba(90,224,219,.16);overflow:hidden}
+.bt-verify i{display:block;width:34%;height:100%;background:linear-gradient(90deg,transparent,#5ae0db,transparent);animation:bt-verify-run .85s linear infinite}
+@keyframes bt-verify-run{from{transform:translateX(-120%)}to{transform:translateX(420%)}}
+
+@media(prefers-reduced-motion:reduce){.bt-noise span,.bt-shell.is-breached,.bt-breach:before,.bt-breach p,.bt-verify i{animation:none}.bt-breach:before{display:none}}
