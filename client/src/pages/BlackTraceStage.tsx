@@ -36,11 +36,30 @@ export default function BlackTraceStage() {
   // without doing anything at all. The scan gives the action a visible consequence.
   const [scan, setScan] = useState<"idle" | "running" | "done">("idle");
   const [result, setResult] = useState<"idle" | "success" | "error">("idle");
+  // A rejected key used to change one line of text to red, which is not what being locked out
+  // feels like. The timestamp restarts the interference even on a second identical rejection.
+  const [breachAt, setBreachAt] = useState(0);
+  // Held so the cleared panel can resolve the recovered key out of noise instead of the operator
+  // never seeing what they actually pulled out of the node.
+  const [recovered, setRecovered] = useState("");
   const commentAnchor = useRef<HTMLDivElement>(null);
   const completed = progress.data?.completedStages ?? [];
   const maxOpen = progress.data?.currentStage ?? 1;
   const isOpen = id === 1 || completed.includes(id) || id <= maxOpen;
-  const submit = useBlackTraceSubmit({ onSuccess: response => { if (response.correct) { setResult("success"); setTerminal(id === 10 ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] FLAG ACCEPTED", "[+] TRACE RECOVERED", "[+] NODE CLEARED"]); } else { setResult("error"); setTerminal(["[-] INVALID ACCESS KEY"]); } }, onError: error => { setResult("error"); const reason = error instanceof Error && error.message ? error.message : "SESSION REQUIRED OR CHANNEL UNAVAILABLE"; setTerminal([`[-] ${reason}`]); } });
+  const submit = useBlackTraceSubmit({ onSuccess: response => { if (response.correct) { setResult("success"); setTerminal(id === 10 ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] FLAG ACCEPTED", "[+] TRACE RECOVERED", "[+] NODE CLEARED"]); } else { setResult("error"); setBreachAt(Date.now()); setTerminal(["[-] INVALID ACCESS KEY", "[-] ATTEMPT LOGGED"]); } }, onError: error => { setResult("error"); setBreachAt(Date.now()); const reason = error instanceof Error && error.message ? error.message : "SESSION REQUIRED OR CHANNEL UNAVAILABLE"; setTerminal([`[-] ${reason}`]); } });
+
+  const [jolted, setJolted] = useState(false);
+  useEffect(() => {
+    if (!breachAt) return;
+    setJolted(true);
+    const timer = window.setTimeout(() => setJolted(false), 620);
+    return () => window.clearTimeout(timer);
+  }, [breachAt]);
+
+  // Whichever log is live is the one that types. Boot chatter and the operator's own log never
+  // mix, so switching between them is a switch of source, not a merge.
+  const logSource = terminal.length ? terminal : bootLog;
+  const { view: typedLog, typing } = useTypedLog(logSource);
 
   useEffect(() => {
     if (!stage) return;
@@ -66,16 +85,17 @@ export default function BlackTraceStage() {
     if (!isAuthenticated) { setResult("error"); setTerminal(["[-] SESSION REQUIRED", "> opening operator login..."]); startPlatformLogin(); setLocation("/black-trace"); return; }
     if (!assembled) return;
     setResult("idle");
+    setRecovered(assembled);
     setTerminal(isVault ? ["> joining fragment 01 + 02...", "> transmitting assembled key..."] : ["> transmitting recovered key..."]);
     submit.mutate({ stage: id, flag: assembled, hintCount: intelOpen ? 1 : 0 });
   };
 
-  return <div className={`bt-shell bt-stage bt-stage--${stage.surface}`}>
+  return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
-      <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className="bt-terminal__log">{(terminal.length ? terminal : bootLog).map((line, index) => <p key={`${line}-${index}`} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!terminal.length && !bootLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
+      <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
           {isVault
             ? <div className="bt-terminal__split">
@@ -86,20 +106,116 @@ export default function BlackTraceStage() {
             : <input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" />}
           {isVault ? <p className="bt-terminal__assembled">{assembled || "두 조각을 각각 입력하면 하나로 이어집니다."}</p> : null}
           <button disabled={submit.isPending || !assembled}>{submit.isPending ? "VERIFYING" : isVault ? "ASSEMBLE" : "SUBMIT"} <ChevronRight size={15} /></button>
+          {submit.isPending ? <div className="bt-verify" role="progressbar" aria-label="검증 중"><i /></div> : null}
         </form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
-    {result === "success" ? <NodeCleared id={id} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
+    {breachAt ? <BreachFlash key={breachAt} /> : null}
+    {result === "success" ? <NodeCleared id={id} recovered={recovered} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
   </div>;
 }
 
+const noiseAlphabet = "0123456789ABCDEF#$%&*/<>?@\\^|~";
+const noiseChar = () => noiseAlphabet[Math.floor(Math.random() * noiseAlphabet.length)];
+const noiseRun = (length: number) => Array.from({ length }, noiseChar).join("");
+
+/**
+ * The console printed each burst whole, so a sequence of instrument calls read as pages of text
+ * rather than a machine answering. Lines are typed a character at a time instead.
+ *
+ * A burst usually repeats the lines already on screen before adding its own, so whatever matches
+ * what is already typed is kept and only the tail is typed. Without that, every call would retype
+ * the whole session from the top.
+ */
+function useTypedLog(lines: string[]) {
+  const [view, setView] = useState<string[]>([]);
+  const settled = useRef<string[]>([]);
+  const [typing, setTyping] = useState(false);
+
+  useEffect(() => {
+    if (!lines.length) {
+      settled.current = [];
+      setView([]);
+      setTyping(false);
+      return;
+    }
+    let shared = 0;
+    while (shared < settled.current.length && shared < lines.length && settled.current[shared] === lines[shared]) shared += 1;
+    const base = lines.slice(0, shared);
+    settled.current = base;
+    setView(base);
+    if (shared >= lines.length) {
+      setTyping(false);
+      return;
+    }
+    setTyping(true);
+    let row = shared;
+    let column = 0;
+    const timer = window.setInterval(() => {
+      column += 1;
+      const next = [...lines.slice(0, row), lines[row].slice(0, column)];
+      settled.current = next;
+      setView(next);
+      if (column >= lines[row].length) {
+        row += 1;
+        column = 0;
+      }
+      if (row >= lines.length) {
+        window.clearInterval(timer);
+        setTyping(false);
+      }
+    }, 14);
+    return () => window.clearInterval(timer);
+  }, [lines]);
+
+  return { view, typing };
+}
+
+/**
+ * The recovered key is the only thing the operator carries out of a node, so it resolves out of
+ * noise one character at a time rather than simply being present.
+ */
+function DecryptedKey({ value }: { value: string }) {
+  const [shown, setShown] = useState(() => noiseRun(value.length));
+  useEffect(() => {
+    let resolved = 0;
+    const timer = window.setInterval(() => {
+      resolved += 1;
+      if (resolved >= value.length) {
+        window.clearInterval(timer);
+        setShown(value);
+        return;
+      }
+      setShown(value.slice(0, resolved) + noiseRun(value.length - resolved));
+    }, 34);
+    return () => window.clearInterval(timer);
+  }, [value]);
+  return <code>{shown}</code>;
+}
+
+/** The instrument is reading bytes, so the panel shows bytes moving rather than only a sweep. */
+function ScanNoise() {
+  const [rows, setRows] = useState<string[]>(() => Array.from({ length: 3 }, () => noiseRun(46)));
+  useEffect(() => {
+    const timer = window.setInterval(() => setRows(Array.from({ length: 3 }, () => noiseRun(46))), 70);
+    return () => window.clearInterval(timer);
+  }, []);
+  return <div className="bt-noise" aria-hidden="true">{rows.map((row, index) => <span key={index}>{row}</span>)}</div>;
+}
+
+/** A rejected key is a tripped alarm, so the screen reacts the way a tripped alarm looks. */
+function BreachFlash() {
+  return <div className="bt-breach" aria-hidden="true"><p>ACCESS DENIED</p></div>;
+}
+
 /** A recovered node is the only reward the operation gives, so it is shown, not just logged. */
-function NodeCleared({ id, onNext, onBoard }: { id: number; onNext: () => void; onBoard: () => void }) {
+function NodeCleared({ id, recovered, onNext, onBoard }: { id: number; recovered: string; onNext: () => void; onBoard: () => void }) {
   const final = id >= 10;
   return <div className="bt-cleared" role="status" aria-live="polite">
     <div className="bt-cleared__panel">
       <CheckCircle2 size={34} />
       <p className="bt-cleared__eyebrow">{final ? "OPERATION COMPLETE" : "TRACE RECOVERED"}</p>
       <h2>{final ? "MASTER ACCESS KEY 복구" : `NODE ${String(id).padStart(2, "0")} CLEARED`}</h2>
+      {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><DecryptedKey value={recovered} /></div> : null}
       <p className="bt-cleared__note">{final ? "10개 노드를 모두 회수했습니다. 수료증을 발급할 수 있습니다." : "다음 노드가 해금되었습니다."}</p>
       <div className="bt-cleared__actions">
         <button className="bt-cleared__primary" onClick={onNext}>{final ? "수료증 받기" : "다음 노드"} <ChevronRight size={16} /></button>
