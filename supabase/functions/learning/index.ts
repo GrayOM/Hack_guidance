@@ -91,8 +91,12 @@ async function allowSubmission(service: { rpc: (name: string, args: Record<strin
  * loop that would otherwise run the function and the database without end.
  */
 async function publicClientKey(request: Request) {
+  // The leftmost X-Forwarded-For entry is whatever the caller claimed, so keying on it let anyone
+  // sidestep the ceiling by randomising the header. The gateway's own view is used instead: the
+  // platform header when present, otherwise the entry appended closest to us.
   const forwarded = request.headers.get("x-forwarded-for") ?? "";
-  const address = forwarded.split(",")[0].trim() || "unknown";
+  const hops = forwarded.split(",").map(hop => hop.trim()).filter(Boolean);
+  const address = request.headers.get("x-real-ip")?.trim() || hops[hops.length - 1] || "unknown";
   const digest = await crypto.subtle.digest("SHA-256", traceEncoder.encode(`public-rate:${traceSecret}:${address}`));
   return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
 }
