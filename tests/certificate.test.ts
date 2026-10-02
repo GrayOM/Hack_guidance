@@ -40,8 +40,10 @@ describe("BLACK TRACE clearance certificate", () => {
     expect(printPage).not.toContain("/ 50");
     expect(printPage).not.toContain("passedAssessments");
     expect(printPage).not.toContain("defenseReviewCount");
-    expect(printPage).toContain("회수한 노드");
-    expect(printPage).toContain("/ 10");
+    // The sheet is worded for the operation it certifies, and takes its count from the course.
+    expect(printPage).toContain("장악한 거점");
+    expect(printPage).toContain("${blackTraceNodeCount}");
+    expect(printPage).not.toContain("/ 10");
   });
 
   it("meters the unauthenticated actions per caller without storing an address", () => {

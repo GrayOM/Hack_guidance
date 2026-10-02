@@ -355,3 +355,26 @@
 .bt-briefing dd{margin:0;color:#9db8bc;font:12px/1.75 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
 .bt-briefing__note{margin:13px 0 0;color:#6f8d92;font:11px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif}
 @media(max-width:650px){.bt-briefing dl>div{grid-template-columns:1fr;gap:4px}}
+
+/* --- Shared instruments ------------------------------------------------------------------------
+   Nodes that exercise the same browser panel share an instrument and differ by their data, so these
+   are the frames those three instruments draw in. */
+.bt-sweep{width:min(480px,100%);text-align:left}
+.bt-sweep__title{margin:0 0 13px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-sweep ol{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.bt-sweep li{padding:10px 12px;border:1px solid rgba(117,187,196,.18);background:rgba(3,16,21,.6);color:#56757a;font-size:11px;letter-spacing:.06em}
+.bt-sweep li.is-read{border-color:rgba(91,224,219,.4);color:#cfe8ea;animation:bt-row-in .3s ease-out both}
+.bt-sweep__host{height:0;overflow:hidden}
+.bt-sweep__count{margin:14px 0 0;color:#f0cd68;font-size:11px;letter-spacing:.08em}
+.bt-sweep__note{margin:7px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-sweep .bt-action-button{margin-top:18px}
+
+.bt-index{width:min(440px,100%);text-align:left}
+.bt-index__title{margin:0 0 10px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-index__path{display:block;padding:9px 11px;border:1px solid rgba(117,187,196,.22);background:rgba(3,16,21,.7);color:#9dc4c8;font-size:11px}
+.bt-index ul{display:grid;gap:6px;margin:13px 0 0;padding:0;list-style:none}
+.bt-index li{padding-bottom:6px;border-bottom:1px dotted rgba(117,187,196,.18);color:#cfe8ea;font-size:11px;animation:bt-row-in .3s ease-out both}
+.bt-index li:last-child{color:#f0cd68}
+.bt-index__note{margin:13px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-index .bt-action-button{margin-top:18px}
+@media(prefers-reduced-motion:reduce){.bt-sweep li.is-read,.bt-index li{animation:none}}

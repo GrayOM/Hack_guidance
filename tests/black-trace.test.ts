@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, vaultTraceSuffix } from "../shared/black-trace";
+import { blackTraceNodeCount, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
@@ -18,14 +18,19 @@ describe("OPERATION BLACK TRACE", () => {
     // redirect node, the hardest, sat before two easier ones. Three Elements nodes also ran back to
     // back. The order now walks address bar -> Elements -> Application -> address bar -> Network.
     expect(blackTraceStages.map(stage => stage.surface)).toEqual([
-      "route", "comment", "field", "identity", "cookie", "robots", "response", "header", "redirect", "vault",
+      "tooltip", "route", "comment", "field", "identity",
+      "invisible-ink", "off-screen", "template-tag", "shadow-root", "cookie",
+      "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap",
+      "source-map", "response", "header", "redirect", "vault",
     ]);
-    expect(blackTraceStages.map(stage => stage.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
-      Array.from({ length: 10 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    expect(blackTraceStageById(4)?.access).toBe("ANALYST");
-    expect(blackTraceStageById(7)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(10)?.access).toBe("OPERATOR");
+      Array.from({ length: 20 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
+    expect(blackTraceStageById(6)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(11)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(20)?.access).toBe("OPERATOR");
+    // Every node carries a key, and no two share one.
+    expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
   });
 
   it("never labels a signed-in operator GUEST", () => {
@@ -60,36 +65,31 @@ describe("OPERATION BLACK TRACE", () => {
 
   it("derives a distinct trace per operator and keeps the stage 10 split intact", () => {
     // The label describes the surface, so it travels with the content when the order changes.
-    const comment = blackTraceStages.find(stage => stage.surface === "comment")!.id;
-    expect(composeTrace(comment, null)).toBe("FLAG{ghost_in_the_source}");
-    expect(composeTrace(comment, "a1b2c3")).toBe("FLAG{ghost_in_the_source_a1b2c3}");
-    expect(composeTrace(comment, "a1b2c3")).not.toBe(composeTrace(comment, "d4e5f6"));
-    expect(composeTrace(10, "a1b2c3")).toBe("FLAG{two_places_a1b2c3_");
-    expect(`${composeTrace(10, "a1b2c3")}${vaultTraceSuffix}`).toBe("FLAG{two_places_a1b2c3_one_key}");
+    // The trace derives from the node's key, so moving a node changes nobody's answer.
+    expect(composeTrace("ghost-comment", null)).toBe("FLAG{ghost_in_the_source}");
+    expect(composeTrace("ghost-comment", "a1b2c3")).toBe("FLAG{ghost_in_the_source_a1b2c3}");
+    expect(composeTrace("ghost-comment", "a1b2c3")).not.toBe(composeTrace("ghost-comment", "d4e5f6"));
+    expect(composeTrace("fragmented-key", "a1b2c3")).toBe("FLAG{two_places_a1b2c3_");
+    expect(`${composeTrace("fragmented-key", "a1b2c3")}${vaultTraceSuffix}`).toBe("FLAG{two_places_a1b2c3_one_key}");
     // A node whose trace the channel issues plants nothing in the browser.
-    const response = blackTraceStages.find(stage => stage.surface === "response")!.id;
-    expect(composeTrace(response, "a1b2c3")).toBeNull();
+    expect(composeTrace("silent-response", "a1b2c3")).toBeNull();
   });
 
   it("keeps the client's planted labels and the server's channel flags on the same node numbers", () => {
     // The labels still key on the node number, so a reorder that moved the stages without moving
     // these would hand every operator the wrong expected value with no error anywhere.
-    const planted = ["route", "comment", "field", "identity", "cookie", "vault"];
+    // Every node either plants a trace in the browser or is answered by the channel, never both
+    // and never neither; the server has to agree about which.
+    const serverTables = learningFunction.slice(learningFunction.indexOf("const nodeKeys"), learningFunction.indexOf("const traceSecret"));
     for (const stage of blackTraceStages) {
-      const label = composeTrace(stage.id, null);
-      if (planted.includes(stage.surface)) {
-        expect(label).not.toBeNull();
+      expect(serverTables).toContain(`${stage.id}: "${stage.key}"`);
+      const planted = composeTrace(stage.key, null);
+      if (planted) {
+        expect(serverTables).toContain(`"${stage.key}": "${traceLabels[stage.key]}"`.replace(/"([a-z]+)":/, (whole, bare) => stage.key === bare ? `${bare}:` : whole));
       } else {
         // A channel-issued node must plant nothing, or the browser would carry the answer.
-        expect(label).toBeNull();
-        expect(learningFunction).toMatch(new RegExp(`${stage.id}: "FLAG\\{`));
+        expect(serverTables).toMatch(new RegExp(`"?${stage.key}"?: "FLAG\\{`));
       }
-    }
-    // The server recomputes from its own copy of the table, so the two copies must agree.
-    const serverLabels = learningFunction.slice(learningFunction.indexOf("const traceLabels"), learningFunction.indexOf("const vaultTraceSuffix"));
-    for (const stage of blackTraceStages.filter(row => planted.includes(row.surface))) {
-      const label = composeTrace(stage.id, null)!.replace("FLAG{", "").replace("}", "").replace(/_$/, "");
-      expect(serverLabels).toContain(`${stage.id}: "${label}"`);
     }
   });
 
@@ -160,7 +160,7 @@ describe("OPERATION BLACK TRACE", () => {
   });
 
   it("closes every node with its own verdict", () => {
-    expect(new Set(blackTraceStages.map(stage => stage.scan.verdict)).size).toBe(10);
+    expect(new Set(blackTraceStages.map(stage => stage.scan.verdict)).size).toBe(blackTraceNodeCount);
     // The verdict belongs to the surface, so it is looked up by surface and survives a reorder.
     const verdictFor = (surface: string) => blackTraceStages.find(stage => stage.surface === surface)?.scan.verdict;
     expect(verdictFor("field")).toBe("AUTH REJECTED");
@@ -179,7 +179,15 @@ describe("OPERATION BLACK TRACE", () => {
     // The planted traces stay discoverable exactly where each node hides them.
     expect(stageSource).toContain("data-fragment={trace}");
     expect(stageSource).toContain("data-note={trace}");
-    expect(stageSource).toContain('name="legacy_note" value={trace}');
+    // The hidden field carries the trace as DOM property state, never as a value attribute. As an
+    // attribute it sat in the markup in plain sight and the node became the same action as the one
+    // after it — read an attribute in Elements — instead of un-hiding the field.
+    // On a type="hidden" input the value property reflects the content attribute, so assigning it
+    // put the trace straight back into the markup. A text input hidden by the hidden attribute
+    // keeps the value as separate DOM state.
+    expect(stageSource).toContain('<input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />');
+    expect(stageSource).not.toContain('type="hidden" name="legacy_note"');
+    expect(stageSource).toContain("carrier.current.value = trace");
     expect(stageSource).toContain("deleted_record: ${trace}");
     // The injected comment lives on its own node so React never reconciles around it.
     expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');
@@ -198,10 +206,11 @@ describe("OPERATION BLACK TRACE", () => {
   });
 
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
-    expect(nextBlackTraceRank(1)?.name).toBe("ANALYST");
-    expect(nextBlackTraceRank(4)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(7)?.name).toBe("OPERATOR");
-    expect(nextBlackTraceRank(10)).toBeNull();
+    // The ladder scales with the course: four tiers across however many nodes it holds.
+    expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
+    expect(nextBlackTraceRank(6)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(11)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     expect(directorySource).toContain("다음 등급");
     // Recovering a node is the only reward, so it is shown rather than only logged.
     expect(stageSource).toContain("NodeCleared");
@@ -221,7 +230,9 @@ describe("OPERATION BLACK TRACE", () => {
     expect(recordsSource).toContain("useLearningRecords");
     expect(recordsSource).toContain("NODES RECOVERED");
     expect(myPageSource).toContain("OPERATION SUMMARY");
-    expect(myPageSource).toContain("/10");
+    // The count comes from the course, so the page may not spell a number of its own.
+    expect(myPageSource).toContain("{blackTraceNodeCount}");
+    expect(myPageSource).not.toContain("/10");
   });
 });
 

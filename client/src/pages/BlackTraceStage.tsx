@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrambleText, SignalBars, noiseRun, useTypedLog } from "@/components/terminal-motion";
+import { FileIndex, StoreProbe, SurfaceSweep, indexSurfaces, probeSurfaces, sweepSurfaces } from "@/components/trace-instruments";
 import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
-import { blackTraceStageById, composeTrace } from "@shared/black-trace";
+import { blackTraceNodeCount, blackTraceStageById, composeTrace } from "@shared/black-trace";
 import { useBlackTraceProgress, useBlackTraceSubmit, useBlackTraceSurface } from "@/hooks/useBlackTrace";
 import { supabaseUrl, supabasePublishableKey } from "@/lib/external-supabase";
 import { startPlatformLogin, usePlatformAuth } from "@/hooks/usePlatformAuth";
@@ -27,7 +28,7 @@ export function submissionFailureLines(error: unknown) {
   const reason = (error as { reason?: string } | null)?.reason;
   const message = error instanceof Error && error.message ? error.message : "";
   if (reason === "rate_limited") return ["[-] SUBMISSION THROTTLED", "> 분당 제출 횟수를 넘었습니다. 1분 뒤 다시 시도하세요."];
-  if (message.includes("previous node")) return ["[-] NODE LOCKED", "> 앞 노드를 먼저 회수해야 이 노드의 제출이 기록됩니다."];
+  if (message.includes("previous node")) return ["[-] NODE LOCKED", "> 앞 거점을 먼저 장악해야 이 노드의 제출이 기록됩니다."];
   if (message.includes("Unknown operation node")) return ["[-] UNKNOWN NODE", "> 존재하지 않는 노드입니다."];
   return ["[-] CHANNEL UNAVAILABLE", `> ${message || "세션이 만료되었거나 서버에 연결하지 못했습니다."}`];
 }
@@ -43,7 +44,7 @@ export default function BlackTraceStage() {
   const progress = useBlackTraceProgress(isAuthenticated);
   const surface = useBlackTraceSurface(id, isAuthenticated);
   // The planted trace is derived per operator, so it is never the same string for two accounts.
-  const trace = composeTrace(id, surface.data?.token ?? null) ?? "";
+  const trace = composeTrace(stage?.key ?? "", surface.data?.token ?? null) ?? "";
   // The field kit replaces the old two-step hint list: one suggestive line, opened only if the
   // operator asks for it. Being handed the tool by name is not the game.
   const [intelOpen, setIntelOpen] = useState(false);
@@ -74,7 +75,7 @@ export default function BlackTraceStage() {
     onSuccess: response => {
       if (response.correct) {
         setResult("success");
-        setTerminal(id === 10 ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] FLAG ACCEPTED", "[+] TRACE RECOVERED", "[+] NODE CLEARED"]);
+        setTerminal(id === blackTraceNodeCount ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] KEY ACCEPTED", "[+] ACCESS GAINED", "[+] NODE BREACHED"]);
         return;
       }
       // The key was well-formed and the server still refused it, so the shape is not the problem.
@@ -113,7 +114,7 @@ export default function BlackTraceStage() {
   useEffect(() => { if (stage?.surface !== "comment" || !trace || !commentAnchor.current) return; const marker = document.createComment(` deleted_record: ${trace} `); commentAnchor.current.appendChild(marker); return () => marker.remove(); }, [stage?.surface, trace]);
   useEffect(() => { if (stage?.surface !== "cookie" || !trace) return; document.cookie = `trace_id=${trace}; Path=/; SameSite=Lax`; }, [stage?.surface, trace]);
   if (!stage) return <div className="bt-shell bt-empty">UNKNOWN NODE</div>;
-  if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>앞 노드의 흔적을 먼저 회수해야 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
+  if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>앞 거점을 먼저 장악해야 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
 
   /** Remote nodes are solved by watching the request, so it is always really sent. */
   const callRemote = async (mode: string) => {
@@ -135,16 +136,16 @@ export default function BlackTraceStage() {
     }
     setResult("idle");
     setRecovered(assembled);
-    setTerminal(isVault ? ["> joining fragment 01 + 02...", "> transmitting assembled key..."] : ["> transmitting recovered key..."]);
+    setTerminal(isVault ? ["> joining fragment 01 + 02...", "> transmitting assembled key..."] : ["> transmitting extracted key..."]);
     submit.mutate({ stage: id, flag: assembled, hintCount: intelOpen ? 1 : 0 });
   };
 
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
-    <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
+    <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / {blackTraceNodeCount}</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount}</strong></div></section>
       <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/${id}?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전에는 브라우저 개발자도구가 필요합니다. PC에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>막히면 FIELD KIT을 열어 볼 수 있습니다. 열어 본 기록은 남습니다.</p>}</div></section>
-      <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
+      <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> OPERATOR CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
           {isVault
             ? <div className="bt-terminal__split">
@@ -156,10 +157,10 @@ export default function BlackTraceStage() {
           {isVault ? <p className="bt-terminal__assembled">{assembled || "두 조각을 각각 넣으면 하나로 이어 붙입니다."}</p> : null}
           <button disabled={submit.isPending || !assembled}>{submit.isPending ? "VERIFYING" : isVault ? "ASSEMBLE" : "SUBMIT"} <ChevronRight size={15} /></button>
           {submit.isPending ? <div className="bt-verify" role="progressbar" aria-label="검증 중"><i /></div> : null}
-        </form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
+        </form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE BREACHED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
     {breachAt ? <BreachFlash key={breachAt} /> : null}
-    {result === "success" ? <NodeCleared id={id} recovered={recovered} lesson={stage.lesson} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
+    {result === "success" ? <NodeCleared id={id} recovered={recovered} lesson={stage.lesson} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= blackTraceNodeCount ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
   </div>;
 }
 
@@ -209,14 +210,14 @@ function BreachFlash() {
 
 /** A recovered node is the only reward the operation gives, so it is shown, not just logged. */
 function NodeCleared({ id, recovered, lesson, onNext, onBoard }: { id: number; recovered: string; lesson: { risk: string; fix: string }; onNext: () => void; onBoard: () => void }) {
-  const final = id >= 10;
+  const final = id >= blackTraceNodeCount;
   return <div className="bt-cleared" role="status" aria-live="polite">
     <div className="bt-cleared__panel">
       <CheckCircle2 size={34} />
-      <p className="bt-cleared__eyebrow">{final ? "OPERATION COMPLETE" : "TRACE RECOVERED"}</p>
-      <h2>{final ? "MASTER ACCESS KEY 복구" : `NODE ${String(id).padStart(2, "0")} CLEARED`}</h2>
-      {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><ScrambleText value={recovered} /></div> : null}
-      <p className="bt-cleared__note">{final ? "노드 10개를 전부 회수했습니다. 이제 수료증을 받을 수 있습니다." : "다음 노드가 열렸습니다."}</p>
+      <p className="bt-cleared__eyebrow">{final ? "OPERATION COMPLETE" : "FOOTHOLD TAKEN"}</p>
+      <h2>{final ? "MASTER ACCESS KEY 확보" : `NODE ${String(id).padStart(2, "0")} BREACHED`}</h2>
+      {recovered ? <div className="bt-cleared__key"><span>EXTRACTED KEY</span><ScrambleText value={recovered} /></div> : null}
+      <p className="bt-cleared__note">{final ? `거점 ${blackTraceNodeCount}개를 전부 장악했습니다. 이제 수료증을 받을 수 있습니다.` : "다음 노드가 열렸습니다."}</p>
       {/* The flag is the game; this is the point of the game. It appears only here, after the node
           is cleared, so it can say plainly what the field kit had to keep vague. */}
       <div className="bt-lesson">
@@ -311,6 +312,11 @@ type InstrumentProps = {
  * screen with ten captions, so each surface gets the instrument its own subject calls for.
  */
 function Instrument(props: InstrumentProps) {
+  // Nodes that exercise the same panel share an instrument and differ by their data; the rest keep
+  // the one written for their own subject.
+  if (sweepSurfaces.includes(props.surface)) return <SurfaceSweep {...props} />;
+  if (probeSurfaces.includes(props.surface)) return <StoreProbe {...props} />;
+  if (indexSurfaces.includes(props.surface)) return <FileIndex {...props} base={props.target} />;
   switch (props.surface) {
     case "comment": return <RecordRestore {...props} />;
     case "field": return <FormPayload {...props} />;
@@ -355,9 +361,25 @@ function RecordRestore({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) 
   </div>;
 }
 
-/** 02 — the payload is built in front of the operator and carries one more entry than the form. */
+/**
+ * The payload is built in front of the operator and carries one more entry than the form.
+ *
+ * The carrier is hidden by the hidden attribute rather than by type="hidden", and its value is
+ * assigned to the DOM property. On a type="hidden" input the value property reflects the content
+ * attribute, so assigning it wrote the trace straight back into the markup: the node read as "find
+ * the attribute in Elements", which is the node after it. On a text input the property is separate
+ * state, so the markup carries no value and un-hiding the field is what reveals it.
+ *
+ * That is also the more useful lesson. A value a script puts into a field never appears in view
+ * source and is submitted all the same, which is why "it is not in the HTML" is not an argument
+ * that a value is safe.
+ */
 function FormPayload({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentProps) {
   const [sent, setSent] = useState(false);
+  const carrier = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (carrier.current) carrier.current.value = trace;
+  }, [trace]);
   const authenticate = async () => {
     if (sent) return;
     onBusy();
@@ -373,7 +395,8 @@ function FormPayload({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentPr
     <div className="bt-auth-unit__field"><input readOnly disabled aria-label="사용자 ID" placeholder="—" /><Lock size={13} /></div>
     <p className="bt-auth-unit__sealed">INPUT SEALED · 이 단말기는 폐기되었다</p>
     <button type="button" onClick={authenticate} disabled={sent}>{sent ? "REJECTED" : actionLabel}</button>
-    <input type="hidden" name="legacy_note" value={trace} />
+    {/* No value prop: React would write it into the markup as an attribute. */}
+    <input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />
     {sent ? <div className="bt-payload"><p>OUTGOING PAYLOAD</p><code>user_id = ""</code><code className="is-masked">{"????????"} = ████████</code><small>전송 2건 · 화면의 칸 1개</small></div> : null}
   </div>;
 }

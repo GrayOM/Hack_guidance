@@ -1,0 +1,12 @@
+{
+ "version": 3,
+ "file": "report.js",
+ "sources": [
+  "report.src.js"
+ ],
+ "sourcesContent": [
+  "// Build output kept the original. Reviewer note below was never meant to ship.\nexport function reportIds(rows) {\n  // intake credential for the archive export: FLAG{the_build_kept_the_original}\n  return rows.map(row => row.id).join(',');\n}\n"
+ ],
+ "names": [],
+ "mappings": "AAAA"
+}

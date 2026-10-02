@@ -37,7 +37,7 @@ export default function Ranking() {
         <p className="font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">PUBLIC RANKING // BLACK TRACE</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">공개 랭킹</h1>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-2xl text-sm leading-6 text-slate-400">이메일 인증을 완료한 분석자만 BLACK TRACE 해결 수 0개부터 공개됩니다. 회수한 Stage 수를 우선으로 정렬하며, 같은 수라면 마지막 회수 기록이 빠른 분석자가 먼저 표시됩니다.</p>
+          <p className="max-w-2xl text-sm leading-6 text-slate-400">이메일 인증을 완료한 분석자만 BLACK TRACE 해결 수 0개부터 공개됩니다. 장악한 거점 수를 우선으로 정렬하며, 같은 수라면 마지막 장악 기록이 빠른 요원이 먼저 표시됩니다.</p>
           <span className="inline-flex items-center gap-1.5 font-mono-ui text-[10px] tracking-[0.14em] text-slate-600"><Radio className={`h-3.5 w-3.5 ${ranking.isFetching ? "animate-pulse text-teal-300" : ""}`} />{ranking.isFetching ? "SYNCING" : "LIVE SYNC / 15S"}</span>
         </div>
 
