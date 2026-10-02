@@ -22,24 +22,44 @@ function corsHeadersFor(request: Request, methods: string) {
 const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 // Traces the client plants in the browser. Their value is derived per operator so that reading
 // the JavaScript bundle, or copying someone else's answer, yields nothing usable.
-const traceLabels: Record<number, string> = {
-  1: "read_the_address",
-  2: "ghost_in_the_source",
-  3: "hidden_fields_remember",
-  4: "attributes_tell_more",
-  5: "cookies_leave_traces",
-  10: "two_places",
+// Keyed by the node's stable name, not by its position. Keyed by position, every reordering of
+// the operation had to move this table in step or every submission would be refused with no error
+// anywhere; the node's number may now change freely.
+const nodeKeys: Record<number, string> = {
+  1: "tooltip", 2: "wrong-destination", 3: "ghost-comment", 4: "forgotten-field", 5: "embedded-identity",
+  6: "invisible-ink", 7: "off-screen", 8: "template-tag", 9: "shadow-root", 10: "residual-trace",
+  11: "local-memory", 12: "until-you-leave", 13: "deeper-store", 14: "robot-rules", 15: "sitemap",
+  16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "fragmented-key",
+};
+
+const traceLabels: Record<string, string> = {
+  tooltip: "the_label_said_more",
+  "wrong-destination": "read_the_address",
+  "ghost-comment": "ghost_in_the_source",
+  "forgotten-field": "hidden_fields_remember",
+  "embedded-identity": "attributes_tell_more",
+  "invisible-ink": "sent_but_not_painted",
+  "off-screen": "pushed_out_of_view",
+  "template-tag": "queued_never_drawn",
+  "shadow-root": "a_tree_inside_a_tree",
+  "residual-trace": "cookies_leave_traces",
+  "local-memory": "it_waited_for_you",
+  "until-you-leave": "only_while_open",
+  "deeper-store": "a_database_in_here",
+  "fragmented-key": "two_places",
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 10;
+const blackTraceNodeCount = 20;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
-const channelFlags: Record<number, string> = {
-  6: "FLAG{robots_know_the_way}",
-  7: "FLAG{the_server_did_answer}",
-  8: "FLAG{headers_can_whisper}",
-  9: "FLAG{follow_the_location}",
+const channelFlags: Record<string, string> = {
+  "robot-rules": "FLAG{robots_know_the_way}",
+  sitemap: "FLAG{the_index_listed_it}",
+  "source-map": "FLAG{the_build_kept_the_original}",
+  "silent-response": "FLAG{the_server_did_answer}",
+  "server-whisper": "FLAG{headers_can_whisper}",
+  "follow-the-trail": "FLAG{follow_the_location}",
 };
 
 // Generous enough that a shared network browsing the public pages never notices it.
@@ -48,27 +68,29 @@ const publicCallLimit = 120;
 const traceSecret = Deno.env.get("BLACK_TRACE_SECRET") ?? "";
 const traceEncoder = new TextEncoder();
 
-async function deriveTraceToken(userId: string, stage: number) {
+async function deriveTraceToken(userId: string, nodeKey: string) {
   const key = await crypto.subtle.importKey("raw", traceEncoder.encode(traceSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = await crypto.subtle.sign("HMAC", key, traceEncoder.encode(`black-trace:${userId}:${stage}`));
+  const signature = await crypto.subtle.sign("HMAC", key, traceEncoder.encode(`black-trace:${userId}:${nodeKey}`));
   return Array.from(new Uint8Array(signature)).map(byte => byte.toString(16).padStart(2, "0")).join("").slice(0, 12);
 }
 
-function composeTrace(stage: number, token: string | null) {
-  const label = traceLabels[stage];
+function composeTrace(nodeKey: string, token: string | null) {
+  const label = traceLabels[nodeKey];
   if (!label) return null;
   const body = token ? `${label}_${token}` : label;
-  return stage === 10 ? `FLAG{${body}_` : `FLAG{${body}}`;
+  return nodeKey === "fragmented-key" ? `FLAG{${body}_` : `FLAG{${body}}`;
 }
 
 /** Without BLACK_TRACE_SECRET the derived stages fall back to their pre-rotation values, so a
  *  deployment that forgets the secret keeps the operation solvable instead of breaking it. */
 async function expectedTrace(userId: string, stage: number) {
-  if (channelFlags[stage]) return channelFlags[stage];
-  if (!traceLabels[stage]) return null;
-  const token = traceSecret ? await deriveTraceToken(userId, stage) : null;
-  const planted = composeTrace(stage, token);
-  return stage === 10 ? `${planted}${vaultTraceSuffix}` : planted;
+  const nodeKey = nodeKeys[stage];
+  if (!nodeKey) return null;
+  if (channelFlags[nodeKey]) return channelFlags[nodeKey];
+  if (!traceLabels[nodeKey]) return null;
+  const token = traceSecret ? await deriveTraceToken(userId, nodeKey) : null;
+  const planted = composeTrace(nodeKey, token);
+  return nodeKey === "fragmented-key" ? `${planted}${vaultTraceSuffix}` : planted;
 }
 
 /**
@@ -132,15 +154,15 @@ async function completedStagesFor(service: { from: (table: string) => any }, use
 }
 
 function firstOpenStage(completedStages: number[]) {
-  return Array.from({ length: 10 }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? 10;
+  return Array.from({ length: blackTraceNodeCount }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? blackTraceNodeCount;
 }
 
 // GUEST means "not signed in" and is never returned here: these actions require a session, so
 // the entry tier of a signed-in operator is TRAINEE.
 function blackTraceAccess(stage: number) {
-  if (stage >= 10) return "OPERATOR";
-  if (stage >= 7) return "FIELD OPERATOR";
-  if (stage >= 4) return "ANALYST";
+  if (stage >= 16) return "OPERATOR";
+  if (stage >= 11) return "FIELD OPERATOR";
+  if (stage >= 6) return "ANALYST";
   return "TRAINEE";
 }
 
@@ -308,15 +330,15 @@ Deno.serve(async request => {
     if (stage > firstOpenStage(completedStages) && !completedStages.includes(stage)) {
       return json({ error: "Clear the previous node first" }, 409);
     }
-    return json({ stage, token: traceSecret ? await deriveTraceToken(user.id, stage) : null });
+    return json({ stage, token: traceSecret && nodeKeys[stage] ? await deriveTraceToken(user.id, nodeKeys[stage]) : null });
   }
 
   if (action === "blackTraceProgress") {
     const { data, error } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
     if (error) return json({ error: "Unable to load operation progress" }, 500);
     const completedStages = (data ?? []).map(row => row.stage as number);
-    const currentStage = Array.from({ length: 10 }, (_, index) => index + 1).find(stage => !completedStages.includes(stage)) ?? 10;
-    return json({ completedStages, currentStage, accessLevel: blackTraceAccess(completedStages.length >= 10 ? 10 : currentStage), completed: completedStages.length === 10 });
+    const currentStage = firstOpenStage(completedStages);
+    return json({ completedStages, currentStage, accessLevel: blackTraceAccess(completedStages.length >= blackTraceNodeCount ? blackTraceNodeCount : currentStage), completed: completedStages.length === blackTraceNodeCount });
   }
 
   if (action === "blackTraceSubmit") {
@@ -332,13 +354,13 @@ Deno.serve(async request => {
     const { data: existing, error: progressError } = await service.from("hg_black_trace_progress").select("stage").eq("user_id", user.id).order("stage");
     if (progressError) return json({ error: "Unable to verify operation progress" }, 500);
     const completedStages = (existing ?? []).map(row => row.stage as number);
-    const firstOpen = Array.from({ length: 10 }, (_, index) => index + 1).find(node => !completedStages.includes(node)) ?? 10;
+    const firstOpen = firstOpenStage(completedStages);
     if (!completedStages.includes(stage) && stage > firstOpen) return json({ correct: false, message: "Clear the previous node first" }, 409);
     if (flag !== expected) return json({ correct: false, message: "INVALID ACCESS KEY" });
     const { error: saveError } = await service.from("hg_black_trace_progress").upsert({ user_id: user.id, stage, hint_count: hintCount }, { onConflict: "user_id,stage" });
     if (saveError) return json({ error: "Unable to store recovered trace" }, 500);
     const nextStages = completedStages.includes(stage) ? completedStages : [...completedStages, stage].sort((a, b) => a - b);
-    return json({ correct: true, alreadyCompleted: completedStages.includes(stage), completedStages: nextStages, accessLevel: blackTraceAccess(stage), operationComplete: nextStages.length === 10 });
+    return json({ correct: true, alreadyCompleted: completedStages.includes(stage), completedStages: nextStages, accessLevel: blackTraceAccess(stage), operationComplete: nextStages.length === blackTraceNodeCount });
   }
 
   if (action === "records") {

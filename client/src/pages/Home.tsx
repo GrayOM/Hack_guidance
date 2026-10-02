@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { ArrowRight, Flag, ScrollText, Trophy } from "lucide-react";
 import { usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useBlackTraceProgress } from "@/hooks/useBlackTrace";
+import { blackTraceNodeCount } from "@shared/black-trace";
 import { useLearningRanking } from "@/hooks/useLearningApi";
 import { ConsoleNav } from "@/components/ConsoleNav";
 import { ScrambleText, SignalBars, useTypedLog } from "@/components/terminal-motion";
@@ -18,9 +19,9 @@ export default function Home() {
   // The console reports this visitor's own state, so the page is about them from the first line.
   const boot = useMemo(() => [
     "> mounting operation BLACK TRACE",
-    "> nodes discovered: 10",
+    `> nodes discovered: ${blackTraceNodeCount}`,
     `> clearance: ${clearance}`,
-    solved > 0 ? `> recovered: ${solved} / 10` : "> recovered: none",
+    solved > 0 ? `> recovered: ${solved} / ${blackTraceNodeCount}` : "> recovered: none",
     isAuthenticated ? "> operator session active" : "> no operator session — progress will not be stored",
     "> awaiting operator",
   ], [clearance, solved, isAuthenticated]);
@@ -51,7 +52,7 @@ export default function Home() {
       </section>
 
       <section className="mt-5 grid gap-4 sm:grid-cols-3">
-        <StatusCard icon={<Flag className="h-4 w-4" />} label="ACTIVE NODES" value={`${solved} / 10`} action={solved === 0 ? "작전 시작" : solved >= 10 ? "수료증 받기" : "이어서 하기"} onClick={() => setLocation(solved >= 10 ? "/certificate" : "/black-trace")} progress={solved / 10} />
+        <StatusCard icon={<Flag className="h-4 w-4" />} label="ACTIVE NODES" value={`${solved} / ${blackTraceNodeCount}`} action={solved === 0 ? "작전 시작" : solved >= blackTraceNodeCount ? "수료증 받기" : "이어서 하기"} onClick={() => setLocation(solved >= blackTraceNodeCount ? "/certificate" : "/black-trace")} progress={solved / blackTraceNodeCount} />
         <StatusCard icon={<ScrollText className="h-4 w-4" />} label="ACCOUNT" value="개인 기록" action="기록 보기" onClick={() => setLocation("/records")} />
         <StatusCard icon={<Trophy className="h-4 w-4" />} label="PUBLIC RANKING" value="공개 순위" action="랭킹 보기" onClick={() => setLocation("/ranking")} />
       </section>
@@ -59,9 +60,9 @@ export default function Home() {
       <section className="mt-10">
         <p className="hg-section-label">ATTACK SURFACE</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Surface number="01" title="브라우저 관찰" text="화면 밖의 HTML과 저장 기록을 조사합니다." nodes="NODE 01 — 05" />
-          <Surface number="02" title="통신 흔적" text="요청·응답·헤더에 남은 단서를 회수합니다." nodes="NODE 06 — 09" />
-          <Surface number="03" title="키 복구" text="두 개의 조각을 연결해 작전을 완료합니다." nodes="NODE 10" />
+          <Surface number="01" title="화면 밖 읽기" text="화면에 그려지지 않은 HTML과 속성을 조사합니다." nodes="NODE 01 — 09" />
+          <Surface number="02" title="남은 기록" text="브라우저 저장소와 서버가 공개한 파일을 뒤집니다." nodes="NODE 10 — 16" />
+          <Surface number="03" title="통신 관찰" text="요청과 응답에 남은 단서로 마지막 키를 맞춥니다." nodes="NODE 17 — 20" />
         </div>
       </section>
 
@@ -75,8 +76,8 @@ function HomeTelemetry({ solved, clearance }: { solved: number; clearance: strin
   return <div className="hg-telemetry">
     <span className="hg-telemetry__link"><i />UPLINK</span>
     <code>blacktrace.lab</code>
-    <span>NODES <strong>10</strong></span>
-    <span>RECOVERED <strong>{solved} / 10</strong></span>
+    <span>NODES <strong>{blackTraceNodeCount}</strong></span>
+    <span>RECOVERED <strong>{solved} / {blackTraceNodeCount}</strong></span>
     <span>CLEARANCE <strong>{clearance}</strong></span>
     <SignalBars />
   </div>;
@@ -92,8 +93,8 @@ function LiveBoard({ onOpen }: { onOpen: () => void }) {
     <div className="hg-board__rows">{rows.map((row, index) => <div key={row.userId ?? index} className="hg-board__row">
       <span className="hg-board__rank">#{String(index + 1).padStart(2, "0")}</span>
       <span className="hg-board__name">{row.name ?? "ANONYMOUS OPERATOR"}</span>
-      <span className="hg-board__track"><i style={{ width: `${Math.min(100, (row.solvedCount ?? 0) * 10)}%` }} /></span>
-      <span className="hg-board__count">{row.solvedCount ?? 0} / 10</span>
+      <span className="hg-board__track"><i style={{ width: `${Math.min(100, ((row.solvedCount ?? 0) / blackTraceNodeCount) * 100)}%` }} /></span>
+      <span className="hg-board__count">{row.solvedCount ?? 0} / {blackTraceNodeCount}</span>
     </div>)}</div>
   </section>;
 }

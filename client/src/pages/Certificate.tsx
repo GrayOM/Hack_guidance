@@ -4,7 +4,9 @@ import { ConsoleNav } from "@/components/ConsoleNav";
 import { startPlatformLogin, usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useAccountProfile, useIssueCertificate } from "@/hooks/useLearningApi";
 
-const TOTAL_NODES = 10;
+import { blackTraceNodeCount } from "@shared/black-trace";
+
+const TOTAL_NODES = blackTraceNodeCount;
 
 export default function Certificate() {
   const [, setLocation] = useLocation();

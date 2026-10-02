@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, LockKeyhole, Play, Radio, ShieldCheck } from "lucide-react";
 import { useLocation } from "wouter";
-import { blackTraceStages, nextBlackTraceRank } from "@shared/black-trace";
+import { blackTraceNodeCount, blackTraceStages, nextBlackTraceRank } from "@shared/black-trace";
 import { useBlackTraceProgress } from "@/hooks/useBlackTrace";
 import { startPlatformLogin, usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { ConsoleNav } from "@/components/ConsoleNav";
@@ -17,13 +17,13 @@ export default function BlackTraceDirectory() {
   const completed = progress.data?.completedStages ?? [];
   const current = progress.data?.currentStage ?? 1;
   const unlocked = (stage: number) => stage <= current || completed.includes(stage);
-  const percent = Math.round((completed.length / 10) * 100);
+  const percent = Math.round((completed.length / blackTraceNodeCount) * 100);
   const nextRank = nextBlackTraceRank(current);
   return <><ConsoleNav /><div className="bt-shell bt-directory">
     <header className="bt-topbar"><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> SYSTEM CHANNEL / ONLINE</div></header>
     <main className="bt-directory__body">
       <section className="bt-directory__intro"><p className="bt-kicker">BROWSER RECONNAISSANCE TRAINING</p><h1>연구망에 비정상 통신 흔적이 남아 있습니다.</h1><p>화면에 보이는 것과 브라우저가 남긴 기록을 뒤져 마지막 접근 키를 회수하세요.</p><div className="bt-directory__access"><span>ACCESS LEVEL</span><strong>{progress.data?.accessLevel ?? "GUEST"}</strong>{nextRank ? <small>다음 등급 {nextRank.name} · 노드 {Math.max(1, nextRank.at - current)}개 남음</small> : <small>최고 등급에 도달했습니다</small>}</div></section>
-      <section className="bt-directory__stages"><FieldBriefing solved={completed.length} /><div className="bt-progress"><div><span>OPERATION PROGRESS</span><strong>{completed.length} / 10 NODES CLEARED</strong></div><div className="bt-progress__track"><i style={{ width: `${percent}%` }} /></div></div>
+      <section className="bt-directory__stages"><FieldBriefing solved={completed.length} /><div className="bt-progress"><div><span>OPERATION PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount} NODES CLEARED</strong></div><div className="bt-progress__track"><i style={{ width: `${percent}%` }} /></div></div>
         {!isAuthenticated ? <div className="bt-login-callout"><ShieldCheck size={19} /><div><strong>진행 상황을 저장하려면 로그인하세요.</strong><span>문제는 로그인 없이도 볼 수 있습니다. 다만 제출과 해금 기록은 로그인해야 남습니다.</span></div><button onClick={startPlatformLogin}>로그인</button></div> : null}
         <div className="bt-stage-list">{blackTraceStages.map(stage => {
           const done = completed.includes(stage.id);
