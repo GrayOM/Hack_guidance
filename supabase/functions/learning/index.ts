@@ -42,6 +42,9 @@ const channelFlags: Record<number, string> = {
   9: "FLAG{robots_know_the_way}",
 };
 
+// Generous enough that a shared network browsing the public pages never notices it.
+const publicCallLimit = 120;
+
 const traceSecret = Deno.env.get("BLACK_TRACE_SECRET") ?? "";
 const traceEncoder = new TextEncoder();
 
@@ -92,23 +95,34 @@ async function allowSubmission(service: { rpc: (name: string, args: Record<strin
  */
 async function publicClientKey(request: Request) {
   // The leftmost X-Forwarded-For entry is whatever the caller claimed, so keying on it let anyone
-  // sidestep the ceiling by randomising the header. The gateway's own view is used instead: the
-  // platform header when present, otherwise the entry appended closest to us.
+  // sidestep the ceiling by randomising the header. Only a value the edge writes itself counts:
+  // the CDN header first because it is overwritten at every hop, then the platform header, then
+  // the entry appended closest to us. With none of them the bucket is shared, which limits the
+  // whole world together rather than nobody at all.
   const forwarded = request.headers.get("x-forwarded-for") ?? "";
   const hops = forwarded.split(",").map(hop => hop.trim()).filter(Boolean);
-  const address = request.headers.get("x-real-ip")?.trim() || hops[hops.length - 1] || "unknown";
+  const address = request.headers.get("cf-connecting-ip")?.trim()
+    || request.headers.get("x-real-ip")?.trim()
+    || hops[hops.length - 1]
+    || "unknown";
   const digest = await crypto.subtle.digest("SHA-256", traceEncoder.encode(`public-rate:${traceSecret}:${address}`));
   return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
 }
 
-async function allowPublicCall(service: { rpc: (name: string, args: Record<string, unknown>) => any }, request: Request) {
-  const { data, error } = await service.rpc("hg_consume_public_slot", { p_client_key: await publicClientKey(request), p_limit: 120 });
+/**
+ * Spends one of the caller's public calls and reports what is left. The count is returned rather
+ * than a verdict so the handler can publish it: a boolean made a deployment that carries the
+ * ceiling indistinguishable from one that does not, since both answer 200 under the limit.
+ */
+async function consumePublicSlot(service: { rpc: (name: string, args: Record<string, unknown>) => any }, request: Request) {
+  const { data, error } = await service.rpc("hg_consume_public_slot", { p_client_key: await publicClientKey(request) });
   if (error) {
     // A limiter outage must not take the public pages down with it.
     console.error("public rate limit unavailable", error);
-    return true;
+    return { allowed: true, remaining: null as number | null };
   }
-  return data !== false;
+  const attempts = typeof data === "number" ? data : 0;
+  return { allowed: attempts <= publicCallLimit, remaining: Math.max(0, publicCallLimit - attempts) };
 }
 
 async function completedStagesFor(service: { from: (table: string) => any }, userId: string) {
@@ -145,7 +159,7 @@ async function requireUser(request: Request) {
 
 Deno.serve(async request => {
   const corsHeaders = corsHeadersFor(request, "POST, OPTIONS");
-  const json = jsonWriter(corsHeaders);
+  let json = jsonWriter(corsHeaders);
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -154,8 +168,19 @@ Deno.serve(async request => {
   const action = typeof payload?.action === "string" ? payload.action : "";
 
   // Metered before any unauthenticated work is done, so a loop cannot run the database either.
-  if ((["checkDisplayName", "ranking", "verifyCertificate"] as string[]).includes(action) && !await allowPublicCall(service, request)) {
-    return json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", reason: "rate_limited" }, 429);
+  if ((["checkDisplayName", "ranking", "verifyCertificate"] as string[]).includes(action)) {
+    const slot = await consumePublicSlot(service, request);
+    // Published on every answer, so whether the ceiling is actually deployed is read from one
+    // response instead of guessed from how a burst of 120 behaved.
+    json = jsonWriter({
+      ...corsHeaders,
+      "Access-Control-Expose-Headers": "X-RateLimit-Limit, X-RateLimit-Remaining",
+      "X-RateLimit-Limit": String(publicCallLimit),
+      ...(slot.remaining === null ? {} : { "X-RateLimit-Remaining": String(slot.remaining) }),
+    });
+    if (!slot.allowed) {
+      return json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", reason: "rate_limited" }, 429);
+    }
   }
 
   if (action === "checkDisplayName") {
