@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { blackTraceNodeCount, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
-import { cipherBenches } from "../client/src/components/trace-instruments";
+import { cipherBenches } from "../client/src/components/instruments/shared";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -10,7 +10,13 @@ const recordsSource = readFileSync(new URL("../client/src/pages/Records.tsx", im
 const myPageSource = readFileSync(new URL("../client/src/pages/MyPage.tsx", import.meta.url), "utf8");
 const traceFunction = readFileSync(new URL("../supabase/functions/black-trace/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
-const instrumentSource = readFileSync(new URL("../client/src/components/trace-instruments.tsx", import.meta.url), "utf8");
+// Instruments live in one folder now: the families several nodes share, and the ones written for a
+// single node's own subject.
+const instrumentSource = readFileSync(new URL("../client/src/components/instruments/shared.tsx", import.meta.url), "utf8")
+  + readFileSync(new URL("../client/src/components/instruments/bespoke.tsx", import.meta.url), "utf8");
+// What the browser is handed for the node screen, screen and instruments together. A trace planted
+// by an instrument has to be checked here, not in the screen that no longer holds it.
+const clientSource = stageSource + instrumentSource;
 const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.url), "utf8");
 const provisionMigration = readFileSync(new URL("../supabase/migrations/20260822000000_default_public_name.sql", import.meta.url), "utf8");
 
@@ -59,13 +65,13 @@ describe("OPERATION BLACK TRACE", () => {
 
   it("plants the browser traces through the per-operator surface instead of a bundled constant", () => {
     expect(stageSource).toContain("useBlackTraceSurface");
-    expect(stageSource).toContain("deleted_record: ${trace}");
-    expect(stageSource).toContain("trace_id=${trace}");
-    expect(stageSource).toContain("data-note={trace}");
-    expect(stageSource).toContain("data-fragment={trace}");
-    expect(stageSource).toContain("legacy_note");
+    expect(clientSource).toContain("deleted_record: ${trace}");
+    expect(clientSource).toContain("trace_id=${trace}");
+    expect(clientSource).toContain("data-note={trace}");
+    expect(clientSource).toContain("data-fragment={trace}");
+    expect(clientSource).toContain("legacy_note");
     // A readable answer in the client bundle would hand every visitor the whole operation.
-    expect(stageSource).not.toMatch(/FLAG\{(?!_)[a-z]/);
+    expect(clientSource).not.toMatch(/FLAG\{(?!_)[a-z]/);
   });
 
   it("derives a distinct trace per operator and keeps the stage 10 split intact", () => {
@@ -156,7 +162,8 @@ describe("OPERATION BLACK TRACE", () => {
     // single screen with ten captions. Each surface now has the instrument its subject calls for.
     expect(blackTraceStages.every(stage => (stage.actionLabel ?? "").length > 0)).toBe(true);
     for (const name of ["RecordRestore", "FormPayload", "IdentityCard", "StorageProbe", "RelayRoute", "TransferGauge", "HopTrace", "HeaderList", "CrawlerDialog", "VaultAssembly"]) {
-      expect(stageSource).toContain(`function ${name}(`);
+      // The instrument is defined in the instruments folder and reached for by the node screen.
+      expect(instrumentSource).toContain(`export function ${name}(`);
       expect(stageSource).toContain(`<${name} `);
     }
     // The shared scan machinery is gone, so a new node cannot quietly fall back to it.
@@ -177,23 +184,23 @@ describe("OPERATION BLACK TRACE", () => {
     // Each instrument proves something is missing: a block that never draws, a payload with one
     // entry more than the form, a store that kept a key, a slot with no source on this page.
     for (const marker of ["NOT RENDERED", "OUTGOING PAYLOAD", "unlabeled", "surviving key", "carried with the move", "rendered: 0 bytes", "headers not rendered here", "x-????????", "served to screen", "SLOT 01"]) {
-      expect(stageSource).toContain(marker);
+      expect(clientSource).toContain(marker);
     }
     // Values are masked on screen; the operator reads them out of the browser, not out of the page.
-    expect(stageSource).toContain("████████");
+    expect(clientSource).toContain("████████");
     // The planted traces stay discoverable exactly where each node hides them.
-    expect(stageSource).toContain("data-fragment={trace}");
-    expect(stageSource).toContain("data-note={trace}");
+    expect(clientSource).toContain("data-fragment={trace}");
+    expect(clientSource).toContain("data-note={trace}");
     // The hidden field carries the trace as DOM property state, never as a value attribute. As an
     // attribute it sat in the markup in plain sight and the node became the same action as the one
     // after it — read an attribute in Elements — instead of un-hiding the field.
     // On a type="hidden" input the value property reflects the content attribute, so assigning it
     // put the trace straight back into the markup. A text input hidden by the hidden attribute
     // keeps the value as separate DOM state.
-    expect(stageSource).toContain('<input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />');
+    expect(clientSource).toContain('<input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />');
     expect(stageSource).not.toContain('type="hidden" name="legacy_note"');
-    expect(stageSource).toContain("carrier.current.value = trace");
-    expect(stageSource).toContain("deleted_record: ${trace}");
+    expect(clientSource).toContain("carrier.current.value = trace");
+    expect(clientSource).toContain("deleted_record: ${trace}");
     // The injected comment lives on its own node so React never reconciles around it.
     expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');
   });
