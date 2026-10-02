@@ -22,8 +22,8 @@ export default function BlackTraceDirectory() {
   return <><ConsoleNav /><div className="bt-shell bt-directory">
     <header className="bt-topbar"><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> SYSTEM CHANNEL / ONLINE</div></header>
     <main className="bt-directory__body">
-      <section className="bt-directory__intro"><p className="bt-kicker">BROWSER RECONNAISSANCE TRAINING</p><h1>연구망에 비정상 통신 흔적이 남아 있습니다.</h1><p>화면에 보이는 것과 브라우저가 남긴 기록을 뒤져 마지막 접근 키를 회수하세요.</p><div className="bt-directory__access"><span>ACCESS LEVEL</span><strong>{progress.data?.accessLevel ?? "GUEST"}</strong>{nextRank ? <small>다음 등급 {nextRank.name} · 노드 {Math.max(1, nextRank.at - current)}개 남음</small> : <small>최고 등급에 도달했습니다</small>}</div></section>
-      <section className="bt-directory__stages"><FieldBriefing solved={completed.length} /><div className="bt-progress"><div><span>OPERATION PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount} NODES CLEARED</strong></div><div className="bt-progress__track"><i style={{ width: `${percent}%` }} /></div></div>
+      <section className="bt-directory__intro"><p className="bt-kicker">AUTHORIZED RED TEAM OPERATION</p><h1>대상 연구망 안으로 들어갑니다.</h1><p>승인된 범위 안의 작전입니다. 브라우저가 이미 받아 둔 것과 서버가 무심코 내준 것으로 거점을 하나씩 넘으세요.</p><div className="bt-directory__access"><span>ACCESS LEVEL</span><strong>{progress.data?.accessLevel ?? "GUEST"}</strong>{nextRank ? <small>다음 등급 {nextRank.name} · 노드 {Math.max(1, nextRank.at - current)}개 남음</small> : <small>최고 등급에 도달했습니다</small>}</div></section>
+      <section className="bt-directory__stages"><FieldBriefing solved={completed.length} /><div className="bt-progress"><div><span>OPERATION PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount} NODES BREACHED</strong></div><div className="bt-progress__track"><i style={{ width: `${percent}%` }} /></div></div>
         {!isAuthenticated ? <div className="bt-login-callout"><ShieldCheck size={19} /><div><strong>진행 상황을 저장하려면 로그인하세요.</strong><span>문제는 로그인 없이도 볼 수 있습니다. 다만 제출과 해금 기록은 로그인해야 남습니다.</span></div><button onClick={startPlatformLogin}>로그인</button></div> : null}
         <div className="bt-stage-list">{blackTraceStages.map(stage => {
           const done = completed.includes(stage.id);
@@ -68,9 +68,9 @@ function FieldBriefing({ solved }: { solved: number }) {
       <ChevronDown size={15} className="bt-briefing__chevron" />
     </button>
     {open ? <div className="bt-briefing__body">
-      <p className="bt-briefing__lead">이 작전은 브라우저가 이미 보여주는 것을 읽는 훈련입니다. 도구를 새로 설치할 필요는 없습니다. <strong>F12</strong>를 누르면 (Mac은 <strong>Cmd + Option + I</strong>) 아래 패널이 열립니다.</p>
+      <p className="bt-briefing__lead">이 작전은 브라우저가 이미 받아 둔 것을 읽어 내는 훈련입니다. 도구를 새로 설치할 필요는 없습니다. <strong>F12</strong>를 누르면 (Mac은 <strong>Cmd + Option + I</strong>) 아래 패널이 열립니다.</p>
       <dl>{panels.map(panel => <div key={panel.name}><dt>{panel.name}</dt><dd>{panel.shows}</dd></div>)}</dl>
-      <p className="bt-briefing__note">어느 노드에서 어느 패널을 봐야 하는지는 적지 않았습니다. 그것을 고르는 것이 이 작전입니다.</p>
+      <p className="bt-briefing__note">어느 거점에서 어느 패널을 봐야 하는지는 적지 않았습니다. 그것을 고르는 것이 이 작전입니다.</p>
     </div> : null}
   </section>;
 }

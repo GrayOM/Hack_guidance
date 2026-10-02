@@ -21,7 +21,7 @@ export default function Home() {
     "> mounting operation BLACK TRACE",
     `> nodes discovered: ${blackTraceNodeCount}`,
     `> clearance: ${clearance}`,
-    solved > 0 ? `> recovered: ${solved} / ${blackTraceNodeCount}` : "> recovered: none",
+    solved > 0 ? `> breached: ${solved} / ${blackTraceNodeCount}` : "> footholds: none",
     isAuthenticated ? "> operator session active" : "> no operator session — progress will not be stored",
     "> awaiting operator",
   ], [clearance, solved, isAuthenticated]);
@@ -36,8 +36,8 @@ export default function Home() {
         <div className="hg-hero__body">
           <div>
             <p className="hg-eyebrow"><ScrambleText value="OPERATION AVAILABLE // BLACK TRACE" /></p>
-            <h1 className="hg-hero__title">브라우저에 남은 흔적을<br />회수하세요.</h1>
-            <p className="hg-hero__lead">폐쇄된 보안 연구망에서 비정상 통신이 감지됐습니다. HTML, Cookie, Network, Header에 남은 단서를 찾아 첫 번째 접근 키를 복구하세요.</p>
+            <h1 className="hg-hero__title">접근 키는 이미<br />당신의 브라우저에 있습니다.</h1>
+            <p className="hg-hero__lead">승인된 범위 안에서 대상 연구망에 침투합니다. 서버가 이미 내려보낸 HTML·저장소·응답을 읽어 거점을 하나씩 넘고, 마지막 금고의 MASTER ACCESS KEY를 확보하세요.</p>
             <button onClick={() => setLocation("/black-trace")} className="hg-cta">
               {solved > 0 ? "작전 이어서" : "작전 시작"} <ArrowRight className="h-4 w-4" />
             </button>
@@ -52,7 +52,7 @@ export default function Home() {
       </section>
 
       <section className="mt-5 grid gap-4 sm:grid-cols-3">
-        <StatusCard icon={<Flag className="h-4 w-4" />} label="ACTIVE NODES" value={`${solved} / ${blackTraceNodeCount}`} action={solved === 0 ? "작전 시작" : solved >= blackTraceNodeCount ? "수료증 받기" : "이어서 하기"} onClick={() => setLocation(solved >= blackTraceNodeCount ? "/certificate" : "/black-trace")} progress={solved / blackTraceNodeCount} />
+        <StatusCard icon={<Flag className="h-4 w-4" />} label="FOOTHOLDS" value={`${solved} / ${blackTraceNodeCount}`} action={solved === 0 ? "작전 시작" : solved >= blackTraceNodeCount ? "수료증 받기" : "이어서 하기"} onClick={() => setLocation(solved >= blackTraceNodeCount ? "/certificate" : "/black-trace")} progress={solved / blackTraceNodeCount} />
         <StatusCard icon={<ScrollText className="h-4 w-4" />} label="ACCOUNT" value="개인 기록" action="기록 보기" onClick={() => setLocation("/records")} />
         <StatusCard icon={<Trophy className="h-4 w-4" />} label="PUBLIC RANKING" value="공개 순위" action="랭킹 보기" onClick={() => setLocation("/ranking")} />
       </section>
@@ -60,9 +60,9 @@ export default function Home() {
       <section className="mt-10">
         <p className="hg-section-label">ATTACK SURFACE</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Surface number="01" title="화면 밖 읽기" text="화면에 그려지지 않은 HTML과 속성을 조사합니다." nodes="NODE 01 — 09" />
-          <Surface number="02" title="남은 기록" text="브라우저 저장소와 서버가 공개한 파일을 뒤집니다." nodes="NODE 10 — 16" />
-          <Surface number="03" title="통신 관찰" text="요청과 응답에 남은 단서로 마지막 키를 맞춥니다." nodes="NODE 17 — 20" />
+          <Surface number="01" title="화면 밖 읽기" text="서버가 보냈지만 화면이 그리지 않은 것을 꺼냅니다." nodes="NODE 01 — 09" />
+          <Surface number="02" title="남은 기록" text="브라우저가 보관한 것과 서버가 무심코 공개한 파일을 씁니다." nodes="NODE 10 — 16" />
+          <Surface number="03" title="통신 장악" text="요청과 응답을 직접 보며 마지막 금고를 엽니다." nodes="NODE 17 — 20" />
         </div>
       </section>
 
@@ -77,7 +77,7 @@ function HomeTelemetry({ solved, clearance }: { solved: number; clearance: strin
     <span className="hg-telemetry__link"><i />UPLINK</span>
     <code>blacktrace.lab</code>
     <span>NODES <strong>{blackTraceNodeCount}</strong></span>
-    <span>RECOVERED <strong>{solved} / {blackTraceNodeCount}</strong></span>
+    <span>BREACHED <strong>{solved} / {blackTraceNodeCount}</strong></span>
     <span>CLEARANCE <strong>{clearance}</strong></span>
     <SignalBars />
   </div>;

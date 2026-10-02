@@ -26,7 +26,7 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
       Array.from({ length: 20 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    expect(blackTraceStageById(6)?.access).toBe("ANALYST");
+    expect(blackTraceStageById(6)?.access).toBe("INFILTRATOR");
     expect(blackTraceStageById(11)?.access).toBe("FIELD OPERATOR");
     expect(blackTraceStageById(20)?.access).toBe("OPERATOR");
     // Every node carries a key, and no two share one.
@@ -207,7 +207,7 @@ describe("OPERATION BLACK TRACE", () => {
 
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
-    expect(nextBlackTraceRank(1)?.name).toBe("ANALYST");
+    expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
     expect(nextBlackTraceRank(6)?.name).toBe("FIELD OPERATOR");
     expect(nextBlackTraceRank(11)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
@@ -230,7 +230,9 @@ describe("OPERATION BLACK TRACE", () => {
     expect(recordsSource).toContain("useLearningRecords");
     expect(recordsSource).toContain("NODES RECOVERED");
     expect(myPageSource).toContain("OPERATION SUMMARY");
-    expect(myPageSource).toContain("/10");
+    // The count comes from the course, so the page may not spell a number of its own.
+    expect(myPageSource).toContain("{blackTraceNodeCount}");
+    expect(myPageSource).not.toContain("/10");
   });
 });
 

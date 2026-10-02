@@ -162,7 +162,7 @@ function firstOpenStage(completedStages: number[]) {
 function blackTraceAccess(stage: number) {
   if (stage >= 16) return "OPERATOR";
   if (stage >= 11) return "FIELD OPERATOR";
-  if (stage >= 6) return "ANALYST";
+  if (stage >= 6) return "INFILTRATOR";
   return "TRAINEE";
 }
 
