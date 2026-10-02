@@ -31,7 +31,9 @@ const nodeKeys: Record<number, string> = {
   11: "local-memory", 12: "until-you-leave", 13: "deeper-store", 14: "robot-rules", 15: "sitemap",
   16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "wrong-method",
   21: "cookie-flags", 22: "claimed-role", 23: "referer", 24: "etag", 25: "range",
-  26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "fragmented-key",
+  26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
+  31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
+  36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "fragmented-key",
 };
 
 const traceLabels: Record<string, string> = {
@@ -48,11 +50,21 @@ const traceLabels: Record<string, string> = {
   "local-memory": "it_waited_for_you",
   "until-you-leave": "only_while_open",
   "deeper-store": "a_database_in_here",
+  "plain-sight": "encoding_is_not_a_lock",
+  "bytes-as-text": "bytes_spelled_out",
+  "percent-signs": "the_address_kept_it",
+  shifted: "the_letters_only_moved",
+  "one-byte-key": "one_byte_undid_it_all",
+  "two-alphabets": "the_other_alphabet",
+  "three-parts": "signed_is_not_hidden",
+  "no-signature": "nothing_was_signed",
+  "wrapped-twice": "one_more_layer",
+  "layer-by-layer": "peel_in_order",
   "fragmented-key": "two_places",
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 30;
+const blackTraceNodeCount = 40;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
@@ -172,9 +184,9 @@ function firstOpenStage(completedStages: number[]) {
 // GUEST means "not signed in" and is never returned here: these actions require a session, so
 // the entry tier of a signed-in operator is TRAINEE.
 function blackTraceAccess(stage: number) {
-  if (stage >= 24) return "OPERATOR";
-  if (stage >= 16) return "FIELD OPERATOR";
-  if (stage >= 8) return "INFILTRATOR";
+  if (stage >= 31) return "OPERATOR";
+  if (stage >= 21) return "FIELD OPERATOR";
+  if (stage >= 11) return "INFILTRATOR";
   return "TRAINEE";
 }
 

@@ -259,6 +259,104 @@ export function RequestRig({ nodeKey, actionLabel, onLog, onBusy, onDone, onRemo
   </div>;
 }
 
+/* --- Values that have to be read before they can be submitted ----------------------------------
+   The trace is derived per operator as everywhere else; the bench encodes that derived value when
+   it renders. The bundle therefore carries the encoders and never a value, and two operators are
+   not looking at the same blob.
+
+   The readout names what can be observed about the shape — the alphabet in use, how many segments,
+   how long — and never the method. Naming the method is the answer. */
+
+const toBytes = (text: string) => Array.from(new TextEncoder().encode(text));
+const b64 = (text: string) => btoa(String.fromCharCode(...toBytes(text)));
+const b64Bytes = (bytes: number[]) => btoa(String.fromCharCode(...bytes));
+const b64urlBytes = (bytes: number[]) => b64Bytes(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const b64url = (text: string) => b64(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const hex = (text: string) => toBytes(text).map(byte => byte.toString(16).padStart(2, "0")).join("");
+const rot13 = (text: string) => text.replace(/[a-zA-Z]/g, letter => {
+  const base = letter <= "Z" ? 65 : 97;
+  return String.fromCharCode(((letter.charCodeAt(0) - base + 13) % 26) + base);
+});
+// encodeURIComponent only escapes the braces, which left the label itself readable and the node
+// with nothing to solve. Every byte is escaped instead, which is also what the loggers and the
+// evasion payloads a diagnostic meets in the field actually look like.
+const percentAll = (text: string) => toBytes(text).map(byte => `%${byte.toString(16).toUpperCase().padStart(2, "0")}`).join("");
+const xorHex = (text: string, key: number) => toBytes(text).map(byte => (byte ^ key).toString(16).padStart(2, "0")).join("");
+const jwt = (payload: Record<string, unknown>, header: Record<string, unknown>, tail: string) =>
+  `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}.${tail}`;
+
+type BenchConfig = { title: string; label: string; encode: (trace: string) => string; observed: (value: string) => string[]; note: string };
+
+const benches: Record<string, BenchConfig> = {
+  "plain-sight": { title: "CONFIG STORE", label: "stored_value", encode: b64,
+    observed: value => [`길이 ${value.length}`, "A–Z a–z 0–9 + / 와 끝의 = 만 사용", "열쇠 없이 되돌아감"],
+    note: "포장을 벗기는 데 아무것도 필요하지 않았다." },
+  "bytes-as-text": { title: "MEMORY DUMP", label: "dump_slice", encode: hex,
+    observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "두 글자가 한 덩어리"],
+    note: "두 글자씩 한 바이트다." },
+  "percent-signs": { title: "ACCESS LOG", label: "query_value", encode: percentAll,
+    observed: value => [`길이 ${value.length}`, "% 뒤에 두 글자가 따라붙음", "주소에 실려 기록된 형태"],
+    note: "주소에 실릴 때 자리를 바꿔 적은 글자다." },
+  shifted: { title: "OPERATOR NOTE", label: "note_body", encode: rot13,
+    observed: value => [`길이 ${value.length}`, "글자 종류가 원문과 같음", "중괄호와 밑줄은 그대로"],
+    note: "모양은 그대로다. 자리만 밀렸다." },
+  "one-byte-key": { title: "FIRMWARE BLOB", label: "blob_slice", encode: text => xorHex(text, 0x2a),
+    observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "앞머리가 늘 같은 네 덩어리로 시작"],
+    note: "앞머리는 어느 흔적이나 같다. 그 네 글자가 열쇠를 알려 준다." },
+  // The node is about the variant alphabet, so the value has to actually use it — and base64 of
+  // plain ASCII essentially never does. Reaching 111110 or 111111 in a six-bit group needs a byte
+  // above 0x7F in every position but the last, so a trace made of letters and braces encodes to a
+  // string identical to the plain-base64 node's. A binary tail is appended, which is also what a
+  // real token looks like: text followed by bytes that are not text.
+  "two-alphabets": { title: "TOKEN STORE", label: "token_value",
+    encode: trace => b64urlBytes([...toBytes(trace), 0xff, 0xfe, 0xfd]),
+    observed: value => [`길이 ${value.length}`, "- 또는 _ 가 섞여 있음", "끝에 = 가 없음", "벗기면 뒤쪽에 글자가 아닌 것이 붙어 있음"],
+    note: "익숙한 포장인데 쓰인 글자 둘이 다르다. 표준 해독기는 여기서 막힌다." },
+  "three-parts": { title: "AUTH ISSUER", label: "access_token",
+    encode: trace => jwt({ sub: "op-7f21", role: "operator", note: trace }, { alg: "HS256", typ: "JWT" }, "c2lnbmF0dXJlLXdpdGhoZWxk"),
+    observed: value => [`점으로 나뉜 ${value.split(".").length} 조각`, "앞 두 조각만 글자 종류가 같음", "서명이 붙어 있음"],
+    note: "서명은 위조를 막는다. 가리지는 않는다." },
+  "no-signature": { title: "LEGACY ISSUER", label: "access_token",
+    encode: trace => jwt({ sub: "op-0004", role: "operator" }, { alg: "none", typ: "JWT" }, b64url(trace)),
+    observed: value => [`점으로 나뉜 ${value.split(".").length} 조각`, "첫 조각이 서명 방식을 선언함", "세 조각 모두 같은 글자 종류"],
+    note: "서명이 있어야 할 자리가 서명이 아니다." },
+  "wrapped-twice": { title: "RELAY QUEUE", label: "message_body", encode: trace => b64(percentAll(trace)),
+    observed: value => [`길이 ${value.length}`, "A–Z a–z 0–9 + / 와 끝의 =", "한 겹을 벗겨도 아직 읽히지 않음"],
+    note: "한 겹 아래에 또 한 겹이 있다." },
+  "layer-by-layer": { title: "EXFIL CAPTURE", label: "captured_chunk", encode: trace => hex(b64(rot13(trace))),
+    observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "벗길 때마다 글자 종류가 달라짐"],
+    note: "겹마다 방식이 다르다. 벗긴 뒤 무엇이 남는지를 보고 다음을 정한다." },
+};
+
+export function CipherBench({ nodeKey, trace, actionLabel, onLog, onBusy, onDone }: Common & { surface: string }) {
+  const config = benches[nodeKey];
+  const value = trace ? config.encode(trace) : "";
+  const [read, setRead] = useState(false);
+  const run = async () => {
+    if (read) return;
+    onBusy();
+    onLog([`> reading ${config.label}...`]);
+    await delay(540);
+    setRead(true);
+    onLog([`> reading ${config.label}...`, `> length: ${value.length}`, "> charset: observed", "[!] VALUE NOT IN PLAIN FORM"]);
+    onDone();
+  };
+  return <div className="bt-bench">
+    <p className="bt-bench__title">{config.title}</p>
+    <p className="bt-bench__label">{config.label}</p>
+    <code className="bt-bench__value">{read ? value : "· · · · · · · ·"}</code>
+    {read
+      ? <><ul className="bt-bench__observed">{config.observed(value).map(line => <li key={line}>{line}</li>)}</ul>
+          <p className="bt-bench__note">{config.note}</p></>
+      : <button type="button" className="bt-action-button" onClick={run}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/** Exposed so the encoders can be exercised directly: a node whose value does not reverse to the
+ *  plain trace is unsolvable, and nothing on screen would say so. */
+export const cipherBenches = benches;
+export const benchNodeKeys = Object.keys(benches);
+
 export const rigNodeKeys = Object.keys(rigs);
 
 export const sweepSurfaces = Object.keys(sweeps);

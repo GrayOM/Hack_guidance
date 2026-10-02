@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrambleText, SignalBars, noiseRun, useTypedLog } from "@/components/terminal-motion";
-import { FileIndex, RequestRig, StoreProbe, SurfaceSweep, indexSurfaces, probeSurfaces, sweepSurfaces } from "@/components/trace-instruments";
+import { CipherBench, FileIndex, RequestRig, StoreProbe, SurfaceSweep, indexSurfaces, probeSurfaces, sweepSurfaces } from "@/components/trace-instruments";
 import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { blackTraceNodeCount, blackTraceStageById, composeTrace } from "@shared/black-trace";
@@ -319,6 +319,7 @@ function Instrument(props: InstrumentProps) {
   if (probeSurfaces.includes(props.surface)) return <StoreProbe {...props} />;
   if (indexSurfaces.includes(props.surface)) return <FileIndex {...props} base={props.target} />;
   if (props.surface === "request") return <RequestRig {...props} />;
+  if (props.surface === "cipher") return <CipherBench {...props} />;
   switch (props.surface) {
     case "comment": return <RecordRestore {...props} />;
     case "field": return <FormPayload {...props} />;
