@@ -9,6 +9,7 @@ const recordsSource = readFileSync(new URL("../client/src/pages/Records.tsx", im
 const myPageSource = readFileSync(new URL("../client/src/pages/MyPage.tsx", import.meta.url), "utf8");
 const traceFunction = readFileSync(new URL("../supabase/functions/black-trace/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
+const instrumentSource = readFileSync(new URL("../client/src/components/trace-instruments.tsx", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.url), "utf8");
 const provisionMigration = readFileSync(new URL("../supabase/migrations/20260822000000_default_public_name.sql", import.meta.url), "utf8");
 
@@ -20,15 +21,17 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStages.map(stage => stage.surface)).toEqual([
       "tooltip", "route", "comment", "field", "identity",
       "invisible-ink", "off-screen", "template-tag", "shadow-root", "cookie",
-      "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap",
-      "source-map", "response", "header", "redirect", "vault",
+      "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap", "source-map",
+      "response", "header", "redirect",
+      ...Array.from({ length: 10 }, () => "request"),
+      "vault",
     ]);
-    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
+    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 30 }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
-      Array.from({ length: 20 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    expect(blackTraceStageById(6)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(11)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(20)?.access).toBe("OPERATOR");
+      Array.from({ length: 30 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
+    expect(blackTraceStageById(8)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(16)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(30)?.access).toBe("OPERATOR");
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
   });
@@ -208,8 +211,8 @@ describe("OPERATION BLACK TRACE", () => {
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
-    expect(nextBlackTraceRank(6)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(11)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(8)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(16)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     expect(directorySource).toContain("다음 등급");
     // Recovering a node is the only reward, so it is shown rather than only logged.
@@ -320,3 +323,36 @@ describe("teaching the operator", () => {
   });
 });
 
+describe("chapter three: requests the operator shapes", () => {
+  it("answers the channel by mode and never by node number", () => {
+    // Ten nodes were added without touching a number anywhere in this function.
+    for (const mode of ["method", "cookie", "role", "referer", "etag", "range", "preflight", "ack", "export", "dispatch"]) {
+      expect(traceFunction).toContain(`mode === "${mode}"`);
+    }
+    expect(traceFunction).not.toMatch(/stage === \d/);
+  });
+
+  it("only uses request headers a browser script is allowed to set", () => {
+    // User-Agent and Referer are forbidden header names for fetch, so a node whose answer depended
+    // on the script setting one would be unsolvable in the browser this course is taught in.
+    const rig = instrumentSource.slice(instrumentSource.indexOf("const rigs"), instrumentSource.indexOf("export function RequestRig"));
+    expect(rig).not.toContain("user-agent");
+    expect(traceFunction).not.toContain('request.headers.get("user-agent")');
+    // Headers that are not safelisted have to be allowed through, and header answers exposed.
+    expect(traceFunction).toContain("range, x-client-role");
+    expect(traceFunction).toContain("Access-Control-Expose-Headers");
+  });
+
+  it("lets its own preflight reach the handler", () => {
+    // The generic OPTIONS short-circuit would otherwise swallow the node whose subject it is.
+    expect(traceFunction).toContain('request.method === "OPTIONS" && url.searchParams.get("mode") !== "preflight"');
+  });
+
+  it("gives the shared rig the node it stands in, not the panel", () => {
+    // All ten carry the surface "request", so a rig keyed on surface would find no config at all.
+    expect(blackTraceStages.filter(stage => stage.surface === "request")).toHaveLength(10);
+    expect(stageSource).toContain('props.surface === "request"');
+    expect(stageSource).toContain("nodeKey={stage.key}");
+    expect(instrumentSource).toContain("const config = rigs[nodeKey]");
+  });
+});

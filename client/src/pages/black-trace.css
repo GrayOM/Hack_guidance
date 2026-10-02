@@ -378,3 +378,16 @@
 .bt-index__note{margin:13px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
 .bt-index .bt-action-button{margin-top:18px}
 @media(prefers-reduced-motion:reduce){.bt-sweep li.is-read,.bt-index li{animation:none}}
+
+/* The request rig: what was sent, what came back, and the fact that the two do not match yet. */
+.bt-rig{width:min(460px,100%);text-align:left}
+.bt-rig__title{margin:0 0 13px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-rig__wire{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.bt-rig__out,.bt-rig__in{padding:11px 12px;border:1px solid rgba(117,187,196,.2);background:rgba(3,16,21,.7);font-size:10px;letter-spacing:.04em;word-break:break-all}
+.bt-rig__out{color:#9dc4c8}
+.bt-rig__in{color:#56757a}
+.bt-rig__in.is-answered{border-color:rgba(240,205,104,.45);color:#f0cd68;animation:bt-row-in .3s ease-out both}
+.bt-rig__arrow{color:#4e7d82;font-size:12px}
+.bt-rig__note{margin:14px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-rig .bt-action-button{margin-top:18px}
+@media(prefers-reduced-motion:reduce){.bt-rig__in.is-answered{animation:none}}
