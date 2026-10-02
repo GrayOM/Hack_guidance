@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, vaultTraceSuffix } from "../shared/black-trace";
+import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -12,9 +13,16 @@ const robots = readFileSync(new URL("../client/public/robots.txt", import.meta.u
 const provisionMigration = readFileSync(new URL("../supabase/migrations/20260822000000_default_public_name.sql", import.meta.url), "utf8");
 
 describe("OPERATION BLACK TRACE", () => {
-  it("defines ten progressive browser-inspection stages with the requested access levels", () => {
-    expect(blackTraceStages).toHaveLength(10);
-    expect(blackTraceStageById(1)?.title).toBe("Ghost Comment");
+  it("introduces each browser tool once and then reinforces it", () => {
+    // Difficulty used to climb and fall: the URL node, the easiest of the ten, sat fifth, and the
+    // redirect node, the hardest, sat before two easier ones. Three Elements nodes also ran back to
+    // back. The order now walks address bar -> Elements -> Application -> address bar -> Network.
+    expect(blackTraceStages.map(stage => stage.surface)).toEqual([
+      "route", "comment", "field", "identity", "cookie", "robots", "response", "header", "redirect", "vault",
+    ]);
+    expect(blackTraceStages.map(stage => stage.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(blackTraceStages.map(stage => stage.code)).toEqual(
+      Array.from({ length: 10 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
     expect(blackTraceStageById(4)?.access).toBe("ANALYST");
     expect(blackTraceStageById(7)?.access).toBe("FIELD OPERATOR");
     expect(blackTraceStageById(10)?.access).toBe("OPERATOR");
@@ -51,15 +59,48 @@ describe("OPERATION BLACK TRACE", () => {
   });
 
   it("derives a distinct trace per operator and keeps the stage 10 split intact", () => {
-    expect(composeTrace(1, null)).toBe("FLAG{ghost_in_the_source}");
-    expect(composeTrace(1, "a1b2c3")).toBe("FLAG{ghost_in_the_source_a1b2c3}");
-    expect(composeTrace(1, "a1b2c3")).not.toBe(composeTrace(1, "d4e5f6"));
+    // The label describes the surface, so it travels with the content when the order changes.
+    const comment = blackTraceStages.find(stage => stage.surface === "comment")!.id;
+    expect(composeTrace(comment, null)).toBe("FLAG{ghost_in_the_source}");
+    expect(composeTrace(comment, "a1b2c3")).toBe("FLAG{ghost_in_the_source_a1b2c3}");
+    expect(composeTrace(comment, "a1b2c3")).not.toBe(composeTrace(comment, "d4e5f6"));
     expect(composeTrace(10, "a1b2c3")).toBe("FLAG{two_places_a1b2c3_");
     expect(`${composeTrace(10, "a1b2c3")}${vaultTraceSuffix}`).toBe("FLAG{two_places_a1b2c3_one_key}");
-    expect(composeTrace(6, "a1b2c3")).toBeNull();
+    // A node whose trace the channel issues plants nothing in the browser.
+    const response = blackTraceStages.find(stage => stage.surface === "response")!.id;
+    expect(composeTrace(response, "a1b2c3")).toBeNull();
   });
 
-  it("keeps the channel-issued traces on the request surfaces", () => {
+  it("keeps the client's planted labels and the server's channel flags on the same node numbers", () => {
+    // The labels still key on the node number, so a reorder that moved the stages without moving
+    // these would hand every operator the wrong expected value with no error anywhere.
+    const planted = ["route", "comment", "field", "identity", "cookie", "vault"];
+    for (const stage of blackTraceStages) {
+      const label = composeTrace(stage.id, null);
+      if (planted.includes(stage.surface)) {
+        expect(label).not.toBeNull();
+      } else {
+        // A channel-issued node must plant nothing, or the browser would carry the answer.
+        expect(label).toBeNull();
+        expect(learningFunction).toMatch(new RegExp(`${stage.id}: "FLAG\\{`));
+      }
+    }
+    // The server recomputes from its own copy of the table, so the two copies must agree.
+    const serverLabels = learningFunction.slice(learningFunction.indexOf("const traceLabels"), learningFunction.indexOf("const vaultTraceSuffix"));
+    for (const stage of blackTraceStages.filter(row => planted.includes(row.surface))) {
+      const label = composeTrace(stage.id, null)!.replace("FLAG{", "").replace("}", "").replace(/_$/, "");
+      expect(serverLabels).toContain(`${stage.id}: "${label}"`);
+    }
+  });
+
+  it("answers the trace channel by surface, not by node number", () => {
+    // Keying on the number meant reordering the operation broke every remote node until this
+    // function was redeployed in step with it.
+    expect(traceFunction).toContain('if (mode === "response")');
+    expect(traceFunction).toContain('if (mode === "redirect")');
+    expect(traceFunction).toContain('if (mode === "header")');
+    expect(traceFunction).toContain('if (mode === "vault")');
+    expect(traceFunction).not.toMatch(/stage === \d/);
     expect(traceFunction).toContain("FLAG{the_server_did_answer}");
     expect(traceFunction).toContain("FLAG%7Bfollow_the_location%7D");
     expect(traceFunction).toContain("X-Trace-Note");
@@ -120,8 +161,10 @@ describe("OPERATION BLACK TRACE", () => {
 
   it("closes every node with its own verdict", () => {
     expect(new Set(blackTraceStages.map(stage => stage.scan.verdict)).size).toBe(10);
-    expect(blackTraceStageById(2)?.scan.verdict).toBe("AUTH REJECTED");
-    expect(blackTraceStageById(9)?.scan.verdict).toBe("POLICY NOT RENDERED");
+    // The verdict belongs to the surface, so it is looked up by surface and survives a reorder.
+    const verdictFor = (surface: string) => blackTraceStages.find(stage => stage.surface === surface)?.scan.verdict;
+    expect(verdictFor("field")).toBe("AUTH REJECTED");
+    expect(verdictFor("robots")).toBe("POLICY NOT RENDERED");
     expect(stageSource).toContain("bt-scene__verdict");
   });
 
@@ -211,6 +254,58 @@ describe("korean setting", () => {
     expect(styles).toContain("word-break:keep-all");
     expect(styles).toContain("text-wrap:balance");
     expect(styles).toContain("text-wrap:pretty");
+  });
+});
+
+describe("teaching the operator", () => {
+  it("tells the operator why the thing they found is a defect, and only after they find it", () => {
+    // The flag is the game; this is the point of the game. Withheld until the clear so it can be
+    // direct without ever working as a hint.
+    for (const stage of blackTraceStages) {
+      expect(stage.lesson.risk.length).toBeGreaterThan(30);
+      expect(stage.lesson.fix.length).toBeGreaterThan(15);
+    }
+    expect(new Set(blackTraceStages.map(stage => stage.lesson.risk)).size).toBe(blackTraceStages.length);
+    expect(stageSource).toContain("lesson={stage.lesson}");
+    // It renders on the cleared panel, never beside the field kit.
+    const beforeClear = stageSource.slice(0, stageSource.indexOf("function NodeCleared"));
+    expect(beforeClear).not.toContain("lesson.risk");
+  });
+
+  it("names the browser's own tools once, and no node's answer", () => {
+    // Most visitors have built a page and never opened the Network panel, so node 06 was a wall.
+    expect(directorySource).toContain("function FieldBriefing");
+    expect(directorySource).toContain("<FieldBriefing");
+    for (const panel of ["Elements", "Network", "Application", "F12"]) {
+      expect(directorySource).toContain(panel);
+    }
+    // Knowing a response has headers is not knowing which header: the briefing stops there.
+    const briefing = directorySource.slice(directorySource.indexOf("function FieldBriefing"));
+    for (const giveaway of ["robots.txt", "data-", "hidden", "FLAG{", "trace_id"]) {
+      expect(briefing).not.toContain(giveaway);
+    }
+  });
+
+  it("separates a malformed key from a wrong one", () => {
+    // Every refusal used to print "INVALID ACCESS KEY", so a stray space and a wrong value looked
+    // identical. The shape is judged before a submission slot is spent on it.
+    expect(stageSource).toContain("function keyShapeProblem");
+    // A well-formed key is passed through; everything the operator is likely to paste wrong is named.
+    expect(keyShapeProblem("FLAG{ghost_in_the_source_a1b2c3}")).toBeNull();
+    expect(keyShapeProblem("FLAG{ghost} ")).toContain("공백");
+    expect(keyShapeProblem("ghost_in_the_source")).toContain("FLAG{");
+    expect(keyShapeProblem("FLAG{ghost_in_the_source")).toContain("}");
+    expect(keyShapeProblem("FLAG{a}")).toContain("짧");
+    // The four server refusals each get their own line.
+    expect(submissionFailureLines(Object.assign(new Error("slow down"), { reason: "rate_limited" }))[0]).toContain("THROTTLED");
+    expect(submissionFailureLines(new Error("Clear the previous node first"))[0]).toContain("LOCKED");
+    expect(submissionFailureLines(new Error("Unknown operation node"))[0]).toContain("UNKNOWN");
+    expect(submissionFailureLines(new Error("boom"))[0]).toContain("CHANNEL UNAVAILABLE");
+    expect(stageSource).toContain("KEY REJECTED BEFORE TRANSMISSION");
+    expect(stageSource).toContain("function submissionFailureLines");
+    for (const outcome of ["SUBMISSION THROTTLED", "NODE LOCKED", "CHANNEL UNAVAILABLE"]) {
+      expect(stageSource).toContain(outcome);
+    }
   });
 });
 

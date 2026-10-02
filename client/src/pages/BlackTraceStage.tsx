@@ -9,6 +9,29 @@ import { startPlatformLogin, usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { useIsMobile } from "@/hooks/useMobile";
 import "./black-trace.css";
 
+/**
+ * What the console can decide without asking the server. Every refusal used to read "INVALID ACCESS
+ * KEY", so a stray space and a genuinely wrong value looked identical and the operator had no way
+ * to tell which one they were looking at.
+ */
+export function keyShapeProblem(value: string) {
+  if (/\s/.test(value)) return "값에 공백이나 줄바꿈이 섞여 있습니다. 앞뒤를 정리하고 다시 제출하세요.";
+  if (!value.startsWith("FLAG{")) return "형식이 다릅니다. 회수한 값은 FLAG{ 로 시작합니다.";
+  if (!value.endsWith("}")) return "형식이 다릅니다. 닫는 } 까지 포함해 제출하세요.";
+  if (value.length < 12) return "값이 너무 짧습니다. 중괄호 안쪽까지 전부 복사했는지 확인하세요.";
+  return null;
+}
+
+/** The server refuses for four different reasons; the console used to print all four the same. */
+export function submissionFailureLines(error: unknown) {
+  const reason = (error as { reason?: string } | null)?.reason;
+  const message = error instanceof Error && error.message ? error.message : "";
+  if (reason === "rate_limited") return ["[-] SUBMISSION THROTTLED", "> 분당 제출 횟수를 넘었습니다. 1분 뒤 다시 시도하세요."];
+  if (message.includes("previous node")) return ["[-] NODE LOCKED", "> 앞 노드를 먼저 회수해야 이 노드의 제출이 기록됩니다."];
+  if (message.includes("Unknown operation node")) return ["[-] UNKNOWN NODE", "> 존재하지 않는 노드입니다."];
+  return ["[-] CHANNEL UNAVAILABLE", `> ${message || "세션이 만료되었거나 서버에 연결하지 못했습니다."}`];
+}
+
 const traceEndpoint = (stage: number, mode: string) => `${supabaseUrl}/functions/v1/hg-black-trace?stage=${stage}&mode=${mode}`;
 
 export default function BlackTraceStage() {
@@ -47,7 +70,24 @@ export default function BlackTraceStage() {
   const completed = progress.data?.completedStages ?? [];
   const maxOpen = progress.data?.currentStage ?? 1;
   const isOpen = id === 1 || completed.includes(id) || id <= maxOpen;
-  const submit = useBlackTraceSubmit({ onSuccess: response => { if (response.correct) { setResult("success"); setTerminal(id === 10 ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] FLAG ACCEPTED", "[+] TRACE RECOVERED", "[+] NODE CLEARED"]); } else { setResult("error"); setBreachAt(Date.now()); setTerminal(["[-] INVALID ACCESS KEY", "[-] ATTEMPT LOGGED"]); } }, onError: error => { setResult("error"); setBreachAt(Date.now()); const reason = error instanceof Error && error.message ? error.message : "SESSION REQUIRED OR CHANNEL UNAVAILABLE"; setTerminal([`[-] ${reason}`]); } });
+  const submit = useBlackTraceSubmit({
+    onSuccess: response => {
+      if (response.correct) {
+        setResult("success");
+        setTerminal(id === 10 ? ["> validating fragments...", "> reconstructing master key...", "> signature verified", "[+] OPERATION BLACK TRACE COMPLETE"] : ["> validating trace...", "[+] FLAG ACCEPTED", "[+] TRACE RECOVERED", "[+] NODE CLEARED"]);
+        return;
+      }
+      // The key was well-formed and the server still refused it, so the shape is not the problem.
+      setResult("error");
+      setBreachAt(Date.now());
+      setTerminal(["[-] INVALID ACCESS KEY", "> 형식은 올바릅니다. 이 노드의 값과 일치하지 않습니다.", "> 다른 노드에서 회수한 값이 아닌지 확인하세요."]);
+    },
+    onError: error => {
+      setResult("error");
+      setBreachAt(Date.now());
+      setTerminal(submissionFailureLines(error));
+    },
+  });
 
   const [jolted, setJolted] = useState(false);
   useEffect(() => {
@@ -85,6 +125,14 @@ export default function BlackTraceStage() {
     event.preventDefault();
     if (!isAuthenticated) { setResult("error"); setTerminal(["[-] SESSION REQUIRED", "> opening operator login..."]); startPlatformLogin(); setLocation("/black-trace"); return; }
     if (!assembled) return;
+    // A malformed key is a typo, not a wrong answer. Spending a submission slot to be told so helps
+    // nobody, and "INVALID ACCESS KEY" for a stray space reads as the value being wrong.
+    const malformed = keyShapeProblem(assembled);
+    if (malformed) {
+      setResult("error");
+      setTerminal(["[-] KEY REJECTED BEFORE TRANSMISSION", `> ${malformed}`]);
+      return;
+    }
     setResult("idle");
     setRecovered(assembled);
     setTerminal(isVault ? ["> joining fragment 01 + 02...", "> transmitting assembled key..."] : ["> transmitting recovered key..."]);
@@ -94,7 +142,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/${id}?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전에는 브라우저 개발자도구가 필요합니다. PC에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>막히면 FIELD KIT을 열어 볼 수 있습니다. 열어 본 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
@@ -111,7 +159,7 @@ export default function BlackTraceStage() {
         </form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
     {breachAt ? <BreachFlash key={breachAt} /> : null}
-    {result === "success" ? <NodeCleared id={id} recovered={recovered} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
+    {result === "success" ? <NodeCleared id={id} recovered={recovered} lesson={stage.lesson} onNext={() => { setResult("idle"); setTerminal([]); setFlag(""); setFragmentA(""); setFragmentB(""); setLocation(id >= 10 ? "/certificate" : `/black-trace/${id + 1}`); }} onBoard={() => setLocation("/black-trace")} /> : null}
   </div>;
 }
 
@@ -160,7 +208,7 @@ function BreachFlash() {
 }
 
 /** A recovered node is the only reward the operation gives, so it is shown, not just logged. */
-function NodeCleared({ id, recovered, onNext, onBoard }: { id: number; recovered: string; onNext: () => void; onBoard: () => void }) {
+function NodeCleared({ id, recovered, lesson, onNext, onBoard }: { id: number; recovered: string; lesson: { risk: string; fix: string }; onNext: () => void; onBoard: () => void }) {
   const final = id >= 10;
   return <div className="bt-cleared" role="status" aria-live="polite">
     <div className="bt-cleared__panel">
@@ -169,6 +217,12 @@ function NodeCleared({ id, recovered, onNext, onBoard }: { id: number; recovered
       <h2>{final ? "MASTER ACCESS KEY 복구" : `NODE ${String(id).padStart(2, "0")} CLEARED`}</h2>
       {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><ScrambleText value={recovered} /></div> : null}
       <p className="bt-cleared__note">{final ? "노드 10개를 전부 회수했습니다. 이제 수료증을 받을 수 있습니다." : "다음 노드가 열렸습니다."}</p>
+      {/* The flag is the game; this is the point of the game. It appears only here, after the node
+          is cleared, so it can say plainly what the field kit had to keep vague. */}
+      <div className="bt-lesson">
+        <div><span>WHY IT MATTERS</span><p>{lesson.risk}</p></div>
+        <div><span>조치</span><p>{lesson.fix}</p></div>
+      </div>
       <div className="bt-cleared__actions">
         <button className="bt-cleared__primary" onClick={onNext}>{final ? "수료증 받기" : "다음 노드"} <ChevronRight size={16} /></button>
         <button className="bt-cleared__ghost" onClick={onBoard}>작전 보드</button>

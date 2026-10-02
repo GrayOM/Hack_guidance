@@ -324,3 +324,34 @@
    submit form pushed to the bottom of a full-height column. The log takes the space instead. */
 .bt-terminal__log{flex:1;min-height:220px;overflow-y:auto}
 
+
+/* --- What the node was about -------------------------------------------------------------------
+   Clearing a node said "NODE CLEARED" and nothing else. The operator found a real defect and was
+   never told why it is one. It appears only after the clear, so it can be direct without ever
+   working as a hint. */
+.bt-lesson{display:grid;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(110,231,183,.22);text-align:left}
+.bt-lesson>div span{display:block;color:#5fb9a2;font-size:9px;letter-spacing:.14em}
+.bt-lesson>div p{margin:6px 0 0;color:#c2dcd8;font:12px/1.75 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-lesson>div:last-child p{color:#8fd8d4}
+.bt-cleared__panel{width:min(100%,520px);text-align:left}
+.bt-cleared__panel>svg,.bt-cleared__eyebrow,.bt-cleared__panel h2,.bt-cleared__note{text-align:center}
+.bt-cleared__panel h2,.bt-cleared__eyebrow,.bt-cleared__note{display:block}
+
+/* --- Field briefing ----------------------------------------------------------------------------
+   The operation assumed its visitors already knew the browser's own tools. Most of them have built
+   a page and never opened the Network panel, so node 06 was a wall rather than a puzzle. This names
+   the tools and what each panel shows, and names no node and no answer. */
+.bt-briefing{margin-bottom:24px;border:1px solid rgba(91,224,219,.28);background:rgba(6,24,30,.6)}
+.bt-briefing>button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:13px 15px;color:#7fe4e0;font:inherit;font-size:11px;letter-spacing:.1em;text-align:left;cursor:pointer}
+.bt-briefing>button:hover{color:#b8f6f3}
+.bt-briefing__chevron{margin-left:auto;transition:transform .2s ease}
+.bt-briefing.is-open .bt-briefing__chevron{transform:rotate(180deg)}
+.bt-briefing__body{padding:0 15px 16px}
+.bt-briefing__lead{margin:0 0 14px;color:#b6cdd0;font:13px/1.8 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-briefing__lead strong{color:#8affd2;font-weight:500}
+.bt-briefing dl{display:grid;gap:11px;margin:0}
+.bt-briefing dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding-bottom:11px;border-bottom:1px dotted rgba(117,187,196,.2)}
+.bt-briefing dt{color:#5be0db;font-size:11px;letter-spacing:.06em}
+.bt-briefing dd{margin:0;color:#9db8bc;font:12px/1.75 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-briefing__note{margin:13px 0 0;color:#6f8d92;font:11px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif}
+@media(max-width:650px){.bt-briefing dl>div{grid-template-columns:1fr;gap:4px}}
