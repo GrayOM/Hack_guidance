@@ -171,3 +171,18 @@
 
 /* The verdict bar is pinned to the bottom, so a filled instrument must not run under it. */
 .bt-scene__center.is-scanned{padding-bottom:46px}
+
+/* A locked node keeps its slot but not its words: nine grey titles read as a wall, redacted
+   intel reads as something still to be opened. */
+.bt-stage-list .is-locked{opacity:.62}
+.bt-stage-list .is-locked .bt-stage-list__info strong,.bt-stage-list .is-locked .bt-stage-list__info small{color:#2f4a4f;letter-spacing:.06em}
+.bt-stage-list .is-locked .bt-stage-list__state{color:#56777c}
+.bt-stage-list .is-active .bt-stage-list__state{color:#5be0db}
+.bt-stage-list button:not(:disabled):hover .bt-stage-list__info strong{color:#eafffa}
+
+/* Node 10's answer arrives in two halves, so it is submitted in two halves. */
+.bt-terminal__split{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.bt-terminal__split span{color:#5ae0db;font-size:13px}
+.bt-terminal__split input{min-width:0}
+.bt-terminal__assembled{margin:9px 0 0;color:#8da8ac;font-size:10px;word-break:break-all;letter-spacing:.02em}
+.bt-terminal__form button:disabled{opacity:.45;cursor:not-allowed}
