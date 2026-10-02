@@ -44,6 +44,20 @@ describe("BLACK TRACE clearance certificate", () => {
     expect(printPage).toContain("/ 10");
   });
 
+  it("meters the unauthenticated actions per caller without storing an address", () => {
+    const publicMigration = readFileSync(new URL("../supabase/migrations/20260824000000_public_rate_limit.sql", import.meta.url), "utf8");
+    expect(publicMigration).toContain("hg_consume_public_slot");
+    expect(publicMigration).toContain("hg_public_rate_limit_browser_deny");
+    // The ledger is pruned, so an open endpoint cannot grow it without bound.
+    expect(publicMigration).toContain("delete from public.hg_public_rate_limits where bucket_start <");
+    // The address is hashed before it reaches the ledger.
+    expect(learningFunction).toContain("crypto.subtle.digest(\"SHA-256\"");
+    expect(learningFunction).toContain("publicClientKey");
+    expect(learningFunction).toContain('["checkDisplayName", "ranking", "verifyCertificate"]');
+    // A limiter outage must not take the public pages down with it.
+    expect(learningFunction).toContain("public rate limit unavailable");
+  });
+
   it("is reachable from the console and gates issuance on eligibility", () => {
     expect(navSource).toContain('path: "/certificate"');
     expect(learningFunction).toContain("certificateEligible: solvedCount >= blackTraceNodeCount");
