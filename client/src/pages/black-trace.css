@@ -205,7 +205,7 @@
 /* The recovered key resolves in place, so it needs a frame that does not resize as it settles. */
 .bt-cleared__key{margin:16px 0 0;padding:11px 12px;border:1px solid rgba(110,231,183,.3);background:rgba(2,18,20,.72)}
 .bt-cleared__key span{display:block;color:#5fb9a2;font-size:9px;letter-spacing:.14em}
-.bt-cleared__key code{display:block;margin-top:6px;color:#8affd2;font:12px/1.5 "JetBrains Mono","Nanum Gothic Coding",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;text-shadow:0 0 12px rgba(110,255,205,.45)}
+.bt-cleared__key code,.bt-cleared__key span{display:block;margin-top:6px;color:#8affd2;font:12px/1.5 "JetBrains Mono","Nanum Gothic Coding",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;text-shadow:0 0 12px rgba(110,255,205,.45)}
 
 /* A rejected key trips the alarm: the shell jolts once and interference crosses the screen. */
 .bt-shell.is-breached{animation:bt-jolt .62s cubic-bezier(.36,.07,.19,.97) both}
@@ -242,11 +242,7 @@
 .bt-telemetry.is-active .bt-telemetry__link i{background:#f0cd68;box-shadow:0 0 0 3px rgba(240,205,104,.16);animation-duration:.6s}
 
 /* The meter is the part that never stops: a link that is up is a link that is doing something. */
-.bt-telemetry__signal{display:flex;align-items:flex-end;gap:2px;height:11px;margin-left:auto}
-.bt-telemetry__signal i{width:2px;height:100%;transform-origin:bottom;background:rgba(108,231,183,.55);animation:bt-telemetry-signal 1.6s ease-in-out infinite}
 .bt-telemetry.is-active .bt-telemetry__signal i{background:rgba(240,205,104,.72);animation-duration:.55s}
-@keyframes bt-telemetry-beat{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
-@keyframes bt-telemetry-signal{0%,100%{transform:scaleY(.18)}28%{transform:scaleY(.92)}55%{transform:scaleY(.36)}78%{transform:scaleY(.68)}}
 
 /* A row that has not been read yet is waiting, not broken. */
 .bt-rebuild li:not(.is-drawn):not(.is-gap),.bt-hops li:not(.is-on) strong,.bt-crawler li:not(.is-on) strong{animation:bt-idle-breathe 2.6s ease-in-out infinite}

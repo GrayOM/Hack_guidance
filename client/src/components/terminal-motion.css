@@ -1,0 +1,13 @@
+/* The console vocabulary itself, owned by the components that render it rather than by one page.
+   The signal meter is markup SignalBars emits; the beat and the caret are shared by every surface
+   that reports a live link or a line still being typed. */
+
+.bt-telemetry__signal{display:flex;align-items:flex-end;gap:2px;height:11px;margin-left:auto}
+.bt-telemetry__signal i{width:2px;height:100%;transform-origin:bottom;background:rgba(108,231,183,.55);animation:bt-telemetry-signal 1.6s ease-in-out infinite}
+.bt-telemetry__signal.is-active i{background:rgba(240,205,104,.72);animation-duration:.55s}
+
+@keyframes bt-telemetry-signal{0%,100%{transform:scaleY(.18)}28%{transform:scaleY(.92)}55%{transform:scaleY(.36)}78%{transform:scaleY(.68)}}
+@keyframes bt-telemetry-beat{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes bt-caret{50%{opacity:0}}
+
+@media(prefers-reduced-motion:reduce){.bt-telemetry__signal i{animation:none;height:60%}}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ScrambleText, SignalBars, noiseRun, useTypedLog } from "@/components/terminal-motion";
 import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { blackTraceStageById, composeTrace } from "@shared/black-trace";
@@ -114,99 +115,6 @@ export default function BlackTraceStage() {
   </div>;
 }
 
-const noiseAlphabet = "0123456789ABCDEF#$%&*/<>?@\\^|~";
-const noiseChar = () => noiseAlphabet[Math.floor(Math.random() * noiseAlphabet.length)];
-const noiseRun = (length: number) => Array.from({ length }, noiseChar).join("");
-
-/**
- * The console printed each burst whole, so a sequence of instrument calls read as pages of text
- * rather than a machine answering. Lines are typed a character at a time instead.
- *
- * A burst usually repeats the lines already on screen before adding its own, so whatever matches
- * what is already typed is kept and only the tail is typed. Without that, every call would retype
- * the whole session from the top.
- */
-function useTypedLog(lines: string[]) {
-  const [view, setView] = useState<string[]>([]);
-  const settled = useRef<string[]>([]);
-  const [typing, setTyping] = useState(false);
-
-  useEffect(() => {
-    if (!lines.length) {
-      settled.current = [];
-      setView([]);
-      setTyping(false);
-      return;
-    }
-    let shared = 0;
-    while (shared < settled.current.length && shared < lines.length && settled.current[shared] === lines[shared]) shared += 1;
-    const base = lines.slice(0, shared);
-    settled.current = base;
-    setView(base);
-    if (shared >= lines.length) {
-      setTyping(false);
-      return;
-    }
-    setTyping(true);
-    let row = shared;
-    let column = 0;
-    const timer = window.setInterval(() => {
-      column += 1;
-      const next = [...lines.slice(0, row), lines[row].slice(0, column)];
-      settled.current = next;
-      setView(next);
-      if (column >= lines[row].length) {
-        row += 1;
-        column = 0;
-      }
-      if (row >= lines.length) {
-        window.clearInterval(timer);
-        setTyping(false);
-      }
-    }, 14);
-    return () => window.clearInterval(timer);
-  }, [lines]);
-
-  return { view, typing };
-}
-
-/**
- * The recovered key is the only thing the operator carries out of a node, so it resolves out of
- * noise one character at a time rather than simply being present.
- */
-function DecryptedKey({ value }: { value: string }) {
-  const [shown, setShown] = useState(() => noiseRun(value.length));
-  useEffect(() => {
-    let resolved = 0;
-    const timer = window.setInterval(() => {
-      resolved += 1;
-      if (resolved >= value.length) {
-        window.clearInterval(timer);
-        setShown(value);
-        return;
-      }
-      setShown(value.slice(0, resolved) + noiseRun(value.length - resolved));
-    }, 34);
-    return () => window.clearInterval(timer);
-  }, [value]);
-  return <code>{shown}</code>;
-}
-
-/** The instrument is reading bytes, so the panel shows bytes moving rather than only a sweep. */
-function ScanNoise() {
-  const [rows, setRows] = useState<string[]>(() => Array.from({ length: 3 }, () => noiseRun(46)));
-  useEffect(() => {
-    const timer = window.setInterval(() => setRows(Array.from({ length: 3 }, () => noiseRun(46))), 70);
-    return () => window.clearInterval(timer);
-  }, []);
-  return <div className="bt-noise" aria-hidden="true">{rows.map((row, index) => <span key={index}>{row}</span>)}</div>;
-}
-
-/** A rejected key is a tripped alarm, so the screen reacts the way a tripped alarm looks. */
-function BreachFlash() {
-  return <div className="bt-breach" aria-hidden="true"><p>ACCESS DENIED</p></div>;
-}
-
 /**
  * Half the nodes rest on an empty frame: four dotted rows, a lone arrow, a blank gauge. Nothing on
  * the panel moved until the operator pressed the button, so a node that had not been touched read
@@ -232,8 +140,23 @@ function SurfaceTelemetry({ target, active }: { target: string; active: boolean 
     <span>RTT <strong>{rtt}ms</strong></span>
     <span>LOSS <strong>0.0%</strong></span>
     <span>UPTIME <strong>{clock}</strong></span>
-    <span className="bt-telemetry__signal" aria-hidden="true">{Array.from({ length: 16 }, (_, index) => <i key={index} style={{ animationDelay: `${index * 90}ms` }} />)}</span>
+    <SignalBars active={active} />
   </div>;
+}
+
+/** The instrument is reading bytes, so the panel shows bytes moving rather than only a sweep. */
+function ScanNoise() {
+  const [rows, setRows] = useState<string[]>(() => Array.from({ length: 3 }, () => noiseRun(46)));
+  useEffect(() => {
+    const timer = window.setInterval(() => setRows(Array.from({ length: 3 }, () => noiseRun(46))), 70);
+    return () => window.clearInterval(timer);
+  }, []);
+  return <div className="bt-noise" aria-hidden="true">{rows.map((row, index) => <span key={index}>{row}</span>)}</div>;
+}
+
+/** A rejected key is a tripped alarm, so the screen reacts the way a tripped alarm looks. */
+function BreachFlash() {
+  return <div className="bt-breach" aria-hidden="true"><p>ACCESS DENIED</p></div>;
 }
 
 /** A recovered node is the only reward the operation gives, so it is shown, not just logged. */
@@ -244,7 +167,7 @@ function NodeCleared({ id, recovered, onNext, onBoard }: { id: number; recovered
       <CheckCircle2 size={34} />
       <p className="bt-cleared__eyebrow">{final ? "OPERATION COMPLETE" : "TRACE RECOVERED"}</p>
       <h2>{final ? "MASTER ACCESS KEY 복구" : `NODE ${String(id).padStart(2, "0")} CLEARED`}</h2>
-      {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><DecryptedKey value={recovered} /></div> : null}
+      {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><ScrambleText value={recovered} /></div> : null}
       <p className="bt-cleared__note">{final ? "노드 10개를 전부 회수했습니다. 이제 수료증을 받을 수 있습니다." : "다음 노드가 열렸습니다."}</p>
       <div className="bt-cleared__actions">
         <button className="bt-cleared__primary" onClick={onNext}>{final ? "수료증 받기" : "다음 노드"} <ChevronRight size={16} /></button>
