@@ -104,10 +104,42 @@ describe("stage reaction", () => {
   });
 
   it("suppresses the motion but not the alarm's own dismissal under reduced motion", () => {
-    const reduced = stageStyles.slice(stageStyles.lastIndexOf("@media(prefers-reduced-motion:reduce)"));
+    const blocks = stageStyles.split("@media(prefers-reduced-motion:reduce)");
+    const reduced = blocks.find(block => block.includes(".bt-breach")) ?? "";
     expect(reduced).toContain(".bt-shell.is-breached");
     expect(reduced).toContain(".bt-noise span");
     // Without its fade the alarm would stay on screen for good: it is never cleared by state.
     expect(reduced).not.toContain(".bt-breach,");
   });
 });
+
+describe("resting surface", () => {
+  it("gives every node a link that is visibly up before anything is pressed", () => {
+    // Five of the ten rest on an empty frame, so the strip cannot belong to one instrument: it is
+    // mounted by the scene itself, above whichever instrument the node uses.
+    expect(stageSource).toContain("function SurfaceTelemetry");
+    expect(stageSource).toContain('<SurfaceTelemetry target={stage.target} active={scan === "running"} />');
+    expect(stageStyles).toContain(".bt-telemetry");
+    // Something has to keep moving while the node is untouched.
+    expect(stageStyles).toContain("@keyframes bt-telemetry-signal");
+    expect(stageStyles).toContain("@keyframes bt-telemetry-beat");
+  });
+
+  it("reports the link and never what the surface is hiding", () => {
+    // Naming a node's own contents here would hand over the answer its instrument exists to reveal.
+    const strip = stageSource.slice(stageSource.indexOf("function SurfaceTelemetry"), stageSource.indexOf("/** A recovered node"));
+    const spoken = strip.replace(/aria-[a-z]+="[^"]*"/g, "").toLowerCase();
+    for (const giveaway of ["comment", "cookie", "legacy_note", "fragment", "param", "robots", "redirect"]) {
+      expect(spoken).not.toContain(giveaway);
+    }
+    expect(strip).toContain("RTT");
+    expect(strip).toContain("UPTIME");
+  });
+
+  it("makes an unread row breathe instead of sitting dead", () => {
+    expect(stageStyles).toContain("@keyframes bt-idle-breathe");
+    expect(stageStyles).toContain(".bt-rebuild li:not(.is-drawn):not(.is-gap)");
+    expect(stageStyles).toContain(".bt-hops li:not(.is-on) strong");
+  });
+});
+
