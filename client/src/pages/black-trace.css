@@ -76,3 +76,10 @@
 @keyframes bt-row-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes bt-shimmer{to{background-position:-220% 0}}
 @media(prefers-reduced-motion:reduce){.bt-readout,.bt-readout dl>div,.bt-readout.is-loading i{animation:none}}
+
+/* The auth field was always read-only by design, but it looked like an ordinary input, so the
+   node read as broken rather than decommissioned. */
+.bt-auth-unit__field{position:relative;display:flex;align-items:center}
+.bt-auth-unit__field input{flex:1;cursor:not-allowed;border-color:rgba(121,162,168,.22) !important;background:#060f14 !important;color:#5d7378 !important}
+.bt-auth-unit__field svg{position:absolute;right:11px;color:#6d8a8f;pointer-events:none}
+.bt-auth-unit__sealed{margin:-2px 0 2px;color:#7f9398;font-size:9px;letter-spacing:.11em}
