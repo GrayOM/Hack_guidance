@@ -50,8 +50,14 @@ describe("BLACK TRACE clearance certificate", () => {
     expect(publicMigration).toContain("hg_public_rate_limit_browser_deny");
     // The ledger is pruned, so an open endpoint cannot grow it without bound.
     expect(publicMigration).toContain("delete from public.hg_public_rate_limits where bucket_start <");
+    // The browser roles are refused by privilege, not only by policy.
+    const grants = readFileSync(new URL("../supabase/migrations/20260824000001_public_rate_limit_grants.sql", import.meta.url), "utf8");
+    expect(grants).toContain("revoke all on table public.hg_public_rate_limits from public, anon, authenticated");
     // The address is hashed before it reaches the ledger.
     expect(learningFunction).toContain("crypto.subtle.digest(\"SHA-256\"");
+    // Keying on the caller-supplied hop would let anyone sidestep the ceiling by randomising it.
+    expect(learningFunction).toContain("hops[hops.length - 1]");
+    expect(learningFunction).not.toContain('forwarded.split(",")[0]');
     expect(learningFunction).toContain("publicClientKey");
     expect(learningFunction).toContain('["checkDisplayName", "ranking", "verifyCertificate"]');
     // A limiter outage must not take the public pages down with it.
