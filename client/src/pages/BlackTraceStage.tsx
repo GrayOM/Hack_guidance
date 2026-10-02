@@ -93,7 +93,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
@@ -205,6 +205,35 @@ function ScanNoise() {
 /** A rejected key is a tripped alarm, so the screen reacts the way a tripped alarm looks. */
 function BreachFlash() {
   return <div className="bt-breach" aria-hidden="true"><p>ACCESS DENIED</p></div>;
+}
+
+/**
+ * Half the nodes rest on an empty frame: four dotted rows, a lone arrow, a blank gauge. Nothing on
+ * the panel moved until the operator pressed the button, so a node that had not been touched read
+ * as a screenshot rather than as a link that is up.
+ *
+ * The strip is the one thing every node shares. It reports the link, not the puzzle: naming what a
+ * surface holds here would hand over the answer the instrument exists to reveal.
+ */
+function SurfaceTelemetry({ target, active }: { target: string; active: boolean }) {
+  const [seconds, setSeconds] = useState(0);
+  const [rtt, setRtt] = useState(24);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setSeconds(previous => previous + 1);
+      setRtt(18 + Math.floor(Math.random() * 14));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const clock = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  return <div className={`bt-telemetry${active ? " is-active" : ""}`}>
+    <span className="bt-telemetry__link"><i />{active ? "READING" : "LINK UP"}</span>
+    <code>{target}</code>
+    <span>RTT <strong>{rtt}ms</strong></span>
+    <span>LOSS <strong>0.0%</strong></span>
+    <span>UPTIME <strong>{clock}</strong></span>
+    <span className="bt-telemetry__signal" aria-hidden="true">{Array.from({ length: 16 }, (_, index) => <i key={index} style={{ animationDelay: `${index * 90}ms` }} />)}</span>
+  </div>;
 }
 
 /** A recovered node is the only reward the operation gives, so it is shown, not just logged. */
