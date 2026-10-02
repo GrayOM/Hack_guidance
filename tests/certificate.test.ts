@@ -58,10 +58,32 @@ describe("BLACK TRACE clearance certificate", () => {
     // Keying on the caller-supplied hop would let anyone sidestep the ceiling by randomising it.
     expect(learningFunction).toContain("hops[hops.length - 1]");
     expect(learningFunction).not.toContain('forwarded.split(",")[0]');
+    // A header the edge overwrites outranks one the caller can set.
+    const keySource = learningFunction.slice(learningFunction.indexOf("async function publicClientKey"));
+    expect(keySource.indexOf("cf-connecting-ip")).toBeLessThan(keySource.indexOf("x-real-ip"));
     expect(learningFunction).toContain("publicClientKey");
     expect(learningFunction).toContain('["checkDisplayName", "ranking", "verifyCertificate"]');
     // A limiter outage must not take the public pages down with it.
     expect(learningFunction).toContain("public rate limit unavailable");
+  });
+
+  it("publishes the remaining public calls so the ceiling can be observed, not inferred", () => {
+    // The routine returns the attempt count; a boolean made a deployment carrying the ceiling
+    // indistinguishable from one without it, because both answer 200 below the limit.
+    const observable = readFileSync(new URL("../supabase/migrations/20260825000000_public_rate_limit_observable.sql", import.meta.url), "utf8");
+    expect(observable).toContain("drop function if exists public.hg_consume_public_slot(text, integer)");
+    expect(observable).toContain("create function public.hg_consume_public_slot(p_client_key text)");
+    expect(observable).toContain("returns integer");
+    expect(observable).toContain("return v_attempts;");
+    // Only the service role may spend a slot.
+    expect(observable).toContain("grant execute on function public.hg_consume_public_slot(text) to service_role");
+    expect(learningFunction).toContain('"X-RateLimit-Limit": String(publicCallLimit)');
+    expect(learningFunction).toContain('"X-RateLimit-Remaining"');
+    // A browser reads the headers only when they are exposed to it.
+    expect(learningFunction).toContain('"Access-Control-Expose-Headers": "X-RateLimit-Limit, X-RateLimit-Remaining"');
+    // The ceiling itself still rejects rather than merely reporting.
+    expect(learningFunction).toContain('reason: "rate_limited"');
+    expect(learningFunction).not.toContain("allowPublicCall");
   });
 
   it("is reachable from the console and gates issuance on eligibility", () => {
