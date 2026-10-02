@@ -84,6 +84,13 @@ describe("BLACK TRACE clearance certificate", () => {
     // The ceiling itself still rejects rather than merely reporting.
     expect(learningFunction).toContain('reason: "rate_limited"');
     expect(learningFunction).not.toContain("allowPublicCall");
+    // The measured result belongs in the notes: a pending control and a verified one are not the
+    // same claim, and the pending wording outlived the measurement once already.
+    const notes = readFileSync(new URL("../SECURITY_NOTES.md", import.meta.url), "utf8");
+    expect(notes).toContain("**운영에서 동작을 확인했습니다.**");
+    expect(notes).not.toContain("운영 실측은 아직 완료되지 않았다");
+    // The per-minute ceiling does not cover a one-second spike, and the notes say so.
+    expect(notes).toContain("## 호출량 제한의 적용 범위");
   });
 
   it("is reachable from the console and gates issuance on eligibility", () => {
