@@ -7,6 +7,7 @@ const rankingSource = readFileSync(new URL("../client/src/pages/Ranking.tsx", im
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const stageStyles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
+const indexHtml = readFileSync(new URL("../client/index.html", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
   it("keeps main-console ambient pointer response without retired challenge workspace dependencies", () => {
@@ -140,6 +141,65 @@ describe("resting surface", () => {
     expect(stageStyles).toContain("@keyframes bt-idle-breathe");
     expect(stageStyles).toContain(".bt-rebuild li:not(.is-drawn):not(.is-gap)");
     expect(stageStyles).toContain(".bt-hops li:not(.is-on) strong");
+  });
+});
+
+describe("typeface", () => {
+  it("uses the typeface the page loads instead of whatever mono the system ships", () => {
+    // The operation screens asked for ui-monospace, so none of the loaded families reached them:
+    // every label and console line fell back to the operating system's default.
+    // Every stack that reaches a generic must name a loaded family right before it, or the screen
+    // renders in whatever the operating system ships and the page's own typeface never applies.
+    const declarations = stageStyles.match(/font(-family)?:[^;}]*ui-(monospace|sans-serif)[^;}]*/g) ?? [];
+    expect(declarations.length).toBeGreaterThan(0);
+    for (const declaration of declarations) {
+      expect(declaration.slice(0, declaration.search(/ui-(monospace|sans-serif)/))).toMatch(/"[^"]+",\s*$/);
+    }
+    expect(stageStyles).toContain('"JetBrains Mono"');
+    for (const family of ["JetBrains+Mono", "Nanum+Gothic+Coding", "IBM+Plex+Sans+KR"]) {
+      expect(indexHtml).toContain(family);
+    }
+  });
+
+  it("never puts a proportional face ahead of a monospace fallback", () => {
+    // IBM Plex Sans KR carries Latin glyphs, so standing second in a monospace stack it would catch
+    // Latin whenever the primary failed to load, and the console would stop lining up.
+    for (const stack of stageStyles.match(/font-family:[^;}]*|font:[^;}]*monospace[^;}]*/g) ?? []) {
+      if (!stack.includes("monospace")) continue;
+      expect(stack).not.toContain("IBM Plex Sans KR");
+    }
+  });
+
+  it("shows a recovered key as the characters it is, not as ligatures", () => {
+    expect(stageStyles).toContain("font-variant-ligatures:none");
+    expect(stageStyles).toContain(".bt-terminal__form input");
+    expect(stageStyles).toContain(".bt-cleared__key code");
+  });
+});
+
+describe("node 08 resting panel", () => {
+  it("draws the channel it is about instead of an empty body and a button", () => {
+    // The node's subject is that the carrier holds more than the body does, which only reads if the
+    // carrier is visibly alive while the body is visibly empty.
+    expect(stageSource).toContain("const carrierWave =");
+    expect(stageSource).toContain('<path className="is-trace" d={carrierWave} />');
+    expect(stageSource).toContain('<path className="is-beam" d={carrierWave} />');
+    expect(stageSource).toContain("bt-headers__channel");
+    expect(stageStyles).toContain("@keyframes bt-carrier-run");
+  });
+
+  it("names the channel from the node's own target", () => {
+    expect(stageSource).toContain("target={stage.target}");
+    expect(stageSource).toContain("<dd><code>{target}</code></dd>");
+  });
+
+  it("still says nothing about where the trace is", () => {
+    // Only what the panel draws before the request: the handler's own log lines come after it.
+    const panel = stageSource.slice(stageSource.indexOf("function HeaderList"), stageSource.indexOf("/** 09"));
+    const resting = panel.slice(panel.indexOf('return <div className="bt-headers">'), panel.indexOf("{open"));
+    for (const giveaway of ["x-", "non-standard", "헤더"]) {
+      expect(resting).not.toContain(giveaway);
+    }
   });
 });
 

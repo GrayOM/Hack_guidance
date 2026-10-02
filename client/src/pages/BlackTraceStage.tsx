@@ -93,7 +93,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
@@ -320,6 +320,7 @@ function VaultAssembly({ trace, actionLabel, onLog, onRemote, onBusy, onDone }: 
 type InstrumentProps = {
   surface: string;
   actionLabel?: string;
+  target: string;
   trace: string;
   onLog: (lines: string[]) => void;
   onBusy: () => void;
@@ -348,6 +349,8 @@ function Instrument(props: InstrumentProps) {
 }
 
 const delay = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+
+const carrierWave = "M0 22 L30 22 L38 8 L46 36 L54 22 L84 22 L92 14 L100 30 L108 22 L150 22 L158 6 L166 38 L174 22 L210 22 L218 16 L226 28 L234 22 L240 22";
 
 /** 01 — the record is rebuilt block by block and one index never draws. */
 function RecordRestore({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) {
@@ -482,7 +485,7 @@ function HopTrace({ actionLabel, onLog, onBusy, onDone, onRemote }: InstrumentPr
 }
 
 /** 08 — the headers are listed and one of them has no name the operator can read here. */
-function HeaderList({ actionLabel, onLog, onBusy, onDone, onRemote }: InstrumentProps) {
+function HeaderList({ actionLabel, target, onLog, onBusy, onDone, onRemote }: InstrumentProps) {
   const known = ["content-type", "content-length", "date", "server", "cache-control"];
   const [open, setOpen] = useState(false);
   const request = async () => {
@@ -497,7 +500,23 @@ function HeaderList({ actionLabel, onLog, onBusy, onDone, onRemote }: Instrument
   };
   return <div className="bt-headers">
     <p className="bt-headers__title">COMMUNICATION NODE</p>
-    <p className="bt-headers__body">body: <code>{"{ }"}</code></p>
+    {/* A node whose whole subject is "the channel carries more than the body" had nothing on it
+        but the empty body and a button. The carrier is drawn instead: the channel is plainly
+        alive, which is the thing that makes an empty body worth a second look. */}
+    <div className="bt-carrier" aria-hidden="true">
+      {/* An oscilloscope keeps the trace on the tube and runs a brighter beam along it, so the
+          waveform is readable at every moment instead of only while a dash happens to cross. */}
+      <svg viewBox="0 0 240 44" preserveAspectRatio="none">
+        <path className="is-trace" d={carrierWave} />
+        <path className="is-beam" d={carrierWave} />
+      </svg>
+      <span className="bt-carrier__sweep" />
+    </div>
+    <dl className="bt-headers__channel">
+      <div><dt>CHANNEL</dt><dd><code>{target}</code></dd></div>
+      <div><dt>CARRIER</dt><dd className="is-live">● TRANSMITTING</dd></div>
+      <div><dt>LAST BODY</dt><dd><code>{"{ }"}</code> <small>0 bytes</small></dd></div>
+    </dl>
     {open
       ? <><ul>{known.map(name => <li key={name}><code>{name}</code></li>)}<li className="is-unknown"><code>x-????????</code><em>████████</em></li></ul>
           <p className="bt-headers__note">헤더 6개 중 하나는 표준이 아니다.</p></>
