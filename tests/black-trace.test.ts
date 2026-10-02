@@ -179,7 +179,15 @@ describe("OPERATION BLACK TRACE", () => {
     // The planted traces stay discoverable exactly where each node hides them.
     expect(stageSource).toContain("data-fragment={trace}");
     expect(stageSource).toContain("data-note={trace}");
-    expect(stageSource).toContain('name="legacy_note" value={trace}');
+    // The hidden field carries the trace as DOM property state, never as a value attribute. As an
+    // attribute it sat in the markup in plain sight and the node became the same action as the one
+    // after it — read an attribute in Elements — instead of un-hiding the field.
+    // On a type="hidden" input the value property reflects the content attribute, so assigning it
+    // put the trace straight back into the markup. A text input hidden by the hidden attribute
+    // keeps the value as separate DOM state.
+    expect(stageSource).toContain('<input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />');
+    expect(stageSource).not.toContain('type="hidden" name="legacy_note"');
+    expect(stageSource).toContain("carrier.current.value = trace");
     expect(stageSource).toContain("deleted_record: ${trace}");
     // The injected comment lives on its own node so React never reconciles around it.
     expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');

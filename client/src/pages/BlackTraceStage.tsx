@@ -355,9 +355,25 @@ function RecordRestore({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) 
   </div>;
 }
 
-/** 02 — the payload is built in front of the operator and carries one more entry than the form. */
+/**
+ * The payload is built in front of the operator and carries one more entry than the form.
+ *
+ * The carrier is hidden by the hidden attribute rather than by type="hidden", and its value is
+ * assigned to the DOM property. On a type="hidden" input the value property reflects the content
+ * attribute, so assigning it wrote the trace straight back into the markup: the node read as "find
+ * the attribute in Elements", which is the node after it. On a text input the property is separate
+ * state, so the markup carries no value and un-hiding the field is what reveals it.
+ *
+ * That is also the more useful lesson. A value a script puts into a field never appears in view
+ * source and is submitted all the same, which is why "it is not in the HTML" is not an argument
+ * that a value is safe.
+ */
 function FormPayload({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentProps) {
   const [sent, setSent] = useState(false);
+  const carrier = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (carrier.current) carrier.current.value = trace;
+  }, [trace]);
   const authenticate = async () => {
     if (sent) return;
     onBusy();
@@ -373,7 +389,8 @@ function FormPayload({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentPr
     <div className="bt-auth-unit__field"><input readOnly disabled aria-label="사용자 ID" placeholder="—" /><Lock size={13} /></div>
     <p className="bt-auth-unit__sealed">INPUT SEALED · 이 단말기는 폐기되었다</p>
     <button type="button" onClick={authenticate} disabled={sent}>{sent ? "REJECTED" : actionLabel}</button>
-    <input type="hidden" name="legacy_note" value={trace} />
+    {/* No value prop: React would write it into the markup as an attribute. */}
+    <input type="text" hidden readOnly tabIndex={-1} aria-hidden="true" name="legacy_note" ref={carrier} />
     {sent ? <div className="bt-payload"><p>OUTGOING PAYLOAD</p><code>user_id = ""</code><code className="is-masked">{"????????"} = ████████</code><small>전송 2건 · 화면의 칸 1개</small></div> : null}
   </div>;
 }
