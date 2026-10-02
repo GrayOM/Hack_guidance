@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { blackTraceNodeCount, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
+import { cipherBenches } from "../client/src/components/trace-instruments";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -24,14 +25,15 @@ describe("OPERATION BLACK TRACE", () => {
       "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap", "source-map",
       "response", "header", "redirect",
       ...Array.from({ length: 10 }, () => "request"),
+      ...Array.from({ length: 10 }, () => "cipher"),
       "vault",
     ]);
-    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 30 }, (_, index) => index + 1));
+    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 40 }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
-      Array.from({ length: 30 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    expect(blackTraceStageById(8)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(16)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(30)?.access).toBe("OPERATOR");
+      Array.from({ length: 40 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
+    expect(blackTraceStageById(11)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(21)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(40)?.access).toBe("OPERATOR");
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
   });
@@ -211,8 +213,8 @@ describe("OPERATION BLACK TRACE", () => {
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
-    expect(nextBlackTraceRank(8)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(16)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(11)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(21)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     expect(directorySource).toContain("다음 등급");
     // Recovering a node is the only reward, so it is shown rather than only logged.
@@ -354,5 +356,66 @@ describe("chapter three: requests the operator shapes", () => {
     expect(stageSource).toContain('props.surface === "request"');
     expect(stageSource).toContain("nodeKey={stage.key}");
     expect(instrumentSource).toContain("const config = rigs[nodeKey]");
+  });
+});
+
+describe("chapter four: values that must be read first", () => {
+  const b64url = (value: string) => Buffer.from(value.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+  const rot13 = (text: string) => text.replace(/[a-zA-Z]/g, letter => {
+    const base = letter <= "Z" ? 65 : 97;
+    return String.fromCharCode(((letter.charCodeAt(0) - base + 13) % 26) + base);
+  });
+  // How an operator undoes each one. If any of these stops matching, that node cannot be solved.
+  const decoders: Record<string, (value: string) => string> = {
+    "plain-sight": value => Buffer.from(value, "base64").toString("utf8"),
+    "bytes-as-text": value => Buffer.from(value, "hex").toString("utf8"),
+    "percent-signs": value => decodeURIComponent(value),
+    shifted: value => rot13(value),
+    "one-byte-key": value => Buffer.from(Buffer.from(value, "hex").map(byte => byte ^ 0x2a)).toString("utf8"),
+    "two-alphabets": value => b64url(value).subarray(0, -3).toString("utf8"),
+    "three-parts": value => JSON.parse(b64url(value.split(".")[1]).toString("utf8")).note,
+    "no-signature": value => b64url(value.split(".")[2]).toString("utf8"),
+    "wrapped-twice": value => decodeURIComponent(Buffer.from(value, "base64").toString("utf8")),
+    "layer-by-layer": value => rot13(Buffer.from(Buffer.from(value, "hex").toString("utf8"), "base64").toString("utf8")),
+  };
+
+  const traces = ["FLAG{encoding_is_not_a_lock_a1b2c3d4e5f6}", "FLAG{the_other_alphabet_0f9e8d7c6b5a}"];
+
+  it("every node's value reverses to exactly the trace the server expects", () => {
+    expect(Object.keys(cipherBenches).sort()).toEqual(Object.keys(decoders).sort());
+    for (const trace of traces) {
+      for (const [key, bench] of Object.entries(cipherBenches)) {
+        expect(decoders[key]((bench as any).encode(trace)), key).toBe(trace);
+      }
+    }
+  });
+
+  it("never shows the trace in plain form", () => {
+    // Percent-encoding only escapes the braces, which left the whole label readable and the node
+    // with nothing to solve; every byte is escaped instead.
+    for (const trace of traces) {
+      const inner = trace.slice(5, -1);
+      for (const [key, bench] of Object.entries(cipherBenches)) {
+        expect((bench as any).encode(trace).includes(inner), key).toBe(false);
+      }
+    }
+  });
+
+  it("makes the variant-alphabet node actually use the variant alphabet", () => {
+    // Base64 of plain ASCII essentially never reaches the two characters that differ, so without a
+    // non-text tail this node encoded identically to the plain-base64 one.
+    for (const trace of traces) {
+      expect((cipherBenches as any)["two-alphabets"].encode(trace)).toMatch(/[-_]/);
+      expect((cipherBenches as any)["two-alphabets"].encode(trace))
+        .not.toBe((cipherBenches as any)["plain-sight"].encode(trace));
+    }
+  });
+
+  it("derives per operator, so the bundle carries encoders and never a value", () => {
+    for (const [key, bench] of Object.entries(cipherBenches)) {
+      expect((bench as any).encode(traces[0]), key).not.toBe((bench as any).encode(traces[1]));
+    }
+    expect(blackTraceStages.filter(stage => stage.surface === "cipher")).toHaveLength(10);
+    expect(stageSource).toContain('props.surface === "cipher"');
   });
 });

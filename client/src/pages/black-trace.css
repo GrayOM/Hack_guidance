@@ -391,3 +391,15 @@
 .bt-rig__note{margin:14px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
 .bt-rig .bt-action-button{margin-top:18px}
 @media(prefers-reduced-motion:reduce){.bt-rig__in.is-answered{animation:none}}
+
+/* The cipher bench: the value as it was found, and what can be said about its shape. */
+.bt-bench{width:min(500px,100%);text-align:left}
+.bt-bench__title{margin:0 0 11px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-bench__label{margin:0 0 7px;color:#648187;font-size:9px;letter-spacing:.12em}
+.bt-bench__value{display:block;padding:12px;border:1px solid rgba(117,187,196,.26);background:rgba(3,16,21,.75);color:#8affd2;font-size:11px;line-height:1.7;word-break:break-all;font-variant-ligatures:none}
+.bt-bench__observed{display:grid;gap:6px;margin:14px 0 0;padding:0;list-style:none}
+.bt-bench__observed li{padding-left:14px;position:relative;color:#9db8bc;font-size:11px;animation:bt-row-in .3s ease-out both}
+.bt-bench__observed li:before{content:"·";position:absolute;left:3px;color:#5be0db}
+.bt-bench__note{margin:14px 0 0;color:#f0cd68;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-bench .bt-action-button{margin-top:18px}
+@media(prefers-reduced-motion:reduce){.bt-bench__observed li{animation:none}}
