@@ -72,7 +72,7 @@ export default function BlackTraceStage() {
   useEffect(() => { if (stage?.surface !== "comment" || !trace || !commentAnchor.current) return; const marker = document.createComment(` deleted_record: ${trace} `); commentAnchor.current.appendChild(marker); return () => marker.remove(); }, [stage?.surface, trace]);
   useEffect(() => { if (stage?.surface !== "cookie" || !trace) return; document.cookie = `trace_id=${trace}; Path=/; SameSite=Lax`; }, [stage?.surface, trace]);
   if (!stage) return <div className="bt-shell bt-empty">UNKNOWN NODE</div>;
-  if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>이 노드는 이전 흔적을 회수한 뒤 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
+  if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>앞 노드의 흔적을 먼저 회수해야 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
 
   /** Remote nodes are solved by watching the request, so it is always really sent. */
   const callRemote = async (mode: string) => {
@@ -94,7 +94,7 @@ export default function BlackTraceStage() {
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
       <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
-        {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
+        {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전에는 브라우저 개발자도구가 필요합니다. PC에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>막히면 FIELD KIT을 열어 볼 수 있습니다. 열어 본 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
           {isVault
@@ -104,7 +104,7 @@ export default function BlackTraceStage() {
                 <input value={fragmentB} onChange={event => setFragmentB(event.target.value)} placeholder="PART 02" aria-label="조각 02" autoComplete="off" />
               </div>
             : <input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" />}
-          {isVault ? <p className="bt-terminal__assembled">{assembled || "두 조각을 각각 입력하면 하나로 이어집니다."}</p> : null}
+          {isVault ? <p className="bt-terminal__assembled">{assembled || "두 조각을 각각 넣으면 하나로 이어 붙입니다."}</p> : null}
           <button disabled={submit.isPending || !assembled}>{submit.isPending ? "VERIFYING" : isVault ? "ASSEMBLE" : "SUBMIT"} <ChevronRight size={15} /></button>
           {submit.isPending ? <div className="bt-verify" role="progressbar" aria-label="검증 중"><i /></div> : null}
         </form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
@@ -245,7 +245,7 @@ function NodeCleared({ id, recovered, onNext, onBoard }: { id: number; recovered
       <p className="bt-cleared__eyebrow">{final ? "OPERATION COMPLETE" : "TRACE RECOVERED"}</p>
       <h2>{final ? "MASTER ACCESS KEY 복구" : `NODE ${String(id).padStart(2, "0")} CLEARED`}</h2>
       {recovered ? <div className="bt-cleared__key"><span>RECOVERED KEY</span><DecryptedKey value={recovered} /></div> : null}
-      <p className="bt-cleared__note">{final ? "10개 노드를 모두 회수했습니다. 수료증을 발급할 수 있습니다." : "다음 노드가 해금되었습니다."}</p>
+      <p className="bt-cleared__note">{final ? "노드 10개를 전부 회수했습니다. 이제 수료증을 받을 수 있습니다." : "다음 노드가 열렸습니다."}</p>
       <div className="bt-cleared__actions">
         <button className="bt-cleared__primary" onClick={onNext}>{final ? "수료증 받기" : "다음 노드"} <ChevronRight size={16} /></button>
         <button className="bt-cleared__ghost" onClick={onBoard}>작전 보드</button>
