@@ -107,3 +107,67 @@
 .bt-vault-state{margin:4px 0 0 !important;color:#f0cd68 !important;font-size:11px !important;letter-spacing:.1em}
 .bt-vault-unit button:disabled{opacity:.6;cursor:default}
 @media(max-width:650px){.bt-vault-slots{grid-template-columns:1fr}}
+
+/* ---- Per-node instruments. Each node is operated differently, so each looks different. ---- */
+.bt-rebuild,.bt-relay,.bt-gauge,.bt-hops,.bt-headers,.bt-crawler{display:grid;justify-items:center;gap:14px;width:min(430px,100%);text-align:center}
+.bt-rebuild__title,.bt-relay__title,.bt-gauge__title,.bt-hops__title,.bt-headers__title,.bt-crawler__title,.bt-payload p{margin:0;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-rebuild__note,.bt-identity-note,.bt-relay__carry,.bt-gauge__note,.bt-hops__note,.bt-headers__note,.bt-crawler__note{margin:0;color:#f0cd68;font:11px/1.6 ui-sans-serif,system-ui,sans-serif}
+/* 01 document restore */
+.bt-rebuild ol{display:grid;gap:6px;width:100%;margin:0;padding:0;list-style:none;counter-reset:block}
+.bt-rebuild li{counter-increment:block;display:flex;gap:11px;align-items:center;border:1px solid rgba(117,187,196,.16);background:rgba(4,18,24,.7);padding:9px 12px;color:#4e6b70;font-size:11px;text-align:left}
+.bt-rebuild li:before{content:"#" counter(block,decimal-leading-zero);color:#5f8084;font-size:10px}
+.bt-rebuild li.is-drawn{border-color:rgba(91,224,219,.35);color:#cfe5e7;animation:bt-row-in .26s ease-out both}
+.bt-rebuild li.is-gap{border-style:dashed;border-color:rgba(240,205,104,.55);background:rgba(240,205,104,.06);color:#f0cd68;animation:bt-row-in .26s ease-out both}
+/* 02 outgoing payload */
+.bt-payload{display:grid;gap:7px;width:100%;margin-top:14px;border:1px solid rgba(91,224,219,.3);background:rgba(3,16,21,.85);padding:13px;text-align:left;animation:bt-fade-up .3s ease-out both}
+.bt-payload code{color:#cfe5e7;font-size:11px}
+.bt-payload code.is-masked{color:#f0cd68}
+.bt-payload small{color:#f0cd68;font-size:10px}
+/* 03 card turn */
+.bt-identity-card{transition:transform .35s cubic-bezier(.23,1,.32,1),border-color .35s ease}
+.bt-identity-card.is-flipped{border-color:rgba(240,205,104,.55);background:linear-gradient(130deg,rgba(44,38,20,.92),rgba(14,18,22,.95))}
+.bt-identity-card strong.is-blank{color:#f0cd68;letter-spacing:.04em}
+/* 05 relay */
+.bt-relay__path{display:flex;align-items:center;gap:12px;color:#9fc0c4;font-size:11px}
+.bt-relay__path i{flex:1;min-width:52px;height:1px;background:linear-gradient(90deg,rgba(91,224,219,.15),rgba(91,224,219,.75));position:relative}
+.bt-relay__path i:after{content:"▶";position:absolute;right:-4px;top:-8px;color:#5be0db;font-size:10px}
+.bt-relay__path .is-next{color:#5be0db}
+.bt-relay__carry strong{color:#f3e2b0}
+/* 06 transfer gauge */
+.bt-gauge__track{width:100%;height:9px;border:1px solid rgba(91,224,219,.3);background:rgba(3,16,21,.9)}
+.bt-gauge__track i{display:block;height:100%;background:linear-gradient(90deg,#58e1dc,#75e3a9);transition:width .24s ease}
+.bt-gauge__track i.is-discarded{background:repeating-linear-gradient(45deg,rgba(255,142,146,.55) 0 6px,transparent 6px 12px);width:100% !important}
+.bt-gauge__count{margin:0;color:#9fc0c4;font-size:10px;letter-spacing:.09em}
+/* 07 hops */
+.bt-hops ol{display:grid;gap:8px;width:100%;margin:0;padding:0;list-style:none}
+.bt-hops li{display:grid;grid-template-columns:62px 58px 1fr;align-items:center;gap:10px;border:1px solid rgba(117,187,196,.16);background:rgba(4,18,24,.7);padding:10px 12px;text-align:left}
+.bt-hops li span{color:#5f8084;font-size:9px;letter-spacing:.13em}
+.bt-hops li strong{color:#4e6b70;font-size:13px;font-weight:500}
+.bt-hops li small{color:#6d8a8f;font-size:9px}
+.bt-hops li.is-on{border-color:rgba(240,205,104,.45);animation:bt-row-in .26s ease-out both}
+.bt-hops li.is-on strong{color:#f0cd68}
+.bt-hops li.is-final strong{color:#ff8e92}
+.bt-hops li.is-final{border-color:rgba(255,142,146,.35)}
+/* 08 headers */
+.bt-headers__body{margin:0;color:#8da8ac;font-size:11px}
+.bt-headers__body code{color:#cfe5e7}
+.bt-headers ul{display:grid;gap:5px;width:100%;margin:0;padding:0;list-style:none}
+.bt-headers li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dotted rgba(117,187,196,.18);padding:6px 2px;text-align:left}
+.bt-headers li code{color:#9fc0c4;font-size:10px}
+.bt-headers li.is-unknown{border-bottom-color:rgba(240,205,104,.4);animation:bt-row-in .3s ease-out both}
+.bt-headers li.is-unknown code{color:#f0cd68}
+.bt-headers li.is-unknown em{color:#6d8a8f;font-style:normal;letter-spacing:-.05em}
+/* 09 crawler exchange */
+.bt-crawler pre{margin:0;color:#f0cd68;font-size:22px;line-height:1.1}
+.bt-crawler ul{display:grid;gap:7px;width:100%;margin:0;padding:0;list-style:none}
+.bt-crawler li{display:flex;justify-content:space-between;gap:12px;border:1px solid rgba(117,187,196,.16);background:rgba(4,18,24,.7);padding:9px 12px;text-align:left}
+.bt-crawler li span{color:#5f8084;font-size:9px;letter-spacing:.11em}
+.bt-crawler li strong{color:#4e6b70;font-size:11px;font-weight:500}
+.bt-crawler li.is-on{border-color:rgba(91,224,219,.35);animation:bt-row-in .26s ease-out both}
+.bt-crawler li.is-on strong{color:#cfe5e7}
+.bt-crawler li.is-empty{border-color:rgba(240,205,104,.5)}
+.bt-crawler li.is-empty strong{color:#f0cd68}
+@media(prefers-reduced-motion:reduce){.bt-rebuild li,.bt-payload,.bt-hops li,.bt-headers li,.bt-crawler li{animation:none}.bt-identity-card{transition:none}}
+
+/* The verdict bar is pinned to the bottom, so a filled instrument must not run under it. */
+.bt-scene__center.is-scanned{padding-bottom:46px}
