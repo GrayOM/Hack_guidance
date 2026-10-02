@@ -181,3 +181,36 @@ describe("OPERATION BLACK TRACE", () => {
     expect(myPageSource).toContain("/10");
   });
 });
+
+describe("korean setting", () => {
+  it("never repeats a line between nodes", () => {
+    // Nodes 06 and 08 both ended on "화면에 전달된 정보는 거의 없다", and node 09's intel restated
+    // its own narrative, which made the operation read as one scene written ten times.
+    const narratives = blackTraceStages.map(stage => stage.narrative);
+    expect(new Set(narratives).size).toBe(narratives.length);
+    const intel = blackTraceStages.map(stage => stage.intel);
+    expect(new Set(intel).size).toBe(intel.length);
+    for (const stage of blackTraceStages) {
+      const shared = stage.intel.split(" ").filter(word => word.length > 3 && stage.narrative.includes(word));
+      expect(shared).toHaveLength(0);
+    }
+  });
+
+  it("keeps one voice across the nodes", () => {
+    // A mix of report ("~했다") and command ("~하라", "~마라") was most of what read as stiff.
+    for (const stage of blackTraceStages) {
+      expect(stage.intel).not.toMatch(/(보라|마라|하라|해라|보세요|하세요)[.。]?$/);
+      expect(stage.narrative).toMatch(/다[.]$/);
+    }
+  });
+
+  it("lets Korean break between words and nowhere else", () => {
+    const styles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
+    // anywhere also shrinks min-content, which is what collapsed the heading to a few glyphs a line.
+    expect(styles).not.toContain("overflow-wrap:anywhere");
+    expect(styles).toContain("word-break:keep-all");
+    expect(styles).toContain("text-wrap:balance");
+    expect(styles).toContain("text-wrap:pretty");
+  });
+});
+
