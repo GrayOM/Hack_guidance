@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle2, ChevronRight, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { blackTraceStageById, composeTrace } from "@shared/black-trace";
 import { useBlackTraceProgress, useBlackTraceSubmit, useBlackTraceSurface } from "@/hooks/useBlackTrace";
@@ -117,7 +117,12 @@ function ScanReadout({ title, rows, note }: { title: string; rows?: Array<[strin
 }
 
 function renderScene(surface: string, actionLabel: string | undefined, action: () => void, trace: string) {
-  if (surface === "field") return <div className="bt-auth-unit"><span>USER ID</span><input readOnly aria-label="사용자 ID" /><button type="button" onClick={action}>{actionLabel}</button><input type="hidden" name="legacy_note" value={trace} /></div>;
+  if (surface === "field") return <div className="bt-auth-unit"><span>USER ID</span>
+    {/* The terminal is decommissioned, so the field never accepted input. Saying so turns a
+        box that looks broken into the story beat it was meant to be. */}
+    <div className="bt-auth-unit__field"><input readOnly disabled aria-label="사용자 ID" placeholder="—" /><Lock size={13} /></div>
+    <p className="bt-auth-unit__sealed">INPUT SEALED · 이 단말기는 폐기되었다</p>
+    <button type="button" onClick={action}>{actionLabel}</button><input type="hidden" name="legacy_note" value={trace} /></div>;
   if (surface === "identity") return <div className="bt-identity-stack"><div className="bt-identity-card" data-note={trace}><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></div><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
   if (surface === "route") return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
   if (surface === "response" || surface === "redirect" || surface === "header") return <div className="bt-remote-unit"><Wifi size={31} /><p>{surface === "response" ? "REMOTE NODE CONNECTION" : surface === "redirect" ? "PERSONNEL TRACE" : "COMMUNICATION NODE"}</p><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
