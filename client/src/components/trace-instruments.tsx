@@ -16,6 +16,10 @@ type Common = {
   onLog: (lines: string[]) => void;
   onBusy: () => void;
   onDone: () => void;
+  onRemote: (mode: string) => Promise<void>;
+  /** The node's stable key. Ten nodes share the surface "request", so the shared rig is told which
+   *  node it is standing in rather than which panel the node is about. */
+  nodeKey: string;
 };
 
 /* --- The browser holds more of the page than it draws ------------------------------------------
@@ -196,6 +200,66 @@ export function FileIndex({ surface, actionLabel, onLog, onBusy, onDone }: Commo
       : <button type="button" className="bt-action-button" onClick={run}>{actionLabel} <ChevronRight size={18} /></button>}
   </div>;
 }
+
+/* --- Requests the operator has to shape ---------------------------------------------------------
+   Up to here the answer was in a response that arrived on its own. From here the request itself is
+   the puzzle: the same address answers differently depending on how it is asked. The rig sends the
+   plain request so the refusal is visible, and says what the refusal is about without saying what
+   to change. */
+
+type RigConfig = { title: string; mode: string; method?: string; probe: string; refusal: string; note: string };
+
+const rigs: Record<string, RigConfig> = {
+  "wrong-method": { title: "INTAKE API", mode: "method", probe: "GET /intake", refusal: "405 METHOD NOT ALLOWED",
+    note: "창구는 열려 있다. 두드리는 방식이 이 방식은 아니다." },
+  "cookie-flags": { title: "SESSION ISSUER", mode: "cookie", probe: "GET /session", refusal: "200 · 세션 발급됨",
+    note: "값은 평범하다. 값과 함께 나온 것이 평범하지 않다." },
+  "claimed-role": { title: "CONTENT GATE", mode: "role", probe: "GET /gate", refusal: "200 · public summary only",
+    note: "서버가 요구하는 것이 응답에 적혀 있다. 그것을 적어 보내는 쪽은 당신이다." },
+  referer: { title: "PARTNER PORTAL", mode: "referer", probe: "GET /portal", refusal: "403 INTERNAL REFERRAL REQUIRED",
+    note: "내부에서 넘어온 요청만 받는다. 어디서 왔는지는 요청에 적힌다." },
+  etag: { title: "ASSET CACHE", mode: "etag", probe: "GET /asset", refusal: "200 · size 2048",
+    note: "본문은 평범하다. 같은 파일임을 알아보는 표가 따로 붙어 나온다." },
+  range: { title: "ARCHIVE STORE", mode: "range", probe: "GET /archive", refusal: "200 · FULL TRANSFER REFUSED",
+    note: "통째로는 주지 않는다. 어디부터 어디까지인지 말하면 다르다." },
+  preflight: { title: "CROSS ORIGIN", mode: "preflight", method: "OPTIONS", probe: "OPTIONS /resource", refusal: "204 · 본문 없음",
+    note: "본 요청 전에 오가는 대화가 따로 있다. 그 답에 서버의 사정이 적힌다." },
+  "status-only": { title: "ACK NODE", mode: "ack", probe: "GET /ack", refusal: "204 NO CONTENT",
+    note: "본문이 없다. 응답이 없는 것과는 다르다." },
+  "content-type": { title: "REPORT EXPORT", mode: "export", probe: "GET /export", refusal: "200 · 화면에 열리지 않음",
+    note: "내용이 잘못된 것이 아니다. 종류를 잘못 적어 보냈을 뿐이다." },
+  "two-requests": { title: "DISPATCH NODE", mode: "dispatch", probe: "GET /dispatch", refusal: "200 · STAGED",
+    note: "첫 응답은 답이 아니다. 다음에 어디로 물어야 하는지를 알려줄 뿐이다." },
+};
+
+export function RequestRig({ nodeKey, actionLabel, onLog, onBusy, onDone, onRemote }: Common & { surface: string }) {
+  const config = rigs[nodeKey];
+  const [sent, setSent] = useState(false);
+  const send = async () => {
+    if (sent) return;
+    onBusy();
+    onLog([`> ${config.probe}`]);
+    // The plain request really is sent: the refusal the operator reads is the server's own.
+    await onRemote(config.mode);
+    await delay(560);
+    setSent(true);
+    onLog([`> ${config.probe}`, `> ${config.refusal}`, "[!] REQUEST DID NOT MATCH THE NODE"]);
+    onDone();
+  };
+  return <div className="bt-rig">
+    <p className="bt-rig__title">{config.title}</p>
+    <div className="bt-rig__wire">
+      <span className="bt-rig__out">{config.probe}</span>
+      <span className="bt-rig__arrow">→</span>
+      <span className={`bt-rig__in${sent ? " is-answered" : ""}`}>{sent ? config.refusal : "· · ·"}</span>
+    </div>
+    {sent
+      ? <p className="bt-rig__note">{config.note}</p>
+      : <button type="button" className="bt-action-button" onClick={send}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+export const rigNodeKeys = Object.keys(rigs);
 
 export const sweepSurfaces = Object.keys(sweeps);
 export const probeSurfaces = Object.keys(probes);

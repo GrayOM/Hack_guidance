@@ -29,7 +29,9 @@ const nodeKeys: Record<number, string> = {
   1: "tooltip", 2: "wrong-destination", 3: "ghost-comment", 4: "forgotten-field", 5: "embedded-identity",
   6: "invisible-ink", 7: "off-screen", 8: "template-tag", 9: "shadow-root", 10: "residual-trace",
   11: "local-memory", 12: "until-you-leave", 13: "deeper-store", 14: "robot-rules", 15: "sitemap",
-  16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "fragmented-key",
+  16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "wrong-method",
+  21: "cookie-flags", 22: "claimed-role", 23: "referer", 24: "etag", 25: "range",
+  26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "fragmented-key",
 };
 
 const traceLabels: Record<string, string> = {
@@ -50,7 +52,7 @@ const traceLabels: Record<string, string> = {
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 20;
+const blackTraceNodeCount = 30;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
@@ -60,6 +62,16 @@ const channelFlags: Record<string, string> = {
   "silent-response": "FLAG{the_server_did_answer}",
   "server-whisper": "FLAG{headers_can_whisper}",
   "follow-the-trail": "FLAG{follow_the_location}",
+  "wrong-method": "FLAG{the_verb_was_the_lock}",
+  "cookie-flags": "FLAG{the_flag_rode_the_cookie}",
+  "claimed-role": "FLAG{it_believed_what_you_claimed}",
+  referer: "FLAG{it_trusted_where_you_came_from}",
+  etag: "FLAG{the_validator_remembered}",
+  range: "FLAG{you_asked_for_a_piece}",
+  preflight: "FLAG{the_question_before_the_question}",
+  "status-only": "FLAG{no_body_still_speaks}",
+  "content-type": "FLAG{declared_as_the_wrong_thing}",
+  "two-requests": "FLAG{the_first_answer_was_a_map}",
 };
 
 // Generous enough that a shared network browsing the public pages never notices it.
@@ -160,9 +172,9 @@ function firstOpenStage(completedStages: number[]) {
 // GUEST means "not signed in" and is never returned here: these actions require a session, so
 // the entry tier of a signed-in operator is TRAINEE.
 function blackTraceAccess(stage: number) {
-  if (stage >= 16) return "OPERATOR";
-  if (stage >= 11) return "FIELD OPERATOR";
-  if (stage >= 6) return "INFILTRATOR";
+  if (stage >= 24) return "OPERATOR";
+  if (stage >= 16) return "FIELD OPERATOR";
+  if (stage >= 8) return "INFILTRATOR";
   return "TRAINEE";
 }
 

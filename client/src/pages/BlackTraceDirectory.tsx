@@ -61,6 +61,7 @@ function FieldBriefing({ solved }: { solved: number }) {
     { name: "Elements", shows: "화면에 그려진 HTML 전체. 눈에 보이는 글자 말고도 주석, 숨은 입력칸, 태그에 붙은 속성이 전부 여기 있습니다." },
     { name: "Network", shows: "브라우저가 서버와 주고받은 요청과 응답. 응답 본문, 헤더, 중간에 거쳐 간 이동까지 한 건씩 남습니다." },
     { name: "Application", shows: "이 사이트가 브라우저에 저장해 둔 것. 쿠키와 저장소가 여기 모입니다. (Firefox는 저장소 탭)" },
+    { name: "Console", shows: "요청을 직접 보낼 수 있는 자리입니다. 뒤쪽 거점부터는 응답을 보는 것만으로는 부족하고, 요청을 어떻게 보내느냐가 문제가 됩니다." },
   ];
   return <section className={`bt-briefing${open ? " is-open" : ""}`}>
     <button type="button" onClick={() => setOpen(value => !value)}>
