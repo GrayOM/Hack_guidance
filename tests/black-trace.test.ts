@@ -105,52 +105,41 @@ describe("OPERATION BLACK TRACE", () => {
     }
   });
 
-  it("gives every node an action and a scan that matches its own subject", () => {
-    // Nodes 01~04 and 09 had a button that returned without doing anything, and 03 and 09 had
-    // no button at all, so inspecting them produced no visible consequence whatsoever.
+  it("operates every node with its own instrument rather than one shared button", () => {
+    // Ten nodes sharing one button, one console and one readout made the operation read as a
+    // single screen with ten captions. Each surface now has the instrument its subject calls for.
     expect(blackTraceStages.every(stage => (stage.actionLabel ?? "").length > 0)).toBe(true);
-    expect(blackTraceStages.every(stage => stage.scan.lines.length >= 2 && stage.scan.verdict.length > 0)).toBe(true);
-    // Each node reports in its own terms rather than a shared generic sweep.
+    for (const name of ["RecordRestore", "FormPayload", "IdentityCard", "StorageProbe", "RelayRoute", "TransferGauge", "HopTrace", "HeaderList", "CrawlerDialog", "VaultAssembly"]) {
+      expect(stageSource).toContain(`function ${name}(`);
+      expect(stageSource).toContain(`<${name} `);
+    }
+    // The shared scan machinery is gone, so a new node cannot quietly fall back to it.
+    expect(stageSource).not.toContain("ScanReadout");
+    expect(stageSource).not.toContain("renderScene");
+  });
+
+  it("closes every node with its own verdict", () => {
     expect(new Set(blackTraceStages.map(stage => stage.scan.verdict)).size).toBe(10);
     expect(blackTraceStageById(2)?.scan.verdict).toBe("AUTH REJECTED");
-    expect(blackTraceStageById(4)?.scan.verdict).toBe("SESSION ENDED");
     expect(blackTraceStageById(9)?.scan.verdict).toBe("POLICY NOT RENDERED");
-    expect(stageSource).toContain("stage.scan.lines");
     expect(stageSource).toContain("bt-scene__verdict");
   });
 
-  it("prints evidence into the scene whose counts do not add up", () => {
-    // A scan that only writes to the console leaves the scene an empty rectangle. The readout is
-    // what the operator actually sees come out of the action.
-    expect(blackTraceStages.every(stage => stage.scan.reveal.rows.length >= 2)).toBe(true);
-    expect(new Set(blackTraceStages.map(stage => stage.scan.reveal.title)).size).toBe(10);
-    expect(blackTraceStageById(1)?.scan.reveal.rows).toContainEqual(["comment nodes", "1"]);
-    expect(blackTraceStageById(1)?.scan.reveal.note).toContain("3개만");
-    // The readout never carries the trace itself, only the discrepancy that points at it.
-    for (const stage of blackTraceStages) {
-      const printed = JSON.stringify(stage.scan.reveal);
-      expect(printed).not.toContain("FLAG");
-      expect(printed).not.toMatch(/F12|개발자도구|Elements|Network|Application/);
+  it("shows the discrepancy without ever printing the trace", () => {
+    // Each instrument proves something is missing: a block that never draws, a payload with one
+    // entry more than the form, a store that kept a key, a slot with no source on this page.
+    for (const marker of ["NOT RENDERED", "OUTGOING PAYLOAD", "unlabeled", "surviving key", "carried with the move", "rendered: 0 bytes", "headers not rendered here", "x-????????", "served to screen", "SLOT 01"]) {
+      expect(stageSource).toContain(marker);
     }
-    expect(stageSource).toContain("ScanReadout");
+    // Values are masked on screen; the operator reads them out of the browser, not out of the page.
+    expect(stageSource).toContain("████████");
+    // The planted traces stay discoverable exactly where each node hides them.
+    expect(stageSource).toContain("data-fragment={trace}");
+    expect(stageSource).toContain("data-note={trace}");
+    expect(stageSource).toContain('name="legacy_note" value={trace}');
+    expect(stageSource).toContain("deleted_record: ${trace}");
     // The injected comment lives on its own node so React never reconciles around it.
     expect(stageSource).toContain('ref={commentAnchor} className="bt-scene__anchor"');
-  });
-
-  it("gives distinct nodes their own instrument instead of one shared button", () => {
-    // Ten nodes sharing one button, one console and one readout made every node feel the same.
-    // 04 probes each store separately; 10 fills two slots from two different sources.
-    expect(stageSource).toContain("StorageProbe");
-    expect(stageSource).toContain("VaultAssembly");
-    // Those two report through their own instrument, so the shared readout must not double up.
-    expect(stageSource).toContain("hasOwnInstrument");
-    // The store that kept something is named; its value is never printed on screen.
-    expect(stageSource).toContain("surviving key");
-    expect(stageSource).toContain("████████");
-    // The in-page fragment stays discoverable, and both slots are shown even when one is empty.
-    expect(stageSource).toContain("data-fragment={trace}");
-    expect(stageSource).toContain("SLOT 01");
-    expect(stageSource).toContain("SLOT 02");
   });
 
   it("keeps intel suggestive and opt-in rather than naming the tool", () => {

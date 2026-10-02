@@ -52,39 +52,16 @@ export default function BlackTraceStage() {
   if (!stage) return <div className="bt-shell bt-empty">UNKNOWN NODE</div>;
   if (!isOpen) return <div className="bt-shell bt-empty"><LockKeyhole size={24} /><p>이 노드는 이전 흔적을 회수한 뒤 열립니다.</p><button onClick={() => setLocation("/black-trace")}>OPERATION BOARD</button></div>;
 
-  /** The second fragment only exists in the response, so the request has to really happen. */
-  // These nodes carry their own instrument, which already reports what the generic readout would.
-  const hasOwnInstrument = stage?.surface === "cookie" || stage?.surface === "vault";
-
-  const recoverFragment = async () => {
-    try { await fetch(traceEndpoint(10, "vault"), { headers: { apikey: supabasePublishableKey } }); } catch { /* the console reports it */ }
-  };
-
-  const runAction = async () => {
-    if (scan === "running") return;
-    const wait = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
-    if (stage.surface === "route") { setTerminal(stage.scan.lines); setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`); return; }
-    setScan("running");
-    setTerminal([]);
-    // The remote nodes are solved by observing the request itself, so it is sent for real
-    // before the scripted report plays.
-    if ((["response", "redirect", "header", "vault"] as string[]).includes(stage.surface)) {
-      try {
-        await fetch(traceEndpoint(stage.id, stage.surface), { headers: { apikey: supabasePublishableKey }, redirect: stage.surface === "redirect" ? "manual" : "follow" });
-      } catch { /* the console reports the outcome either way */ }
-    }
-    for (const line of stage.scan.lines) {
-      await wait(360);
-      setTerminal(previous => [...previous, line]);
-    }
-    setScan("done");
+  /** Remote nodes are solved by watching the request, so it is always really sent. */
+  const callRemote = async (mode: string) => {
+    try { await fetch(traceEndpoint(id, mode), { headers: { apikey: supabasePublishableKey }, redirect: mode === "redirect" ? "manual" : "follow" }); } catch { /* the instrument reports it */ }
   };
   const submitFlag = (event: React.FormEvent) => { event.preventDefault(); if (!isAuthenticated) { setResult("error"); setTerminal(["[-] SESSION REQUIRED", "> opening operator login..."]); startPlatformLogin(); setLocation("/black-trace"); return; } if (!flag.trim()) return; setResult("idle"); setTerminal(["> transmitting recovered key..."]); submit.mutate({ stage: id, flag: flag.trim(), hintCount: intelOpen ? 1 : 0 }); };
 
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / 10</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / 10</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" />{stage.surface === "cookie" ? <StorageProbe onLog={setTerminal} onDone={() => setScan("done")} /> : stage.surface === "vault" ? <VaultAssembly trace={trace} actionLabel={stage.actionLabel} onLog={setTerminal} onRecover={recoverFragment} onDone={() => setScan("done")} /> : renderScene(stage.surface, stage.actionLabel, runAction, trace)}{hasOwnInstrument ? null : scan === "running" ? <ScanReadout title={stage.scan.reveal.title} /> : null}{hasOwnInstrument || scan !== "done" ? null : <ScanReadout title={stage.scan.reveal.title} rows={stage.scan.reveal.rows} note={stage.scan.reveal.note} />}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} actionLabel={stage.actionLabel} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/5?trace=${encodeURIComponent(trace)}`)} />{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전은 브라우저 개발자도구가 필요합니다. PC 브라우저에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>스스로 풀리지 않으면 FIELD KIT을 열어 보세요. 열람 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> RECOVERY CONSOLE</div><div className="bt-terminal__log">{(terminal.length ? terminal : bootLog).map((line, index) => <p key={`${line}-${index}`} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!terminal.length && !bootLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form"><label>&gt; submit_flag</label><input value={flag} onChange={event => setFlag(event.target.value)} placeholder="FLAG{________________}" autoComplete="off" /><button disabled={submit.isPending}>{submit.isPending ? "VERIFYING" : "SUBMIT"} <ChevronRight size={15} /></button></form>{result === "success" ? <div className="bt-terminal__result is-success"><CheckCircle2 size={15} /> NODE CLEARED</div> : null}{result === "error" ? <div className="bt-terminal__result is-error">INVALID ACCESS KEY</div> : null}</aside>
     </main>
@@ -147,13 +124,14 @@ function StorageProbe({ onLog, onDone }: { onLog: (lines: string[]) => void; onD
  * Node 10 is about two halves arriving from two different places, so the bay shows both slots and
  * fills only the one the request answers. The other stays empty on purpose.
  */
-function VaultAssembly({ trace, actionLabel, onLog, onRecover, onDone }: { trace: string; actionLabel?: string; onLog: (lines: string[]) => void; onRecover: () => Promise<void>; onDone: () => void }) {
+function VaultAssembly({ trace, actionLabel, onLog, onRemote, onBusy, onDone }: InstrumentProps) {
   const [slot, setSlot] = useState<"idle" | "loading" | "received">("idle");
   const recover = async () => {
     if (slot !== "idle") return;
     setSlot("loading");
+    onBusy();
     onLog(["> vault recovery requested...", "> negotiating with vault-node-01.lab"]);
-    await onRecover();
+    await onRemote("vault");
     setSlot("received");
     onLog(["> vault recovery requested...", "> fragment 02 delivered in response body", "STATUS: PARTIAL", "[!] KEY INCOMPLETE"]);
     onDone();
@@ -170,31 +148,216 @@ function VaultAssembly({ trace, actionLabel, onLog, onRecover, onDone }: { trace
   </div>;
 }
 
+
+type InstrumentProps = {
+  surface: string;
+  actionLabel?: string;
+  trace: string;
+  onLog: (lines: string[]) => void;
+  onBusy: () => void;
+  onDone: () => void;
+  onRemote: (mode: string) => Promise<void>;
+  onRoute: () => void;
+};
+
 /**
- * What the scan prints into the scene. The counts are deliberately inconsistent: the operator is
- * shown that something exists which the screen is not drawing, and has to go find it themselves.
+ * Every node is operated differently. Ten nodes sharing one button made the operation read as one
+ * screen with ten captions, so each surface gets the instrument its own subject calls for.
  */
-function ScanReadout({ title, rows, note }: { title: string; rows?: Array<[string, string]>; note?: string }) {
-  if (!rows) {
-    return <div className="bt-readout is-loading"><p className="bt-readout__title">{title}</p><div className="bt-readout__bars"><i /><i /><i /></div></div>;
+function Instrument(props: InstrumentProps) {
+  switch (props.surface) {
+    case "comment": return <RecordRestore {...props} />;
+    case "field": return <FormPayload {...props} />;
+    case "identity": return <IdentityCard {...props} />;
+    case "cookie": return <StorageProbe onLog={props.onLog} onDone={props.onDone} />;
+    case "route": return <RelayRoute {...props} />;
+    case "response": return <TransferGauge {...props} />;
+    case "redirect": return <HopTrace {...props} />;
+    case "header": return <HeaderList {...props} />;
+    case "robots": return <CrawlerDialog {...props} />;
+    default: return <VaultAssembly {...props} />;
   }
-  return <div className="bt-readout">
-    <p className="bt-readout__title">{title}</p>
-    <dl>{rows.map(([label, value], index) => <div key={label} style={{ animationDelay: `${70 * index}ms` }}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-    <p className="bt-readout__note">{note}</p>
+}
+
+const delay = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+
+/** 01 — the record is rebuilt block by block and one index never draws. */
+function RecordRestore({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) {
+  const blocks = ["SYSTEM LOG — ROUTINE", "NO ANOMALY DETECTED", "TERMINAL IDLE"];
+  const [shown, setShown] = useState(-1);
+  const restore = async () => {
+    if (shown >= 0) return;
+    onBusy();
+    onLog(["> rebuilding record..."]);
+    for (let index = 0; index < blocks.length; index += 1) { await delay(420); setShown(index); }
+    await delay(420);
+    setShown(blocks.length);
+    onLog(["> rebuilding record...", `> blocks found: ${blocks.length + 1}`, `> blocks drawn: ${blocks.length}`, "[!] RECORD EMPTY"]);
+    onDone();
+  };
+  return <div className="bt-rebuild">
+    <p className="bt-rebuild__title">DOCUMENT RESTORE</p>
+    <ol>
+      {blocks.map((text, index) => <li key={text} className={shown >= index ? "is-drawn" : ""}>{shown >= index ? text : "· · ·"}</li>)}
+      <li className={shown >= blocks.length ? "is-gap" : ""}>{shown >= blocks.length ? "NOT RENDERED" : "· · ·"}</li>
+    </ol>
+    {shown >= blocks.length
+      ? <p className="bt-rebuild__note">블록 4개 중 3개만 그려졌다.</p>
+      : <button type="button" className="bt-action-button" onClick={restore}>{actionLabel} <ChevronRight size={18} /></button>}
   </div>;
 }
 
-function renderScene(surface: string, actionLabel: string | undefined, action: () => void, trace: string) {
-  if (surface === "field") return <div className="bt-auth-unit"><span>USER ID</span>
+/** 02 — the payload is built in front of the operator and carries one more entry than the form. */
+function FormPayload({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentProps) {
+  const [sent, setSent] = useState(false);
+  const authenticate = async () => {
+    if (sent) return;
+    onBusy();
+    onLog(["> submitting credentials..."]);
+    await delay(620);
+    setSent(true);
+    onLog(["> submitting credentials...", "> entries transmitted: 2", "> visible inputs: 1", "[-] AUTH REJECTED"]);
+    onDone();
+  };
+  return <div className="bt-auth-unit"><span>USER ID</span>
     {/* The terminal is decommissioned, so the field never accepted input. Saying so turns a
         box that looks broken into the story beat it was meant to be. */}
     <div className="bt-auth-unit__field"><input readOnly disabled aria-label="사용자 ID" placeholder="—" /><Lock size={13} /></div>
     <p className="bt-auth-unit__sealed">INPUT SEALED · 이 단말기는 폐기되었다</p>
-    <button type="button" onClick={action}>{actionLabel}</button><input type="hidden" name="legacy_note" value={trace} /></div>;
-  if (surface === "identity") return <div className="bt-identity-stack"><div className="bt-identity-card" data-note={trace}><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></div><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  if (surface === "route") return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
-  if (surface === "response" || surface === "redirect" || surface === "header") return <div className="bt-remote-unit"><Wifi size={31} /><p>{surface === "response" ? "REMOTE NODE CONNECTION" : surface === "redirect" ? "PERSONNEL TRACE" : "COMMUNICATION NODE"}</p><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  if (surface === "robots") return <div className="bt-robot-unit"><pre>{"[ o_o ]\n /|_|\\\n  / \\"}</pre><p>AUTOMATED SECURITY NODE</p><span>INDEXING PERIMETER...</span><button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button></div>;
-  return <button type="button" className="bt-action-button" onClick={action}>{actionLabel} <ChevronRight size={18} /></button>;
+    <button type="button" onClick={authenticate} disabled={sent}>{sent ? "REJECTED" : actionLabel}</button>
+    <input type="hidden" name="legacy_note" value={trace} />
+    {sent ? <div className="bt-payload"><p>OUTGOING PAYLOAD</p><code>user_id = ""</code><code className="is-masked">{"????????"} = ████████</code><small>전송 2건 · 화면의 칸 1개</small></div> : null}
+  </div>;
+}
+
+/** 03 — the card turns over, and the back has one slot the front never printed. */
+function IdentityCard({ actionLabel, trace, onLog, onBusy, onDone }: InstrumentProps) {
+  const [flipped, setFlipped] = useState(false);
+  const flip = () => {
+    if (flipped) return;
+    onBusy();
+    setFlipped(true);
+    onLog(["> turning personnel card...", "> printed fields: 3", "> attribute slots: 4", "[!] IDENTITY REDACTED"]);
+    onDone();
+  };
+  return <div className="bt-identity-stack">
+    <div className={`bt-identity-card${flipped ? " is-flipped" : ""}`} data-note={trace}>
+      {flipped
+        ? <><span>ATTRIBUTE SLOTS</span><strong>data-role</strong><strong>data-unit</strong><strong>data-issued</strong><strong className="is-blank">[ unlabeled ] ████</strong></>
+        : <><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></>}
+    </div>
+    {flipped
+      ? <p className="bt-identity-note">인쇄된 칸은 3개, 카드가 든 값은 4개.</p>
+      : <button type="button" className="bt-action-button" onClick={flip}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/** 05 — the relay shows that something rides along before it forwards. */
+function RelayRoute({ actionLabel, onLog, onRoute }: InstrumentProps) {
+  return <div className="bt-relay">
+    <p className="bt-relay__title">GATEWAY RELAY</p>
+    <div className="bt-relay__path"><span>node 05</span><i /><span className="is-next">next node</span></div>
+    <p className="bt-relay__carry">carried with the move: <strong>1 parameter</strong></p>
+    <button type="button" className="bt-action-button" onClick={() => { onLog(["> gateway relay engaged", "> forwarding to next node..."]); onRoute(); }}>{actionLabel} <ChevronRight size={18} /></button>
+  </div>;
+}
+
+/** 06 — the body arrives on a meter and the view throws it away in front of the operator. */
+function TransferGauge({ actionLabel, onLog, onBusy, onDone, onRemote }: InstrumentProps) {
+  const [bytes, setBytes] = useState(-1);
+  const connect = async () => {
+    if (bytes >= 0) return;
+    onBusy();
+    onLog(["> establishing connection...", "> handshake accepted"]);
+    await onRemote("response");
+    for (const value of [18, 44, 71, 92]) { await delay(260); setBytes(value); }
+    await delay(420);
+    setBytes(-2);
+    onLog(["> establishing connection...", "> handshake accepted", "> body received: 92 bytes", "> rendered: 0 bytes", "[-] CONNECTION FAILED"]);
+    onDone();
+  };
+  const discarded = bytes === -2;
+  return <div className="bt-gauge">
+    <Wifi size={28} />
+    <p className="bt-gauge__title">REMOTE NODE CONNECTION</p>
+    <div className="bt-gauge__track"><i style={{ width: `${Math.max(0, bytes) / 92 * 100}%` }} className={discarded ? "is-discarded" : ""} /></div>
+    <p className="bt-gauge__count">{discarded ? "received 92 bytes · rendered 0" : bytes < 0 ? "awaiting transfer" : `${bytes} / 92 bytes`}</p>
+    {discarded
+      ? <p className="bt-gauge__note">본문은 도착했고, 화면이 버렸다.</p>
+      : <button type="button" className="bt-action-button" onClick={connect} disabled={bytes >= 0}>{bytes >= 0 ? "RECEIVING" : actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/** 07 — the route is two hops, and the one that knew the way is not the one that answered. */
+function HopTrace({ actionLabel, onLog, onBusy, onDone, onRemote }: InstrumentProps) {
+  const [hops, setHops] = useState(0);
+  const trace = async () => {
+    if (hops > 0) return;
+    onBusy();
+    onLog(["> movement trace sent"]);
+    await onRemote("redirect");
+    await delay(420); setHops(1);
+    await delay(520); setHops(2);
+    onLog(["> movement trace sent", "> hop 1: 302", "> hop 2: 404", "[-] RECORD NOT FOUND"]);
+    onDone();
+  };
+  return <div className="bt-hops">
+    <p className="bt-hops__title">PERSONNEL TRACE</p>
+    <ol>
+      <li className={hops >= 1 ? "is-on" : ""}><span>HOP 1</span><strong>{hops >= 1 ? "302" : "· · ·"}</strong><small>{hops >= 1 ? "headers not rendered here" : ""}</small></li>
+      <li className={hops >= 2 ? "is-on is-final" : ""}><span>HOP 2</span><strong>{hops >= 2 ? "404" : "· · ·"}</strong><small>{hops >= 2 ? "record not found" : ""}</small></li>
+    </ol>
+    {hops >= 2
+      ? <p className="bt-hops__note">404는 두 번째 응답이다. 길을 알려준 것은 첫 번째.</p>
+      : <button type="button" className="bt-action-button" onClick={trace} disabled={hops > 0}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/** 08 — the headers are listed and one of them has no name the operator can read here. */
+function HeaderList({ actionLabel, onLog, onBusy, onDone, onRemote }: InstrumentProps) {
+  const known = ["content-type", "content-length", "date", "server", "cache-control"];
+  const [open, setOpen] = useState(false);
+  const request = async () => {
+    if (open) return;
+    onBusy();
+    onLog(["> status requested"]);
+    await onRemote("header");
+    await delay(520);
+    setOpen(true);
+    onLog(["> status requested", "STATUS: ONLINE", "> body: { }", "> headers: 6 (1 non-standard)", "[!] BODY EMPTY"]);
+    onDone();
+  };
+  return <div className="bt-headers">
+    <p className="bt-headers__title">COMMUNICATION NODE</p>
+    <p className="bt-headers__body">body: <code>{"{ }"}</code></p>
+    {open
+      ? <><ul>{known.map(name => <li key={name}><code>{name}</code></li>)}<li className="is-unknown"><code>x-????????</code><em>████████</em></li></ul>
+          <p className="bt-headers__note">헤더 6개 중 하나는 표준이 아니다.</p></>
+      : <button type="button" className="bt-action-button" onClick={request}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/** 09 — the crawler gets an answer the screen never does. */
+function CrawlerDialog({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) {
+  const [step, setStep] = useState(0);
+  const ping = async () => {
+    if (step > 0) return;
+    onBusy();
+    onLog(["> automated crawler detected"]);
+    for (const value of [1, 2, 3]) { await delay(460); setStep(value); }
+    onLog(["> automated crawler detected", "> crawler asked for indexing policy", "> served to crawler: 1 file", "> served to screen: 0", "[!] POLICY NOT RENDERED"]);
+    onDone();
+  };
+  return <div className="bt-crawler">
+    <pre>{"[ o_o ]\n /|_|\\\n  / \\"}</pre>
+    <p className="bt-crawler__title">AUTOMATED SECURITY NODE</p>
+    <ul>
+      <li className={step >= 1 ? "is-on" : ""}><span>crawler → server</span><strong>{step >= 1 ? "indexing policy?" : "· · ·"}</strong></li>
+      <li className={step >= 2 ? "is-on" : ""}><span>server → crawler</span><strong>{step >= 2 ? "1 file" : "· · ·"}</strong></li>
+      <li className={step >= 3 ? "is-on is-empty" : ""}><span>server → screen</span><strong>{step >= 3 ? "nothing" : "· · ·"}</strong></li>
+    </ul>
+    {step >= 3
+      ? <p className="bt-crawler__note">그 파일은 화면 바깥에 있다.</p>
+      : <button type="button" className="bt-action-button" onClick={ping} disabled={step > 0}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
 }
