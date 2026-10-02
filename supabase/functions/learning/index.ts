@@ -23,11 +23,11 @@ const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 // Traces the client plants in the browser. Their value is derived per operator so that reading
 // the JavaScript bundle, or copying someone else's answer, yields nothing usable.
 const traceLabels: Record<number, string> = {
-  1: "ghost_in_the_source",
-  2: "hidden_fields_remember",
-  3: "attributes_tell_more",
-  4: "cookies_leave_traces",
-  5: "read_the_address",
+  1: "read_the_address",
+  2: "ghost_in_the_source",
+  3: "hidden_fields_remember",
+  4: "attributes_tell_more",
+  5: "cookies_leave_traces",
   10: "two_places",
 };
 const vaultTraceSuffix = "one_key}";
@@ -36,10 +36,10 @@ const blackTraceNodeCount = 10;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<number, string> = {
-  6: "FLAG{the_server_did_answer}",
-  7: "FLAG{follow_the_location}",
+  6: "FLAG{robots_know_the_way}",
+  7: "FLAG{the_server_did_answer}",
   8: "FLAG{headers_can_whisper}",
-  9: "FLAG{robots_know_the_way}",
+  9: "FLAG{follow_the_location}",
 };
 
 // Generous enough that a shared network browsing the public pages never notices it.

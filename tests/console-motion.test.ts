@@ -8,6 +8,10 @@ const styles = readFileSync(new URL("../client/src/index.css", import.meta.url),
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const stageStyles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
 const indexHtml = readFileSync(new URL("../client/index.html", import.meta.url), "utf8");
+// The console vocabulary is shared by the landing page and the node screens, so it lives in one
+// module rather than inside whichever page happened to need it first.
+const motionSource = readFileSync(new URL("../client/src/components/terminal-motion.tsx", import.meta.url), "utf8");
+const motionStyles = readFileSync(new URL("../client/src/components/terminal-motion.css", import.meta.url), "utf8");
 
 describe("event-driven console feedback", () => {
   it("keeps main-console ambient pointer response without retired challenge workspace dependencies", () => {
@@ -73,17 +77,18 @@ describe("stage reaction", () => {
   it("types the console a character at a time and keeps lines a burst repeats", () => {
     // The instruments resend the lines already on screen before adding their own, so a typewriter
     // that restarted on every burst would retype the whole session each call.
-    expect(stageSource).toContain("function useTypedLog");
-    expect(stageSource).toContain("settled.current[shared] === lines[shared]");
-    expect(stageSource).toContain("lines[row].slice(0, column)");
+    expect(motionSource).toContain("export function useTypedLog");
+    expect(stageSource).toContain('from "@/components/terminal-motion"');
+    expect(motionSource).toContain("settled.current[shared] === lines[shared]");
+    expect(motionSource).toContain("lines[row].slice(0, column)");
     // The burst is no longer rendered straight from state.
     expect(stageSource).not.toContain('{(terminal.length ? terminal : bootLog).map(');
   });
 
   it("shows the recovered key resolving instead of never showing it at all", () => {
-    expect(stageSource).toContain("function DecryptedKey");
+    expect(motionSource).toContain("export function ScrambleText");
     expect(stageSource).toContain("setRecovered(assembled)");
-    expect(stageSource).toContain("<DecryptedKey value={recovered} />");
+    expect(stageSource).toContain("<ScrambleText value={recovered} />");
     expect(stageStyles).toContain(".bt-cleared__key");
   });
 
@@ -122,8 +127,8 @@ describe("resting surface", () => {
     expect(stageSource).toContain('<SurfaceTelemetry target={stage.target} active={scan === "running"} />');
     expect(stageStyles).toContain(".bt-telemetry");
     // Something has to keep moving while the node is untouched.
-    expect(stageStyles).toContain("@keyframes bt-telemetry-signal");
-    expect(stageStyles).toContain("@keyframes bt-telemetry-beat");
+    expect(motionStyles).toContain("@keyframes bt-telemetry-signal");
+    expect(motionStyles).toContain("@keyframes bt-telemetry-beat");
   });
 
   it("reports the link and never what the surface is hiding", () => {

@@ -1,0 +1,69 @@
+/* The landing page was a hero, three cards and three captions: nothing moved, nothing reported,
+   and the right half of the hero was empty background. These styles give it the same console
+   vocabulary the node screens use, so the two read as one machine. */
+
+.hg-home{font-family:"JetBrains Mono","Nanum Gothic Coding",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.hg-home h1,.hg-home h2,.hg-hero__lead,.hg-surface__text{word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
+
+/* --- Hero --- */
+.hg-hero{padding:0}
+.hg-hero__body{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:clamp(24px,4vw,56px);padding:clamp(34px,5vw,56px) clamp(24px,4vw,48px) clamp(34px,5vw,52px)}
+.hg-eyebrow{margin:0;color:#6ff3ea;font-size:10px;letter-spacing:.2em;font-variant-ligatures:none}
+.hg-hero__title{margin:18px 0 0;color:#f2fbfa;font:600 clamp(28px,3vw,42px)/1.3 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;letter-spacing:-.015em;text-wrap:balance}
+.hg-hero__lead{max-width:38em;margin:18px 0 0;color:#9fb9bd;font:14px/1.85 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif}
+.hg-cta{display:inline-flex;align-items:center;gap:9px;margin-top:28px;border:0;background:#5ae0db;padding:14px 20px;color:#062027;font:700 12px "JetBrains Mono","Nanum Gothic Coding",ui-monospace,monospace;letter-spacing:.08em;cursor:pointer;transition:.18s ease;box-shadow:0 0 0 0 rgba(90,224,219,.45)}
+.hg-cta:hover{background:#8affd2;box-shadow:0 0 28px rgba(90,224,219,.35);transform:translateY(-1px)}
+
+/* The strip the node screens carry, reporting this visitor's own standing. */
+.hg-telemetry{position:relative;z-index:1;display:flex;align-items:center;gap:18px;padding:10px 16px;border-bottom:1px solid rgba(117,187,196,.18);background:rgba(3,14,20,.8);color:#6f9298;font-size:9px;letter-spacing:.11em;white-space:nowrap;overflow:hidden}
+.hg-telemetry code{color:#9dc4c8;font-size:9px;letter-spacing:.06em}
+.hg-telemetry strong{color:#8fd8d4;font-weight:500}
+.hg-telemetry__link{display:flex;align-items:center;gap:7px;color:#6ce7b7}
+.hg-telemetry__link i{width:5px;height:5px;border-radius:50%;background:#6ce7b7;box-shadow:0 0 0 3px rgba(108,231,183,.14);animation:bt-telemetry-beat 2.2s ease-in-out infinite}
+.hg-telemetry .bt-telemetry__signal{margin-left:auto}
+
+/* --- Boot console: what used to be empty background --- */
+.hg-boot{display:flex;flex-direction:column;min-height:230px;border:1px solid rgba(94,141,148,.32);background:#030a0e;box-shadow:inset 0 0 40px rgba(0,255,182,.03)}
+.hg-boot__head{padding:10px 14px;border-bottom:1px solid rgba(94,141,148,.26);color:#78dcd9;font-size:9px;letter-spacing:.14em}
+.hg-boot__log{flex:1;padding:14px;font-variant-ligatures:none}
+.hg-boot__log p{margin:0 0 7px;color:#a7c7c9;font-size:11px;line-height:1.6}
+.hg-boot__log p:last-child:after{content:"▌";margin-left:3px;color:#5ae0db;animation:bt-caret 1.05s steps(1) infinite}
+
+/* --- Cards --- */
+.hg-card{display:flex;flex-direction:column;border:1px solid #294247;background:#101b1e;padding:18px}
+.hg-card:hover{border-color:rgba(91,224,219,.45)}
+.hg-card__head{display:flex;align-items:center;gap:8px;color:#5be0db}
+.hg-card__head span{color:#6d868a;font-size:9px;letter-spacing:.14em}
+.hg-card__value{margin:14px 0 0;color:#f1fafb;font-size:20px;font-weight:600}
+.hg-card__track{height:3px;margin-top:12px;background:#0a1518}
+.hg-card__track i{display:block;height:100%;background:linear-gradient(90deg,#58e1dc,#75e3a9);box-shadow:0 0 12px rgba(88,225,220,.5);transition:width .5s ease}
+.hg-card button{margin-top:auto;padding-top:16px;border:0;background:transparent;color:#7fe4e0;font:inherit;font-size:11px;text-align:left;cursor:pointer}
+.hg-card button:hover{color:#b8f6f3}
+
+/* --- Attack surface --- */
+.hg-section-label{margin:0;color:#5be0db;font-size:10px;letter-spacing:.2em}
+.hg-surface{border:1px solid #243a3f;border-left:2px solid rgba(91,224,219,.45);background:rgba(10,22,25,.6);padding:16px 18px;transition:.18s ease}
+.hg-surface:hover{border-left-color:#5ae0db;background:rgba(14,32,36,.75);transform:translateY(-2px)}
+.hg-surface__number{margin:0;color:#4e7d82;font-size:11px;letter-spacing:.14em}
+.hg-surface h2{margin:9px 0 0;color:#eafafb;font-size:14px;font-weight:600}
+.hg-surface__text{margin:9px 0 0;color:#7e989c;font:13px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif}
+.hg-surface__nodes{margin:14px 0 0;padding-top:11px;border-top:1px dotted rgba(117,187,196,.2);color:#4e7d82;font-size:9px;letter-spacing:.14em}
+
+/* --- Live board: the public ranking, not decoration --- */
+.hg-board{border:1px solid #294247;background:rgba(8,18,21,.7)}
+.hg-board__head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #294247;color:#6d868a;font-size:10px;letter-spacing:.14em}
+.hg-board__head button{margin-left:auto;border:0;background:transparent;color:#7fe4e0;font:inherit;font-size:10px;cursor:pointer}
+.hg-board__head button:hover{color:#b8f6f3}
+.hg-board__live{display:flex;align-items:center;gap:6px;color:#6ce7b7}
+.hg-board__live i{width:5px;height:5px;border-radius:50%;background:#6ce7b7;animation:bt-telemetry-beat 1.6s ease-in-out infinite}
+.hg-board__row{display:grid;grid-template-columns:44px minmax(0,1fr) 120px 62px;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(41,66,71,.6)}
+.hg-board__row:last-child{border-bottom:0}
+.hg-board__row:hover{background:rgba(89,225,220,.05)}
+.hg-board__rank{color:#4e7d82;font-size:11px}
+.hg-board__name{overflow:hidden;color:#dceff0;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.hg-board__track{height:3px;background:#0a1518}
+.hg-board__track i{display:block;height:100%;background:linear-gradient(90deg,#58e1dc,#75e3a9)}
+.hg-board__count{color:#8fd8d4;font-size:11px;text-align:right}
+
+@media(max-width:860px){.hg-hero__body{grid-template-columns:1fr}.hg-board__row{grid-template-columns:40px minmax(0,1fr) 56px}.hg-board__track{display:none}}
+@media(prefers-reduced-motion:reduce){.hg-telemetry__link i,.hg-board__live i,.hg-boot__log p:last-child:after{animation:none}.hg-cta:hover,.hg-surface:hover{transform:none}}
