@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceNodeCount, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
+import { blackTraceNodeCount, blackTraceRanks, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
 import { cipherBenches } from "../client/src/components/instruments/shared";
 
@@ -32,14 +32,19 @@ describe("OPERATION BLACK TRACE", () => {
       "response", "header", "redirect",
       ...Array.from({ length: 10 }, () => "request"),
       ...Array.from({ length: 10 }, () => "cipher"),
+      ...Array.from({ length: 5 }, () => "range"),
       "vault",
     ]);
-    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: 40 }, (_, index) => index + 1));
+    expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: blackTraceNodeCount }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
-      Array.from({ length: 40 }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    expect(blackTraceStageById(11)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(21)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(40)?.access).toBe("OPERATOR");
+      Array.from({ length: blackTraceNodeCount }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
+    // Four even quarters of 45: a count that no longer divides by four put the board's ladder and
+    // the node's own tier a node apart at every boundary, so both now read one function.
+    expect(blackTraceStageById(12)?.access).toBe("TRAINEE");
+    expect(blackTraceStageById(13)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(24)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(35)?.access).toBe("OPERATOR");
+    expect(blackTraceStageById(blackTraceNodeCount)?.access).toBe("OPERATOR");
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
   });
@@ -50,8 +55,8 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStages.map(stage => stage.access)).not.toContain("GUEST");
     expect(blackTraceStageById(1)?.access).toBe("TRAINEE");
     expect(blackTraceStageById(3)?.access).toBe("TRAINEE");
-    expect(learningFunction).toContain('return "TRAINEE"');
-    expect(learningFunction).not.toContain('return "GUEST"');
+    expect(learningFunction).toContain('"TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"');
+    expect(learningFunction).not.toContain('"GUEST"');
   });
 
   it("provisions a profile for an account without name metadata and flags it for renaming", () => {
@@ -220,9 +225,15 @@ describe("OPERATION BLACK TRACE", () => {
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
-    expect(nextBlackTraceRank(11)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(21)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(13)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(24)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
+    // The ladder the board shows and the tier a node carries come from the same boundary, so a
+    // node that opens a tier is the node the board named as next.
+    for (const rank of blackTraceRanks) {
+      expect(blackTraceStageById(rank.at)?.access).toBe(rank.name);
+      if (rank.at > 1) expect(blackTraceStageById(rank.at - 1)?.access).not.toBe(rank.name);
+    }
     expect(directorySource).toContain("다음 등급");
     // Recovering a node is the only reward, so it is shown rather than only logged.
     expect(stageSource).toContain("NodeCleared");

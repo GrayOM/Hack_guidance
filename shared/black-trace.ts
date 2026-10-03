@@ -24,7 +24,7 @@ export type BlackTraceStage = {
     | "tooltip" | "comment" | "field" | "identity" | "invisible-ink" | "off-screen" | "template-tag" | "shadow-root"
     | "cookie" | "local-memory" | "until-you-leave" | "deeper-store"
     | "route" | "robots" | "sitemap" | "source-map"
-    | "response" | "redirect" | "header" | "request" | "cipher" | "vault";
+    | "response" | "redirect" | "header" | "request" | "cipher" | "range" | "vault";
 };
 
 export const blackTraceStages: BlackTraceStage[] = [
@@ -184,7 +184,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #011",
     title: "Local Memory",
     target: "profile-cache.lab",
-    access: "INFILTRATOR",
+    access: "TRAINEE",
     sceneLabel: "PERSISTENT STORE: WARM",
     actionLabel: "READ CACHE",
     narrative: "이 단말은 같은 사용자를 여러 번 맞이했다. 다시 묻지 않으려고 적어 둔 것이 아직 그대로 있다.",
@@ -199,7 +199,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #012",
     title: "Until You Leave",
     target: "session-cache.lab",
-    access: "INFILTRATOR",
+    access: "TRAINEE",
     sceneLabel: "VOLATILE STORE: HOT",
     actionLabel: "READ SESSION",
     narrative: "탭이 닫히면 사라질 값이다. 다행히 이 탭은 아직 열려 있다.",
@@ -334,7 +334,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #021",
     title: "Flags on the Cookie",
     target: "session-issuer.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "SET-COOKIE: OBSERVED",
     actionLabel: "REQUEST SESSION",
     narrative: "창구가 세션을 하나 발급한다. 값 자체는 평범한데, 그 값에 함께 붙어 나오는 설정이 평범하지 않다.",
@@ -349,7 +349,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #022",
     title: "Who Is Asking",
     target: "content-gate.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "ROLE CHECK: ACTIVE",
     actionLabel: "SEND REQUEST",
     narrative: "이 관문은 찾아온 쪽이 자기를 뭐라고 밝히는지 보고 답을 바꾼다. 밝히는 쪽은 서버가 아니다.",
@@ -364,7 +364,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #023",
     title: "Where You Came From",
     target: "partner-portal.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "ORIGIN CHECK: ACTIVE",
     actionLabel: "SEND REQUEST",
     narrative: "제휴 포털은 내부 화면에서 넘어온 요청만 받는다. 어디서 왔는지는 요청에 적혀 있다.",
@@ -484,7 +484,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #031",
     title: "Bytes as Text",
     target: "memory-dump.lab",
-    access: "OPERATOR",
+    access: "FIELD OPERATOR",
     sceneLabel: "FORMAT: HEX",
     actionLabel: "READ DUMP",
     narrative: "메모리 덤프 한 조각이다. 숫자와 알파벳 앞쪽 글자만 쓰인 것이 눈에 띈다.",
@@ -499,7 +499,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #032",
     title: "Percent Signs",
     target: "query-log.lab",
-    access: "OPERATOR",
+    access: "FIELD OPERATOR",
     sceneLabel: "FORMAT: ESCAPED",
     actionLabel: "READ ENTRY",
     narrative: "접근 로그 한 줄이다. 주소에 실려 넘어간 값이 그대로 기록되어 있고, 특수 문자만 자리를 바꿔 적혀 있다.",
@@ -514,7 +514,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #033",
     title: "Shifted",
     target: "notes-archive.lab",
-    access: "OPERATOR",
+    access: "FIELD OPERATOR",
     sceneLabel: "CIPHER: CLASSICAL",
     actionLabel: "READ NOTE",
     narrative: "운영자 메모다. 글자 수와 모양은 멀쩡한데 단어가 되지 않는다. 자리만 밀려 있다.",
@@ -529,7 +529,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #034",
     title: "One Byte Key",
     target: "firmware-blob.lab",
-    access: "OPERATOR",
+    access: "FIELD OPERATOR",
     sceneLabel: "CIPHER: REPEATING",
     actionLabel: "READ BLOB",
     narrative: "펌웨어 조각이다. 바이트가 고르게 흩어져 있지 않고, 같은 간격으로 같은 흔적이 반복된다.",
@@ -615,8 +615,83 @@ export const blackTraceStages: BlackTraceStage[] = [
   },
   {
     id: 40,
-    key: "fragmented-key",
+    key: "someone-elses-order",
     code: "CASE #040",
+    title: "Someone Else's Order",
+    target: "orders-api.lab",
+    access: "OPERATOR",
+    sceneLabel: "OWNERSHIP: UNCHECKED",
+    actionLabel: "FETCH ORDER",
+    narrative: "주문 조회 화면을 잡았다. 내 주문은 잘 나온다. 서버가 확인하는 것은 번호가 맞는지뿐이다.",
+    intel: "번호가 맞는지와 그 번호가 당신 것인지는 다른 질문이다.",
+    scan: { verdict: "OWNER NOT VERIFIED" },
+    lesson: { risk: "식별자만 보고 돌려주는 조회는 번호를 바꾸는 것만으로 남의 자료를 꺼낸다. 진단에서 가장 자주 나오는 결함이고 자동 점검 도구는 잘 찾지 못한다.", fix: "조회할 때마다 그 자원이 요청자의 것인지 서버가 확인한다. 번호를 추측하기 어렵게 만드는 것은 보완책이지 통제가 아니다." },
+    surface: "range",
+  },
+  {
+    id: 41,
+    key: "role-in-the-token",
+    code: "CASE #041",
+    title: "Role in the Token",
+    target: "range-issuer.lab",
+    access: "OPERATOR",
+    sceneLabel: "TOKEN: SELF-DESCRIBED",
+    actionLabel: "REQUEST TOKEN",
+    narrative: "모의 발급기가 토큰을 하나 내준다. 그 토큰에는 내가 무엇을 할 수 있는지가 적혀 있고, 검증하는 쪽은 적힌 대로 믿는다.",
+    intel: "토큰은 자기가 어떻게 검사되어야 하는지까지 스스로 적어 둔다.",
+    scan: { verdict: "CLAIMS TRUSTED AS GIVEN" },
+    lesson: { risk: "서명 방식을 토큰이 선언하게 두면 선언을 바꿔 검사를 건너뛸 수 있다. 권한이 토큰 안에 적혀 있으면 그대로 올라간다.", fix: "허용 서명 방식을 서버가 고정하고 토큰의 선언을 무시한다. 권한은 토큰이 아니라 서버가 보관한 기록으로 판단한다." },
+    surface: "range",
+  },
+  {
+    id: 42,
+    key: "up-one-level",
+    code: "CASE #042",
+    title: "Up One Level",
+    target: "docs-service.lab",
+    access: "OPERATOR",
+    sceneLabel: "PATH: JOINED",
+    actionLabel: "FETCH DOCUMENT",
+    narrative: "문서 열람 기능이다. 공개 폴더의 파일 이름을 넘기면 그 파일을 돌려준다. 넘긴 이름을 그대로 경로에 붙인다.",
+    intel: "경로는 앞으로만 가지 않는다.",
+    scan: { verdict: "PATH NOT NORMALIZED" },
+    lesson: { risk: "사용자가 준 이름을 경로에 그대로 붙이면 공개 폴더 바깥의 파일이 열린다. 설정 파일과 자격 증명이 이렇게 나간다.", fix: "경로를 정규화한 뒤 허용된 디렉터리 안에 있는지 확인한다. 가능하면 이름 대신 식별자로 받는다." },
+    surface: "range",
+  },
+  {
+    id: 43,
+    key: "twice-at-once",
+    code: "CASE #043",
+    title: "Twice at Once",
+    target: "coupon-service.lab",
+    access: "OPERATOR",
+    sceneLabel: "CHECK: NOT ATOMIC",
+    actionLabel: "APPLY COUPON",
+    narrative: "쿠폰은 한 번만 쓸 수 있다. 서버는 쓴 적이 있는지 확인하고, 그 다음에 썼다고 기록한다. 두 동작 사이에 틈이 있다.",
+    intel: "확인과 기록이 한 동작이 아니면, 그 사이에 다른 요청이 들어갈 수 있다.",
+    scan: { verdict: "DOUBLE APPLY ACCEPTED" },
+    lesson: { risk: "확인과 반영이 분리된 처리는 동시에 보낸 요청이 모두 확인을 통과한다. 쿠폰, 포인트, 잔액에서 금전 손실로 이어진다.", fix: "확인과 반영을 한 트랜잭션에서 처리하고, 고유 제약이나 원자적 갱신으로 중복을 막는다." },
+    surface: "range",
+  },
+  {
+    id: 44,
+    key: "negative-quantity",
+    code: "CASE #044",
+    title: "Negative Quantity",
+    target: "checkout-service.lab",
+    access: "OPERATOR",
+    sceneLabel: "INPUT: UNBOUNDED",
+    actionLabel: "SUBMIT ORDER",
+    narrative: "결제 단계다. 수량과 단가를 곱해 합계를 낸다. 수량이 얼마여야 하는지는 아무도 정해 두지 않았다.",
+    intel: "값의 형식이 맞다는 것과 값이 말이 된다는 것은 다르다.",
+    scan: { verdict: "TOTAL BELOW ZERO" },
+    lesson: { risk: "범위를 정하지 않은 수량은 합계를 음수로 만들고 잔액을 늘린다. 형식 검증만 하는 입력 검사는 이것을 통과시킨다.", fix: "업무 규칙에 맞는 범위를 서버에서 강제하고, 금액은 서버가 다시 계산한다." },
+    surface: "range",
+  },
+  {
+    id: 45,
+    key: "fragmented-key",
+    code: "CASE #045",
     title: "Fragmented Key",
     target: "vault-node-01.lab",
     access: "OPERATOR",
@@ -677,12 +752,30 @@ export function composeTrace(key: string, token: string | null) {
 }
 
 /** The clearance ladder the operation advances through, used to show what the next node unlocks. */
-export const blackTraceRanks = [
-  { at: 1, name: "TRAINEE" },
-  { at: 11, name: "INFILTRATOR" },
-  { at: 21, name: "FIELD OPERATOR" },
-  { at: 31, name: "OPERATOR" },
-] as const;
+/** Four tiers spread evenly across however many nodes the operation holds. Written as fixed
+ *  numbers they had to be moved by hand every time a chapter was added, in two files that had to
+ *  agree; derived from the count they move themselves. */
+const tierNames = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as const;
+
+/** The first node of each tier, for a course of `total` nodes: four even quarters. Both the tier a
+ *  node carries and the ladder the board shows read this one function, because computing them two
+ *  ways disagreed by a node at every boundary once the count stopped dividing by four. */
+export function blackTraceTierStart(index: number, total: number) {
+  return index === 0 ? 1 : Math.ceil((total / 4) * index) + 1;
+}
+
+export function blackTraceTierFor(stage: number, total: number) {
+  let tier = 0;
+  for (let index = 1; index < tierNames.length; index += 1) {
+    if (stage >= blackTraceTierStart(index, total)) tier = index;
+  }
+  return tierNames[tier];
+}
+
+export const blackTraceRanks = tierNames.map((name, index) => ({
+  at: blackTraceTierStart(index, blackTraceStages.length),
+  name,
+}));
 
 /** One number for the whole operation. It was written as a literal in eight places, which is how
  *  the certificate ended up requiring a node count the course no longer had. */
