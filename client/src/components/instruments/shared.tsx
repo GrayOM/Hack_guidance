@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import type { InstrumentProps as Common } from "./types";
 
 /**
  * The first ten nodes each got a component written for them by hand. Twenty cannot be built that
@@ -8,19 +9,7 @@ import { ChevronRight } from "lucide-react";
  * on. What stays bespoke is the nodes whose subject is genuinely its own.
  */
 
-const delay = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
-
-type Common = {
-  actionLabel?: string;
-  trace: string;
-  onLog: (lines: string[]) => void;
-  onBusy: () => void;
-  onDone: () => void;
-  onRemote: (mode: string) => Promise<void>;
-  /** The node's stable key. Ten nodes share the surface "request", so the shared rig is told which
-   *  node it is standing in rather than which panel the node is about. */
-  nodeKey: string;
-};
+export const delay = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
 
 /* --- The browser holds more of the page than it draws ------------------------------------------
    Five nodes make that point from five directions, so the sweep counts what is present against

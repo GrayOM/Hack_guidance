@@ -7,6 +7,9 @@ const rankingSource = readFileSync(new URL("../client/src/pages/Ranking.tsx", im
 const styles = readFileSync(new URL("../client/src/index.css", import.meta.url), "utf8");
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const stageStyles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
+// Instruments moved out of the node screen into their own folder; what they draw is checked there.
+const instrumentSource = readFileSync(new URL("../client/src/components/instruments/shared.tsx", import.meta.url), "utf8")
+  + readFileSync(new URL("../client/src/components/instruments/bespoke.tsx", import.meta.url), "utf8");
 const indexHtml = readFileSync(new URL("../client/index.html", import.meta.url), "utf8");
 // The console vocabulary is shared by the landing page and the node screens, so it lives in one
 // module rather than inside whichever page happened to need it first.
@@ -186,16 +189,16 @@ describe("node 08 resting panel", () => {
   it("draws the channel it is about instead of an empty body and a button", () => {
     // The node's subject is that the carrier holds more than the body does, which only reads if the
     // carrier is visibly alive while the body is visibly empty.
-    expect(stageSource).toContain("const carrierWave =");
-    expect(stageSource).toContain('<path className="is-trace" d={carrierWave} />');
-    expect(stageSource).toContain('<path className="is-beam" d={carrierWave} />');
-    expect(stageSource).toContain("bt-headers__channel");
+    expect(instrumentSource).toContain("const carrierWave =");
+    expect(instrumentSource).toContain('<path className="is-trace" d={carrierWave} />');
+    expect(instrumentSource).toContain('<path className="is-beam" d={carrierWave} />');
+    expect(instrumentSource).toContain("bt-headers__channel");
     expect(stageStyles).toContain("@keyframes bt-carrier-run");
   });
 
   it("names the channel from the node's own target", () => {
     expect(stageSource).toContain("target={stage.target}");
-    expect(stageSource).toContain("<dd><code>{target}</code></dd>");
+    expect(instrumentSource).toContain("<dd><code>{target}</code></dd>");
   });
 
   it("still says nothing about where the trace is", () => {
