@@ -403,3 +403,31 @@
 .bt-bench__note{margin:14px 0 0;color:#f0cd68;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
 .bt-bench .bt-action-button{margin-top:18px}
 @media(prefers-reduced-motion:reduce){.bt-bench__observed li{animation:none}}
+
+/* --- Chapter five: the practice range console ------------------------------------------------
+   The first instrument the operator types into, so it is laid out as a request builder: the
+   parameters above, the reply below, and the reply left as it arrived rather than summarised. */
+.bt-range{width:min(560px,100%);text-align:left}
+.bt-range__title{margin:0 0 5px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-range__endpoint{margin:0 0 15px;color:#648187;font-size:10px;letter-spacing:.05em;word-break:break-all}
+.bt-range__fields{display:grid;gap:12px}
+.bt-range__field{display:grid;gap:5px}
+.bt-range__field>span{color:#9dc4c8;font-size:9px;letter-spacing:.12em}
+.bt-range__field input{width:min(170px,100%);padding:10px 11px;border:1px solid rgba(117,187,196,.26);border-radius:0;background:rgba(3,16,21,.8);color:#8affd2;font:inherit;font-size:11px;letter-spacing:.02em}
+.bt-range__field.is-long input{width:100%;word-break:break-all}
+.bt-range__field input:focus{outline:none;border-color:rgba(91,224,219,.6);box-shadow:0 0 0 1px rgba(91,224,219,.22)}
+.bt-range__field input::placeholder{color:#3f6065}
+.bt-range__field>em{color:#56757a;font-size:10px;font-style:normal}
+.bt-range__actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+.bt-range__actions .bt-action-button{margin-top:0}
+.bt-range__reset{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;border:1px solid rgba(117,187,196,.24);background:transparent;color:#9dc4c8;font:inherit;font-size:9px;letter-spacing:.12em;cursor:pointer}
+.bt-range__reset:hover:not(:disabled){border-color:rgba(91,224,219,.5);color:#5be0db}
+.bt-range__reset:disabled{opacity:.45;cursor:default}
+.bt-range__reply{margin-top:18px;padding:12px;border:1px solid rgba(117,187,196,.16);background:rgba(3,16,21,.72);min-height:62px}
+.bt-range__reply.is-answered{border-color:rgba(117,187,196,.3);animation:bt-row-in .3s ease-out both}
+.bt-range__idle{margin:0;color:#4e7d82;font:11px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-range__status{display:inline-block;margin-bottom:9px;padding:3px 8px;border:1px solid currentColor;font-size:9px;letter-spacing:.1em}
+.bt-range__status.is-ok{color:#8affd2}
+.bt-range__status.is-refused{color:#f0cd68}
+.bt-range__reply pre{margin:0;max-height:200px;overflow:auto;color:#9dc4c8;font:11px/1.65 inherit;white-space:pre-wrap;word-break:break-all}
+@media(prefers-reduced-motion:reduce){.bt-range__reply.is-answered{animation:none}}
