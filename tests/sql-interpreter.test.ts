@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { likeMatch, runSql, SqlError, sqlLimits, tokenize } from "../supabase/functions/range/sql";
+import { buildBundle } from "../scripts/bundle-range.mjs";
 
 const interpreter = readFileSync(new URL("../supabase/functions/range/sql.ts", import.meta.url), "utf8");
 const rangeFunction = readFileSync(new URL("../supabase/functions/range/index.ts", import.meta.url), "utf8");
@@ -108,5 +109,20 @@ describe("the injection nodes' SQL interpreter", () => {
     const started = Date.now();
     expect(likeMatch("a".repeat(600), `${"%".repeat(60)}b`)).toBe(false);
     expect(Date.now() - started).toBeLessThan(200);
+  });
+
+  it("keeps the single-file copy of the function identical to the two files it is built from", () => {
+    // hg-range is deployed by pasting it into the Supabase dashboard, and it is two files because
+    // the interpreter is worth importing and running from here directly. A deploy that pasted one
+    // of the two would leave every injection node returning 500, so a flattened copy is committed
+    // for that paste -- and regenerated here, because a stale copy is the same failure with an
+    // extra step of confusion in front of it.
+    const committed = readFileSync(new URL("../supabase/deploy/hg-range.ts", import.meta.url), "utf8");
+    expect(committed).toBe(buildBundle());
+    // Flattening must not leave an import the dashboard cannot resolve, nor drop the one it can.
+    expect(committed).not.toContain('from "./sql.ts"');
+    expect(committed).toContain('import { createClient } from "npm:@supabase/supabase-js@2";');
+    expect(committed).toContain("Deno.serve");
+    expect(committed).toContain("function runSql");
   });
 });
