@@ -229,6 +229,32 @@ describe("PRACTICE RANGE", () => {
     expect(rangeFunction).toContain("bounded(payload.note as string)");
   });
 
+  it("lets the database record every node the course actually has", () => {
+    // The progress table carried `stage between 1 and 10` from when the operation had ten nodes,
+    // through four chapters that raised the certificate requirement and never this. Every node
+    // above ten was impossible to record: the function accepted the trace and the insert was
+    // refused, so a right answer came back as a 500. Nobody hit it because nobody had reached
+    // node eleven.
+    //
+    // Read from the newest migration that sets the bound, found by content rather than filename,
+    // so the next chapter cannot leave it behind again.
+    // Only the executed SQL counts. Read whole, this matched the old bound quoted in the new
+    // migration's own comment and reported the number it was written to fix.
+    const executed = (name: string) => {
+      const text = readFileSync(new URL(name, migrationDir), "utf8");
+      return text.slice(text.indexOf("begin;") + 1 || 0);
+    };
+    const setsBound = migrations.filter(name => /check \(stage between 1 and \d+\)/.test(executed(name)));
+    const newest = executed(setsBound[setsBound.length - 1]);
+    const bound = Number(/check \(stage between 1 and (\d+)\)/.exec(newest)![1]);
+    expect(bound).toBeGreaterThanOrEqual(blackTraceNodeCount);
+    // The bound is kept rather than dropped: the function already refuses a node it has no key
+    // for, so this is the second line against a stage number a future bug invented.
+    expect(newest).toContain("drop constraint if exists hg_black_trace_progress_stage_check");
+    // Every node the course has must be writable.
+    for (const stage of blackTraceStages.map(node => node.id)) expect(stage).toBeLessThanOrEqual(bound);
+  });
+
   it("requires the whole course for the certificate, in the newest migration that sets the count", () => {
     // The certificate once required a node count the course no longer had, because the requirement
     // is written in SQL and the course is written in TypeScript. The newest migration to name a
