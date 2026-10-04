@@ -2,6 +2,7 @@
  *  callbacks through which it reports back to the node screen. */
 export type InstrumentProps = {
   surface: string;
+  stageId: number;
   nodeKey: string;
   actionLabel?: string;
   target: string;

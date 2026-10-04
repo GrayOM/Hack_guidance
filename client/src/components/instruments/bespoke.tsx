@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronRight, Lock, LockKeyhole, Wifi } from "lucide-react";
+import { Check, ChevronRight, Copy, Lock, LockKeyhole, Wifi } from "lucide-react";
 import type { InstrumentProps } from "./types";
 import { delay } from "./shared";
 
@@ -284,5 +284,50 @@ export function CrawlerDialog({ actionLabel, onLog, onBusy, onDone }: Instrument
     {step >= 3
       ? <p className="bt-crawler__note">그 파일은 화면 바깥에 있다.</p>
       : <button type="button" className="bt-action-button" onClick={ping} disabled={step > 0}>{actionLabel} <ChevronRight size={18} /></button>}
+  </div>;
+}
+
+/**
+ * The bridge out of chapter two.
+ *
+ * Every node up to here was solved by reading something the page had already fetched: the panel
+ * fired the request and the operator read the answer out of it. Chapter three asks them to shape a
+ * request themselves, which is the largest single step in the course, so this node changes exactly
+ * one thing and keeps everything else familiar -- the trace rides a response header, as it did two
+ * nodes ago, and the only new act is sending the request at all.
+ *
+ * So this instrument deliberately has no send button. It hands over the address and stops. That
+ * refusal is the node: a panel that will not act for you is the first time the operator has to.
+ */
+export function AddressHandoff({ endpoint, actionLabel, onLog, onBusy, onDone }: InstrumentProps & { endpoint: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    onBusy();
+    try {
+      await navigator.clipboard.writeText(endpoint);
+      setCopied(true);
+    } catch {
+      // A blocked clipboard is not a failure of the node: the address is on screen to be read.
+      setCopied(false);
+    }
+    onLog([
+      "> panel is read only",
+      "> address handed over",
+      "[!] THIS PANEL WILL NOT SEND IT",
+    ]);
+    onDone();
+  };
+  return <div className="bt-handoff">
+    <p className="bt-handoff__title">RELAY ENDPOINT</p>
+    <code className="bt-handoff__address">{endpoint}</code>
+    <div className="bt-handoff__row">
+      <button type="button" className="bt-action-button" onClick={copy}>
+        {copied ? <>COPIED <Check size={16} /></> : <>{actionLabel} <Copy size={16} /></>}
+      </button>
+      <span className="bt-handoff__state"><Lock size={13} /> NO SEND BUTTON</span>
+    </div>
+    <p className="bt-handoff__note">
+      이 화면은 주소까지만 내줍니다. 보내는 것은 직접 해야 합니다.
+    </p>
   </div>;
 }

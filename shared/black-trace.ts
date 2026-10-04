@@ -21,10 +21,10 @@ export type BlackTraceStage = {
    *  report would recommend. Withheld until then so it never doubles as a hint. */
   lesson: { risk: string; fix: string };
   surface:
-    | "tooltip" | "comment" | "field" | "identity" | "invisible-ink" | "off-screen" | "template-tag" | "shadow-root"
+    | "tooltip" | "comment" | "field" | "identity" | "invisible-ink" | "template-tag" | "shadow-root"
     | "cookie" | "local-memory" | "until-you-leave" | "deeper-store"
     | "route" | "robots" | "sitemap" | "source-map"
-    | "response" | "redirect" | "header" | "request" | "cipher" | "range" | "render" | "query" | "vault";
+    | "response" | "redirect" | "header" | "console" | "request" | "cipher" | "range" | "render" | "query" | "vault";
 };
 
 export const blackTraceStages: BlackTraceStage[] = [
@@ -120,23 +120,8 @@ export const blackTraceStages: BlackTraceStage[] = [
   },
   {
     id: 7,
-    key: "off-screen",
-    code: "CASE #007",
-    title: "Off Screen",
-    target: "layout-engine.lab",
-    access: "TRAINEE",
-    sceneLabel: "VIEWPORT: CLIPPED",
-    actionLabel: "MEASURE LAYOUT",
-    narrative: "배치 엔진을 들여다본다. 세어 본 요소 수와 화면에 보이는 수가 맞지 않는다. 하나는 화면 바깥에 서 있다.",
-    intel: "보이지 않는다고 해서 없는 자리는 아니다.",
-    scan: { verdict: "ELEMENT OUT OF VIEW" },
-    lesson: { risk: "보조기술용으로 화면 밖에 두는 기법은 정상이지만, 그 자리에 내부 값을 두면 읽기는 더 쉬워진다.", fix: "화면 밖 요소에도 공개해도 되는 값만 둔다." },
-    surface: "off-screen",
-  },
-  {
-    id: 8,
     key: "template-tag",
-    code: "CASE #008",
+    code: "CASE #007",
     title: "Unrendered Block",
     target: "render-queue.lab",
     access: "TRAINEE",
@@ -149,9 +134,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "template-tag",
   },
   {
-    id: 9,
+    id: 8,
     key: "shadow-root",
-    code: "CASE #009",
+    code: "CASE #008",
     title: "Shadow Root",
     target: "widget-host.lab",
     access: "TRAINEE",
@@ -164,9 +149,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "shadow-root",
   },
   {
-    id: 10,
+    id: 9,
     key: "residual-trace",
-    code: "CASE #010",
+    code: "CASE #009",
     title: "Residual Trace",
     target: "session-monitor.lab",
     access: "TRAINEE",
@@ -179,9 +164,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cookie",
   },
   {
-    id: 11,
+    id: 10,
     key: "local-memory",
-    code: "CASE #011",
+    code: "CASE #010",
     title: "Local Memory",
     target: "profile-cache.lab",
     access: "TRAINEE",
@@ -194,9 +179,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "local-memory",
   },
   {
-    id: 12,
+    id: 11,
     key: "until-you-leave",
-    code: "CASE #012",
+    code: "CASE #011",
     title: "Until You Leave",
     target: "session-cache.lab",
     access: "TRAINEE",
@@ -209,9 +194,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "until-you-leave",
   },
   {
-    id: 13,
+    id: 12,
     key: "deeper-store",
-    code: "CASE #013",
+    code: "CASE #012",
     title: "Deeper Store",
     target: "offline-db.lab",
     access: "TRAINEE",
@@ -224,9 +209,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "deeper-store",
   },
   {
-    id: 14,
+    id: 13,
     key: "robot-rules",
-    code: "CASE #014",
+    code: "CASE #013",
     title: "Robot Rules",
     target: "security-index.lab",
     access: "INFILTRATOR",
@@ -239,9 +224,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "robots",
   },
   {
-    id: 15,
+    id: 14,
     key: "sitemap",
-    code: "CASE #015",
+    code: "CASE #014",
     title: "Index of Everything",
     target: "search-index.lab",
     access: "INFILTRATOR",
@@ -254,9 +239,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "sitemap",
   },
   {
-    id: 16,
+    id: 15,
     key: "source-map",
-    code: "CASE #016",
+    code: "CASE #015",
     title: "Before the Build",
     target: "build-output.lab",
     access: "INFILTRATOR",
@@ -269,9 +254,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "source-map",
   },
   {
-    id: 17,
+    id: 16,
     key: "silent-response",
-    code: "CASE #017",
+    code: "CASE #016",
     title: "Silent Response",
     target: "remote-node.lab",
     access: "INFILTRATOR",
@@ -284,9 +269,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "response",
   },
   {
-    id: 18,
+    id: 17,
     key: "server-whisper",
-    code: "CASE #018",
+    code: "CASE #017",
     title: "Server Whisper",
     target: "comms-node.lab",
     access: "INFILTRATOR",
@@ -299,9 +284,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "header",
   },
   {
-    id: 19,
+    id: 18,
     key: "follow-the-trail",
-    code: "CASE #019",
+    code: "CASE #018",
     title: "Follow the Trail",
     target: "personnel-trace.lab",
     access: "INFILTRATOR",
@@ -312,6 +297,21 @@ export const blackTraceStages: BlackTraceStage[] = [
     scan: { verdict: "RECORD NOT FOUND" },
     lesson: { risk: "리다이렉트 응답의 Location에 값을 실으면 최종 화면이 아니라 중간 응답에 그것이 남는다. 중간 응답은 접근 로그와 브라우저 기록에 그대로 쌓인다.", fix: "인증 값을 URL로 넘기지 않는다. 넘겨야 한다면 일회용 단기 토큰으로 제한한다." },
     surface: "redirect",
+  },
+  {
+    id: 19,
+    key: "ask-it-yourself",
+    code: "CASE #019",
+    title: "Ask It Yourself",
+    target: "relay-gate.lab",
+    access: "INFILTRATOR",
+    sceneLabel: "PANEL: READ ONLY",
+    actionLabel: "COPY ADDRESS",
+    narrative: "여기까지는 화면이 대신 요청을 보내 주었다. 이 화면은 주소까지만 알려 주고 보내지는 않는다.",
+    intel: "돌아온 답을 어디서 읽어야 하는지는 앞에서 한 번 해 봤다.",
+    scan: { verdict: "NO REQUEST SENT" },
+    lesson: { risk: "요청을 직접 만들 수 있는 사람은 화면이 허용한 것만 보내지 않는다. 비활성화한 버튼, 숨긴 입력, 화면에서 막아 둔 값은 통제가 아니다.", fix: "모든 검증은 서버에서 한다. 화면이 보내지 않는다는 사실에 기대어 설계하지 않는다." },
+    surface: "console",
   },
   {
     id: 20,
@@ -792,7 +792,6 @@ export const traceLabels: Record<string, string> = {
   "forgotten-field": "hidden_fields_remember",
   "embedded-identity": "attributes_tell_more",
   "invisible-ink": "sent_but_not_painted",
-  "off-screen": "pushed_out_of_view",
   "template-tag": "queued_never_drawn",
   "shadow-root": "a_tree_inside_a_tree",
   "residual-trace": "cookies_leave_traces",
@@ -841,12 +840,12 @@ const tierNames = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as co
  * every boundary here is the first node of a chapter instead. A test asserts that, because the list
  * no longer derives itself and a reorder could otherwise quietly break the alignment.
  *
- *   TRAINEE         1-13   브라우저가 이미 가진 것을 읽는다 (Elements, Application)
- *   INFILTRATOR     14-29  서버와 주고받는 것을 다룬다 (주소창, Network, 요청 만들기)
- *   FIELD OPERATOR  30-39  실려 있는 값을 읽어낸다 (해독)
- *   OPERATOR        40-50  실제 결함을 다룬다 (연습장)
+ *   TRAINEE         1-12  브라우저가 이미 가진 것을 읽는다 (Elements, Application)
+ *   INFILTRATOR     13-29 서버와 주고받는 것을 다룬다 (주소창, Network, 요청 만들기)
+ *   FIELD OPERATOR  30-39 실려 있는 값을 읽어낸다 (해독)
+ *   OPERATOR        40-50 실제 결함을 다룬다 (연습장)
  */
-export const blackTraceTierStarts = [1, 14, 30, 40] as const;
+export const blackTraceTierStarts = [1, 13, 30, 40] as const;
 
 export function blackTraceTierFor(stage: number) {
   let tier = 0;

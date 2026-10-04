@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrambleText, SignalBars, noiseRun, useTypedLog } from "@/components/terminal-motion";
 import { CipherBench, FileIndex, RequestRig, StoreProbe, SurfaceSweep, indexSurfaces, probeSurfaces, sweepSurfaces } from "@/components/instruments/shared";
-import { CrawlerDialog, FormPayload, HeaderList, HopTrace, IdentityCard, RecordRestore, RelayRoute, StorageProbe, TransferGauge, VaultAssembly } from "@/components/instruments/bespoke";
+import { AddressHandoff, CrawlerDialog, FormPayload, HeaderList, HopTrace, IdentityCard, RecordRestore, RelayRoute, StorageProbe, TransferGauge, VaultAssembly } from "@/components/instruments/bespoke";
 import { RangeConsole } from "@/components/instruments/range";
 import type { InstrumentProps } from "@/components/instruments/types";
 import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
@@ -146,7 +146,7 @@ export default function BlackTraceStage() {
   return <div className={`bt-shell bt-stage bt-stage--${stage.surface}${jolted ? " is-breached" : ""}`}>
     <header className="bt-topbar"><button onClick={() => setLocation("/black-trace")} className="bt-back"><ArrowLeft size={15} /> OPERATION BOARD</button><div className="bt-brand"><Radio size={16} /> OPERATION: <strong>BLACK TRACE</strong></div><div className="bt-topbar-status"><span className="bt-status-dot" /> STATUS / ACTIVE</div></header>
     <main className="bt-stage__main"><section className="bt-stage__meta"><p>NODE {String(id).padStart(2, "0")} / {blackTraceNodeCount}</p><div><span>TARGET</span><strong>{stage.target}</strong></div><div><span>ACCESS</span><strong>{stage.access}</strong></div><div><span>PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount}</strong></div></section>
-      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} nodeKey={stage.key} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/${id}?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
+      <section className="bt-stage__scene"><div className="bt-scene__eyebrow">{stage.code} <span>{stage.sceneLabel}</span></div><div className={`bt-scene__center${scan === "running" ? " is-scanning" : ""}${scan === "done" ? " is-scanned" : ""}`}><SurfaceTelemetry target={stage.target} active={scan === "running"} /><div ref={commentAnchor} className="bt-scene__anchor" /><Instrument surface={stage.surface} stageId={id} nodeKey={stage.key} actionLabel={stage.actionLabel} target={stage.target} trace={trace} onLog={setTerminal} onBusy={() => setScan("running")} onDone={() => setScan("done")} onRemote={callRemote} onRoute={() => setLocation(`/black-trace/${id}?trace=${encodeURIComponent(trace)}`)} />{scan === "running" ? <ScanNoise /> : null}{scan === "done" ? <p className="bt-scene__verdict">{stage.scan.verdict}</p> : null}</div><p className="bt-scene__narrative">{stage.narrative}</p>
         {isMobile ? <p className="bt-fieldkit__warn"><ShieldAlert size={14} /> 이 작전에는 브라우저 개발자도구가 필요합니다. PC에서 진행하세요.</p> : null}<div className="bt-intel"><button onClick={() => setIntelOpen(true)} disabled={intelOpen}><Wrench size={15} /> {intelOpen ? "FIELD KIT // OPEN" : "OPEN FIELD KIT"}</button>{intelOpen ? <p className="bt-intel__line">{stage.intel}</p> : <p>막히면 FIELD KIT을 열어 볼 수 있습니다. 열어 본 기록은 남습니다.</p>}</div></section>
       <aside className="bt-stage__terminal"><div className="bt-terminal__head"><TerminalSquare size={16} /> OPERATOR CONSOLE</div><div className={`bt-terminal__log${typing ? " is-typing" : ""}`}>{typedLog.map((line, index) => <p key={index} className={line.startsWith("[-]") ? "is-error" : line.startsWith("[+]") ? "is-success" : terminal.length ? "" : "is-muted"}>{line}</p>)}{!typedLog.length ? <p className="is-muted">Waiting for recovered trace...</p> : null}</div><form onSubmit={submitFlag} className="bt-terminal__form">
           <label>&gt; {isVault ? "assemble_key" : "submit_flag"}</label>
@@ -249,6 +249,9 @@ function Instrument(props: InstrumentProps) {
   if (sweepSurfaces.includes(props.surface)) return <SurfaceSweep {...props} />;
   if (probeSurfaces.includes(props.surface)) return <StoreProbe {...props} />;
   if (indexSurfaces.includes(props.surface)) return <FileIndex {...props} base={props.target} />;
+  // The bridge node is handed the address it refuses to call, so the operator has something to
+  // copy rather than a URL they have to reconstruct from the node number.
+  if (props.surface === "console") return <AddressHandoff {...props} endpoint={traceEndpoint(props.stageId, "firsthand")} />;
   if (props.surface === "request") return <RequestRig {...props} />;
   if (props.surface === "cipher") return <CipherBench {...props} />;
   // Chapter five's three surfaces all drive the same mock application, so they share its console;

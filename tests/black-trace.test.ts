@@ -27,9 +27,15 @@ describe("OPERATION BLACK TRACE", () => {
     // back. The order now walks address bar -> Elements -> Application -> address bar -> Network.
     expect(blackTraceStages.map(stage => stage.surface)).toEqual([
       "tooltip", "route", "comment", "field", "identity",
-      "invisible-ink", "off-screen", "template-tag", "shadow-root", "cookie",
+      // The off-screen node was dropped: it and the invisible-ink node before it taught the same
+      // thing -- the element is in the document, the page just will not show it -- and only the CSS
+      // differed. Six Elements nodes still cover six distinct places to hide something.
+      "invisible-ink", "template-tag", "shadow-root", "cookie",
       "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap", "source-map",
       "response", "header", "redirect",
+      // The bridge out of watching requests and into making them. It reuses the header node's
+      // mechanism so exactly one thing is new: this panel does not send anything.
+      "console",
       ...Array.from({ length: 10 }, () => "request"),
       ...Array.from({ length: 10 }, () => "cipher"),
       ...Array.from({ length: 5 }, () => "range"),
@@ -56,12 +62,13 @@ describe("OPERATION BLACK TRACE", () => {
     for (const start of blackTraceTierStarts.slice(1)) {
       expect(blackTraceStageById(start - 1)?.surface).not.toBe(blackTraceStageById(start)?.surface);
     }
-    expect(blackTraceStageById(13)?.access).toBe("TRAINEE");
-    expect(blackTraceStageById(14)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(29)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(30)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(39)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(40)?.access).toBe("OPERATOR");
+    const [, infiltrator, fieldOperator, operator] = blackTraceTierStarts;
+    expect(blackTraceStageById(infiltrator - 1)?.access).toBe("TRAINEE");
+    expect(blackTraceStageById(infiltrator)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(fieldOperator - 1)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(fieldOperator)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(operator - 1)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(operator)?.access).toBe("OPERATOR");
     expect(blackTraceStageById(blackTraceNodeCount)?.access).toBe("OPERATOR");
     // The server reports the tier a submission earns, so its copy of the list has to match.
     expect(learningFunction).toContain(`const accessTierStarts = [${blackTraceTierStarts.join(", ")}]`);
@@ -127,6 +134,31 @@ describe("OPERATION BLACK TRACE", () => {
         expect(serverTables).toMatch(new RegExp(`"?${stage.key}"?: "FLAG\\{`));
       }
     }
+  });
+
+  it("bridges watching requests and making them by changing exactly one thing", () => {
+    // The largest single step in the course is from reading what the page fetched to shaping a
+    // request yourself. This node keeps the header node's mechanism -- the trace rides a response
+    // header, the body carries nothing -- so the only new act is sending the request at all.
+    const bridge = blackTraceStages.find(stage => stage.key === "ask-it-yourself")!;
+    const header = blackTraceStages.find(stage => stage.key === "server-whisper")!;
+    const firstShaped = blackTraceStages.find(stage => stage.surface === "request")!;
+    expect(bridge.id).toBeGreaterThan(header.id);
+    expect(bridge.id).toBe(firstShaped.id - 1);
+    // It is answered by the channel, so nothing it needs is readable in the bundle.
+    expect(composeTrace(bridge.key, "a1b2c3")).toBeNull();
+    expect(traceFunction).toContain('if (mode === "firsthand")');
+    expect(traceFunction).toContain("FLAG{you_sent_that_one}");
+    // The header has to survive the cross-origin read, or the node cannot be finished in a browser.
+    expect(traceFunction).toMatch(/Access-Control-Expose-Headers[^\n]*X-Trace-Note/);
+
+    // The panel refusing to act is the node. A send button anywhere in it would remove the lesson.
+    expect(instrumentSource).toContain("export function AddressHandoff");
+    const panel = instrumentSource.slice(instrumentSource.indexOf("export function AddressHandoff"));
+    expect(panel).not.toMatch(/onRemote|fetch\(/);
+    expect(panel).toContain("NO SEND BUTTON");
+    // The address is handed over rather than left to be rebuilt from the node number.
+    expect(stageSource).toContain('traceEndpoint(props.stageId, "firsthand")');
   });
 
   it("answers the trace channel by surface, not by node number", () => {
@@ -244,9 +276,11 @@ describe("OPERATION BLACK TRACE", () => {
 
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
+    const [, infiltrator, fieldOperator, operator] = blackTraceTierStarts;
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
-    expect(nextBlackTraceRank(14)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(30)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(infiltrator)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(fieldOperator)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(operator)).toBeNull();
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     // The ladder the board shows and the tier a node carries come from the same boundary, so a
     // node that opens a tier is the node the board named as next.

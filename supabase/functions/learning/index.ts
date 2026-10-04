@@ -27,9 +27,9 @@ const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 // anywhere; the node's number may now change freely.
 const nodeKeys: Record<number, string> = {
   1: "tooltip", 2: "wrong-destination", 3: "ghost-comment", 4: "forgotten-field", 5: "embedded-identity",
-  6: "invisible-ink", 7: "off-screen", 8: "template-tag", 9: "shadow-root", 10: "residual-trace",
-  11: "local-memory", 12: "until-you-leave", 13: "deeper-store", 14: "robot-rules", 15: "sitemap",
-  16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "wrong-method",
+  6: "invisible-ink", 7: "template-tag", 8: "shadow-root", 9: "residual-trace", 10: "local-memory",
+  11: "until-you-leave", 12: "deeper-store", 13: "robot-rules", 14: "sitemap", 15: "source-map",
+  16: "silent-response", 17: "server-whisper", 18: "follow-the-trail", 19: "ask-it-yourself", 20: "wrong-method",
   21: "cookie-flags", 22: "claimed-role", 23: "referer", 24: "etag", 25: "range",
   26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
   31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
@@ -45,7 +45,6 @@ const traceLabels: Record<string, string> = {
   "forgotten-field": "hidden_fields_remember",
   "embedded-identity": "attributes_tell_more",
   "invisible-ink": "sent_but_not_painted",
-  "off-screen": "pushed_out_of_view",
   "template-tag": "queued_never_drawn",
   "shadow-root": "a_tree_inside_a_tree",
   "residual-trace": "cookies_leave_traces",
@@ -70,6 +69,7 @@ const blackTraceNodeCount = 50;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
+  "ask-it-yourself": "FLAG{you_sent_that_one}",
   "robot-rules": "FLAG{robots_know_the_way}",
   sitemap: "FLAG{the_index_listed_it}",
   "source-map": "FLAG{the_build_kept_the_original}",
@@ -203,7 +203,7 @@ const accessTiers = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as 
 // operator in the middle of a chapter; every boundary is now the first node of a chapter, so a
 // promotion means a kind of work is finished. Mirrors blackTraceTierStarts in
 // shared/black-trace.ts, and a test fails if the two lists drift apart.
-const accessTierStarts = [1, 14, 30, 40];
+const accessTierStarts = [1, 13, 30, 40];
 
 function blackTraceAccess(stage: number) {
   let tier = 0;
