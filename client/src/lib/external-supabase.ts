@@ -36,3 +36,36 @@ export async function invokeLearning<T>(action: string, payload: Record<string, 
   }
   return body;
 }
+
+/**
+ * The practice range is its own edge function, and unlike the trace channel every one of its modes
+ * requires a session: an endpoint that is open to anyone is someone's free compute before it is a
+ * lesson. The raw status and body both come back, because on these nodes the refusal is the thing
+ * the operator reads.
+ */
+export type RangeReply = { status: number; body: Record<string, unknown>; raw: string };
+
+export async function callRange(mode: string, options: {
+  method?: "GET" | "POST";
+  query?: Record<string, string>;
+  body?: Record<string, unknown>;
+  headers?: Record<string, string>;
+} = {}): Promise<RangeReply> {
+  if (!supabase || !url || !publishableKey) throw new Error("외부 Supabase 환경 변수가 설정되지 않았습니다.");
+  const { data: { session } } = await supabase.auth.getSession();
+  const query = new URLSearchParams({ mode, ...(options.query ?? {}) });
+  const response = await fetch(`${url}/functions/v1/hg-range?${query}`, {
+    method: options.method ?? "GET",
+    headers: {
+      apikey: publishableKey,
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      ...(options.headers ?? {}),
+    },
+    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
+  });
+  const raw = await response.text();
+  let body: Record<string, unknown> = {};
+  try { body = JSON.parse(raw) as Record<string, unknown>; } catch { body = {}; }
+  return { status: response.status, body, raw };
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ScrambleText, SignalBars, noiseRun, useTypedLog } from "@/components/terminal-motion";
 import { CipherBench, FileIndex, RequestRig, StoreProbe, SurfaceSweep, indexSurfaces, probeSurfaces, sweepSurfaces } from "@/components/instruments/shared";
 import { CrawlerDialog, FormPayload, HeaderList, HopTrace, IdentityCard, RecordRestore, RelayRoute, StorageProbe, TransferGauge, VaultAssembly } from "@/components/instruments/bespoke";
+import { RangeConsole } from "@/components/instruments/range";
 import type { InstrumentProps } from "@/components/instruments/types";
 import { ArrowLeft, CheckCircle2, ChevronRight, Lock, LockKeyhole, Radio, ShieldAlert, TerminalSquare, Wrench, Wifi } from "lucide-react";
 import { useLocation, useParams } from "wouter";
@@ -250,6 +251,9 @@ function Instrument(props: InstrumentProps) {
   if (indexSurfaces.includes(props.surface)) return <FileIndex {...props} base={props.target} />;
   if (props.surface === "request") return <RequestRig {...props} />;
   if (props.surface === "cipher") return <CipherBench {...props} />;
+  // Chapter five's three surfaces all drive the same mock application, so they share its console;
+  // what differs is how the reply is drawn, which the console decides from the reply itself.
+  if (props.surface === "range" || props.surface === "render" || props.surface === "query") return <RangeConsole {...props} />;
   switch (props.surface) {
     case "comment": return <RecordRestore {...props} />;
     case "field": return <FormPayload {...props} />;

@@ -33,7 +33,9 @@ const nodeKeys: Record<number, string> = {
   21: "cookie-flags", 22: "claimed-role", 23: "referer", 24: "etag", 25: "range",
   26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
   31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
-  36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "fragmented-key",
+  36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "someone-elses-order",
+  41: "role-in-the-token", 42: "up-one-level", 43: "twice-at-once", 44: "negative-quantity", 45: "it-echoes-back",
+  46: "it-stays-there", 47: "always-true", 48: "another-table", 49: "yes-or-no", 50: "fragmented-key",
 };
 
 const traceLabels: Record<string, string> = {
@@ -64,7 +66,7 @@ const traceLabels: Record<string, string> = {
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 40;
+const blackTraceNodeCount = 50;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
@@ -84,6 +86,18 @@ const channelFlags: Record<string, string> = {
   "status-only": "FLAG{no_body_still_speaks}",
   "content-type": "FLAG{declared_as_the_wrong_thing}",
   "two-requests": "FLAG{the_first_answer_was_a_map}",
+  // Chapter 5: the isolated mock application (hg-range) holds these; the operator reaches them by
+  // driving that application, never by reading this bundle or the client's.
+  "someone-elses-order": "FLAG{the_id_was_the_only_check}",
+  "role-in-the-token": "FLAG{the_token_said_so}",
+  "up-one-level": "FLAG{it_walked_out_of_the_folder}",
+  "twice-at-once": "FLAG{both_passed_the_check}",
+  "negative-quantity": "FLAG{the_total_went_the_wrong_way}",
+  "it-echoes-back": "FLAG{the_page_ran_your_words}",
+  "it-stays-there": "FLAG{it_waited_for_the_next_reader}",
+  "always-true": "FLAG{the_condition_was_yours}",
+  "another-table": "FLAG{the_result_set_grew}",
+  "yes-or-no": "FLAG{one_letter_at_a_time}",
 };
 
 // Generous enough that a shared network browsing the public pages never notices it.
@@ -183,11 +197,17 @@ function firstOpenStage(completedStages: number[]) {
 
 // GUEST means "not signed in" and is never returned here: these actions require a session, so
 // the entry tier of a signed-in operator is TRAINEE.
+const accessTiers = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as const;
+
+// Four even quarters of the course, derived from the node count rather than written out as
+// thresholds: adding a chapter used to leave the tier a submission reports disagreeing with the
+// tier the client shows for the same node. Mirrors blackTraceTierStart in shared/black-trace.ts.
 function blackTraceAccess(stage: number) {
-  if (stage >= 31) return "OPERATOR";
-  if (stage >= 21) return "FIELD OPERATOR";
-  if (stage >= 11) return "INFILTRATOR";
-  return "TRAINEE";
+  let tier = 0;
+  for (let index = 1; index < accessTiers.length; index += 1) {
+    if (stage >= Math.ceil((blackTraceNodeCount / 4) * index) + 1) tier = index;
+  }
+  return accessTiers[tier];
 }
 
 function jsonWriter(cors: Record<string, string>) {
