@@ -34,7 +34,7 @@ const nodeKeys: Record<number, string> = {
   26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
   31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
   36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "someone-elses-order",
-  41: "role-in-the-token", 42: "up-one-level", 43: "twice-at-once", 44: "negative-quantity", 45: "it-echoes-back",
+  41: "negative-quantity", 42: "up-one-level", 43: "role-in-the-token", 44: "twice-at-once", 45: "it-echoes-back",
   46: "it-stays-there", 47: "always-true", 48: "another-table", 49: "yes-or-no", 50: "fragmented-key",
 };
 
@@ -199,13 +199,16 @@ function firstOpenStage(completedStages: number[]) {
 // the entry tier of a signed-in operator is TRAINEE.
 const accessTiers = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as const;
 
-// Four even quarters of the course, derived from the node count rather than written out as
-// thresholds: adding a chapter used to leave the tier a submission reports disagreeing with the
-// tier the client shows for the same node. Mirrors blackTraceTierStart in shared/black-trace.ts.
+// The first node of each tier. These were four even quarters of the node count, which promoted an
+// operator in the middle of a chapter; every boundary is now the first node of a chapter, so a
+// promotion means a kind of work is finished. Mirrors blackTraceTierStarts in
+// shared/black-trace.ts, and a test fails if the two lists drift apart.
+const accessTierStarts = [1, 14, 30, 40];
+
 function blackTraceAccess(stage: number) {
   let tier = 0;
   for (let index = 1; index < accessTiers.length; index += 1) {
-    if (stage >= Math.ceil((blackTraceNodeCount / 4) * index) + 1) tier = index;
+    if (stage >= accessTierStarts[index]) tier = index;
   }
   return accessTiers[tier];
 }

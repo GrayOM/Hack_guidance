@@ -409,7 +409,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #026",
     title: "The Question Before",
     target: "cross-origin.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "PREFLIGHT: ANSWERED",
     actionLabel: "SEND PREFLIGHT",
     narrative: "브라우저는 본 요청을 보내기 전에 먼저 묻는다. 그 물음에 대한 답에도 서버의 사정이 적혀 있다.",
@@ -424,7 +424,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #027",
     title: "No Body, Still Speaks",
     target: "ack-node.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "STATUS: 204",
     actionLabel: "SEND ACK",
     narrative: "이 노드는 본문을 보내지 않는다. 상태 줄 하나로 끝낸다. 그렇다고 아무것도 보내지 않은 것은 아니다.",
@@ -439,7 +439,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #028",
     title: "Served as the Wrong Thing",
     target: "report-export.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "CONTENT TYPE: MISMATCH",
     actionLabel: "FETCH EXPORT",
     narrative: "내려받은 파일이 화면에 제대로 열리지 않는다. 내용이 잘못된 것이 아니라, 서버가 종류를 잘못 적어 보냈다.",
@@ -454,7 +454,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #029",
     title: "The First Answer Was a Map",
     target: "dispatch-node.lab",
-    access: "FIELD OPERATOR",
+    access: "INFILTRATOR",
     sceneLabel: "HANDOFF: STAGED",
     actionLabel: "OPEN DISPATCH",
     narrative: "배차 노드는 한 번에 답하지 않는다. 첫 응답은 다음에 어디로 물어야 하는지를 알려줄 뿐이다.",
@@ -604,7 +604,7 @@ export const blackTraceStages: BlackTraceStage[] = [
     code: "CASE #039",
     title: "Layer by Layer",
     target: "exfil-channel.lab",
-    access: "OPERATOR",
+    access: "FIELD OPERATOR",
     sceneLabel: "LAYERS: 3",
     actionLabel: "READ CAPTURE",
     narrative: "반출 채널에서 잡아낸 마지막 덩어리다. 겹이 여럿이고, 벗기는 순서가 정해져 있다.",
@@ -630,17 +630,17 @@ export const blackTraceStages: BlackTraceStage[] = [
   },
   {
     id: 41,
-    key: "role-in-the-token",
+    key: "negative-quantity",
     code: "CASE #041",
-    title: "Role in the Token",
-    target: "range-issuer.lab",
+    title: "Negative Quantity",
+    target: "checkout-service.lab",
     access: "OPERATOR",
-    sceneLabel: "TOKEN: SELF-DESCRIBED",
-    actionLabel: "REQUEST TOKEN",
-    narrative: "모의 발급기가 토큰을 하나 내준다. 그 토큰에는 내가 무엇을 할 수 있는지가 적혀 있고, 검증하는 쪽은 적힌 대로 믿는다.",
-    intel: "토큰은 자기가 어떻게 검사되어야 하는지까지 스스로 적어 둔다.",
-    scan: { verdict: "CLAIMS TRUSTED AS GIVEN" },
-    lesson: { risk: "서명 방식을 토큰이 선언하게 두면 선언을 바꿔 검사를 건너뛸 수 있다. 권한이 토큰 안에 적혀 있으면 그대로 올라간다.", fix: "허용 서명 방식을 서버가 고정하고 토큰의 선언을 무시한다. 권한은 토큰이 아니라 서버가 보관한 기록으로 판단한다." },
+    sceneLabel: "INPUT: UNBOUNDED",
+    actionLabel: "SUBMIT ORDER",
+    narrative: "결제 단계다. 수량과 단가를 곱해 합계를 낸다. 수량이 얼마여야 하는지는 아무도 정해 두지 않았다.",
+    intel: "값의 형식이 맞다는 것과 값이 말이 된다는 것은 다르다.",
+    scan: { verdict: "TOTAL BELOW ZERO" },
+    lesson: { risk: "범위를 정하지 않은 수량은 합계를 음수로 만들고 잔액을 늘린다. 형식 검증만 하는 입력 검사는 이것을 통과시킨다.", fix: "업무 규칙에 맞는 범위를 서버에서 강제하고, 금액은 서버가 다시 계산한다." },
     surface: "range",
   },
   {
@@ -660,8 +660,23 @@ export const blackTraceStages: BlackTraceStage[] = [
   },
   {
     id: 43,
-    key: "twice-at-once",
+    key: "role-in-the-token",
     code: "CASE #043",
+    title: "Role in the Token",
+    target: "range-issuer.lab",
+    access: "OPERATOR",
+    sceneLabel: "TOKEN: SELF-DESCRIBED",
+    actionLabel: "REQUEST TOKEN",
+    narrative: "모의 발급기가 토큰을 하나 내준다. 그 토큰에는 내가 무엇을 할 수 있는지가 적혀 있고, 검증하는 쪽은 적힌 대로 믿는다.",
+    intel: "토큰은 자기가 어떻게 검사되어야 하는지까지 스스로 적어 둔다.",
+    scan: { verdict: "CLAIMS TRUSTED AS GIVEN" },
+    lesson: { risk: "서명 방식을 토큰이 선언하게 두면 선언을 바꿔 검사를 건너뛸 수 있다. 권한이 토큰 안에 적혀 있으면 그대로 올라간다.", fix: "허용 서명 방식을 서버가 고정하고 토큰의 선언을 무시한다. 권한은 토큰이 아니라 서버가 보관한 기록으로 판단한다." },
+    surface: "range",
+  },
+  {
+    id: 44,
+    key: "twice-at-once",
+    code: "CASE #044",
     title: "Twice at Once",
     target: "coupon-service.lab",
     access: "OPERATOR",
@@ -671,21 +686,6 @@ export const blackTraceStages: BlackTraceStage[] = [
     intel: "확인과 기록이 한 동작이 아니면, 그 사이에 다른 요청이 들어갈 수 있다.",
     scan: { verdict: "DOUBLE APPLY ACCEPTED" },
     lesson: { risk: "확인과 반영이 분리된 처리는 동시에 보낸 요청이 모두 확인을 통과한다. 쿠폰, 포인트, 잔액에서 금전 손실로 이어진다.", fix: "확인과 반영을 한 트랜잭션에서 처리하고, 고유 제약이나 원자적 갱신으로 중복을 막는다." },
-    surface: "range",
-  },
-  {
-    id: 44,
-    key: "negative-quantity",
-    code: "CASE #044",
-    title: "Negative Quantity",
-    target: "checkout-service.lab",
-    access: "OPERATOR",
-    sceneLabel: "INPUT: UNBOUNDED",
-    actionLabel: "SUBMIT ORDER",
-    narrative: "결제 단계다. 수량과 단가를 곱해 합계를 낸다. 수량이 얼마여야 하는지는 아무도 정해 두지 않았다.",
-    intel: "값의 형식이 맞다는 것과 값이 말이 된다는 것은 다르다.",
-    scan: { verdict: "TOTAL BELOW ZERO" },
-    lesson: { risk: "범위를 정하지 않은 수량은 합계를 음수로 만들고 잔액을 늘린다. 형식 검증만 하는 입력 검사는 이것을 통과시킨다.", fix: "업무 규칙에 맞는 범위를 서버에서 강제하고, 금액은 서버가 다시 계산한다." },
     surface: "range",
   },
   {
@@ -832,23 +832,32 @@ export function composeTrace(key: string, token: string | null) {
  *  agree; derived from the count they move themselves. */
 const tierNames = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as const;
 
-/** The first node of each tier, for a course of `total` nodes: four even quarters. Both the tier a
- *  node carries and the ladder the board shows read this one function, because computing them two
- *  ways disagreed by a node at every boundary once the count stopped dividing by four. */
-export function blackTraceTierStart(index: number, total: number) {
-  return index === 0 ? 1 : Math.ceil((total / 4) * index) + 1;
-}
+/**
+ * The first node of each tier.
+ *
+ * These were four even quarters of the node count, which put two of the three promotions in the
+ * middle of a chapter: an operator was told they had been promoted while still doing the same kind
+ * of work, and once on the last node of a chapter. A promotion means a kind of work is finished, so
+ * every boundary here is the first node of a chapter instead. A test asserts that, because the list
+ * no longer derives itself and a reorder could otherwise quietly break the alignment.
+ *
+ *   TRAINEE         1-13   브라우저가 이미 가진 것을 읽는다 (Elements, Application)
+ *   INFILTRATOR     14-29  서버와 주고받는 것을 다룬다 (주소창, Network, 요청 만들기)
+ *   FIELD OPERATOR  30-39  실려 있는 값을 읽어낸다 (해독)
+ *   OPERATOR        40-50  실제 결함을 다룬다 (연습장)
+ */
+export const blackTraceTierStarts = [1, 14, 30, 40] as const;
 
-export function blackTraceTierFor(stage: number, total: number) {
+export function blackTraceTierFor(stage: number) {
   let tier = 0;
   for (let index = 1; index < tierNames.length; index += 1) {
-    if (stage >= blackTraceTierStart(index, total)) tier = index;
+    if (stage >= blackTraceTierStarts[index]) tier = index;
   }
   return tierNames[tier];
 }
 
 export const blackTraceRanks = tierNames.map((name, index) => ({
-  at: blackTraceTierStart(index, blackTraceStages.length),
+  at: blackTraceTierStarts[index],
   name,
 }));
 
