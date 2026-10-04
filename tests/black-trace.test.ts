@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceNodeCount, blackTraceRanks, blackTraceTierStarts, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
+import { blackTraceNodeCount, blackTraceRanks, blackTraceTierFor, blackTraceTierStarts, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
-import { cipherBenches } from "../client/src/components/instruments/shared";
+import { cipherBenches, indexSurfaces, probeSurfaces, sweepSurfaces } from "../client/src/components/instruments/shared";
 
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const directorySource = readFileSync(new URL("../client/src/pages/BlackTraceDirectory.tsx", import.meta.url), "utf8");
@@ -74,6 +74,32 @@ describe("OPERATION BLACK TRACE", () => {
     expect(learningFunction).toContain(`const accessTierStarts = [${blackTraceTierStarts.join(", ")}]`);
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
+  });
+
+  it("gives every node an instrument, and says so plainly when one is missing", () => {
+    // A surface with no branch used to fall through to the vault, so a node added without an
+    // instrument rendered a two-part key panel and read as a different node rather than as a
+    // mistake. Both defects this course shipped survived by failing quietly; this one announces
+    // itself, and this test means nobody has to see it.
+    const declared = new Set(blackTraceStages.map(stage => stage.surface));
+    const branches = new Set([
+      ...[...stageSource.matchAll(/case "([a-z-]+)":/g)].map(match => match[1]),
+      ...[...stageSource.matchAll(/props\.surface === "([a-z-]+)"/g)].map(match => match[1]),
+      ...sweepSurfaces, ...probeSurfaces, ...indexSurfaces,
+    ]);
+    expect([...declared].filter(surface => !branches.has(surface))).toEqual([]);
+    // The fallback exists for the case this test is meant to prevent, and must not be the vault.
+    expect(stageSource).toContain("default: return <MissingInstrument");
+    expect(stageSource).toContain('case "vault": return <VaultAssembly');
+  });
+
+  it("keeps the tier written on each node equal to the one the boundaries give", () => {
+    // The tier is stored on every node as a literal and computed by blackTraceTierFor from the
+    // boundary list. Two sources for one fact drift; this is what keeps them from drifting, and
+    // what stops the function from being dead code nobody notices is wrong.
+    for (const stage of blackTraceStages) {
+      expect([stage.id, stage.access]).toEqual([stage.id, blackTraceTierFor(stage.id)]);
+    }
   });
 
   it("never labels a signed-in operator GUEST", () => {

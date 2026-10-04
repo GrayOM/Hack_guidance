@@ -459,3 +459,9 @@
 .bt-handoff__row .bt-action-button{margin-top:0}
 .bt-handoff__state{display:inline-flex;align-items:center;gap:6px;color:#f0cd68;font-size:9px;letter-spacing:.12em}
 .bt-handoff__note{margin:15px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+
+/* --- A node whose surface has no branch, said plainly rather than shown as another node ------ */
+.bt-missing{width:min(460px,100%);padding:16px;border:1px solid rgba(255,106,106,.45);background:rgba(28,8,8,.5);text-align:left}
+.bt-missing__title{margin:0 0 9px;color:#ff6a6a;font-size:9px;letter-spacing:.17em}
+.bt-missing__body{margin:0;color:#e5b4b4;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}
+.bt-missing__body code{color:#ff9a9a}

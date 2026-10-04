@@ -869,5 +869,3 @@ export function nextBlackTraceRank(currentStage: number) {
 }
 
 export const blackTraceStageById = (id: number) => blackTraceStages.find(stage => stage.id === id);
-/** GUEST is reserved for a visitor without a session; a known stage always has a real tier. */
-export const blackTraceAccessForStage = (stage: number) => blackTraceStageById(stage)?.access ?? "GUEST";
