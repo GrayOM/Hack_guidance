@@ -52,6 +52,14 @@ Deno.serve(request => {
   if (mode === "header") return response({ status: "online", message: "no data" }, { headers: { "X-Trace-Note": "FLAG{headers_can_whisper}" } });
   if (mode === "vault") return response({ status: "partial", fragment: "one_key}" });
 
+  // The bridge into chapter three. The mechanism is the header node's -- the trace rides a response
+  // header and the body carries nothing -- so the only new thing the operator has to do is send the
+  // request themselves instead of watching the page send one. One new idea per node.
+  if (mode === "firsthand") {
+    return response({ status: "online", body: "empty", note: "the answer did not travel in here" },
+      { headers: { "X-Trace-Note": "FLAG{you_sent_that_one}" } });
+  }
+
   // Chapter three: the operator stops watching requests and starts making them. Each of these
   // answers only when the request itself is shaped the way the node is about, so reading the
   // response is no longer enough.

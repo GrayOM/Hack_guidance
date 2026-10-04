@@ -450,3 +450,12 @@
 .bt-query__rows th{padding:6px 8px;border:1px solid rgba(117,187,196,.2);background:rgba(117,187,196,.07);color:#5be0db;text-align:left;font-weight:400;letter-spacing:.08em}
 .bt-query__rows td{padding:6px 8px;border:1px solid rgba(117,187,196,.16);color:#9dc4c8;word-break:break-all}
 @media(prefers-reduced-motion:reduce){.bt-render__label span.is-fired{animation:none}}
+
+/* --- The bridge node: an address handed over, and nothing that sends it --------------------- */
+.bt-handoff{width:min(520px,100%);text-align:left}
+.bt-handoff__title{margin:0 0 11px;color:#5be0db;font-size:9px;letter-spacing:.17em}
+.bt-handoff__address{display:block;padding:12px;border:1px solid rgba(117,187,196,.26);background:rgba(3,16,21,.78);color:#8affd2;font-size:11px;line-height:1.7;word-break:break-all}
+.bt-handoff__row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:18px}
+.bt-handoff__row .bt-action-button{margin-top:0}
+.bt-handoff__state{display:inline-flex;align-items:center;gap:6px;color:#f0cd68;font-size:9px;letter-spacing:.12em}
+.bt-handoff__note{margin:15px 0 0;color:#9db8bc;font:12px/1.7 "IBM Plex Sans KR",ui-sans-serif,system-ui,sans-serif;word-break:keep-all;text-wrap:pretty}

@@ -24,7 +24,7 @@ export type BlackTraceStage = {
     | "tooltip" | "comment" | "field" | "identity" | "invisible-ink" | "off-screen" | "template-tag" | "shadow-root"
     | "cookie" | "local-memory" | "until-you-leave" | "deeper-store"
     | "route" | "robots" | "sitemap" | "source-map"
-    | "response" | "redirect" | "header" | "request" | "cipher" | "range" | "render" | "query" | "vault";
+    | "response" | "redirect" | "header" | "console" | "request" | "cipher" | "range" | "render" | "query" | "vault";
 };
 
 export const blackTraceStages: BlackTraceStage[] = [
@@ -315,8 +315,23 @@ export const blackTraceStages: BlackTraceStage[] = [
   },
   {
     id: 20,
-    key: "wrong-method",
+    key: "ask-it-yourself",
     code: "CASE #020",
+    title: "Ask It Yourself",
+    target: "relay-gate.lab",
+    access: "INFILTRATOR",
+    sceneLabel: "PANEL: READ ONLY",
+    actionLabel: "COPY ADDRESS",
+    narrative: "여기까지는 화면이 대신 요청을 보내 주었다. 이 화면은 주소까지만 알려 주고 보내지는 않는다.",
+    intel: "돌아온 답을 어디서 읽어야 하는지는 앞에서 한 번 해 봤다.",
+    scan: { verdict: "NO REQUEST SENT" },
+    lesson: { risk: "요청을 직접 만들 수 있는 사람은 화면이 허용한 것만 보내지 않는다. 비활성화한 버튼, 숨긴 입력, 화면에서 막아 둔 값은 통제가 아니다.", fix: "모든 검증은 서버에서 한다. 화면이 보내지 않는다는 사실에 기대어 설계하지 않는다." },
+    surface: "console",
+  },
+  {
+    id: 21,
+    key: "wrong-method",
+    code: "CASE #021",
     title: "Wrong Verb",
     target: "intake-api.lab",
     access: "INFILTRATOR",
@@ -329,9 +344,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 21,
+    id: 22,
     key: "cookie-flags",
-    code: "CASE #021",
+    code: "CASE #022",
     title: "Flags on the Cookie",
     target: "session-issuer.lab",
     access: "INFILTRATOR",
@@ -344,9 +359,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 22,
+    id: 23,
     key: "claimed-role",
-    code: "CASE #022",
+    code: "CASE #023",
     title: "Who Is Asking",
     target: "content-gate.lab",
     access: "INFILTRATOR",
@@ -359,9 +374,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 23,
+    id: 24,
     key: "referer",
-    code: "CASE #023",
+    code: "CASE #024",
     title: "Where You Came From",
     target: "partner-portal.lab",
     access: "INFILTRATOR",
@@ -374,9 +389,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 24,
+    id: 25,
     key: "etag",
-    code: "CASE #024",
+    code: "CASE #025",
     title: "The Tag Remembered",
     target: "asset-cache.lab",
     access: "INFILTRATOR",
@@ -389,9 +404,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 25,
+    id: 26,
     key: "range",
-    code: "CASE #025",
+    code: "CASE #026",
     title: "Ask for a Piece",
     target: "archive-store.lab",
     access: "INFILTRATOR",
@@ -404,9 +419,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 26,
+    id: 27,
     key: "preflight",
-    code: "CASE #026",
+    code: "CASE #027",
     title: "The Question Before",
     target: "cross-origin.lab",
     access: "INFILTRATOR",
@@ -419,9 +434,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 27,
+    id: 28,
     key: "status-only",
-    code: "CASE #027",
+    code: "CASE #028",
     title: "No Body, Still Speaks",
     target: "ack-node.lab",
     access: "INFILTRATOR",
@@ -434,9 +449,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 28,
+    id: 29,
     key: "content-type",
-    code: "CASE #028",
+    code: "CASE #029",
     title: "Served as the Wrong Thing",
     target: "report-export.lab",
     access: "INFILTRATOR",
@@ -449,9 +464,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 29,
+    id: 30,
     key: "two-requests",
-    code: "CASE #029",
+    code: "CASE #030",
     title: "The First Answer Was a Map",
     target: "dispatch-node.lab",
     access: "INFILTRATOR",
@@ -464,9 +479,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "request",
   },
   {
-    id: 30,
+    id: 31,
     key: "plain-sight",
-    code: "CASE #030",
+    code: "CASE #031",
     title: "Plain Sight",
     target: "config-store.lab",
     access: "FIELD OPERATOR",
@@ -479,9 +494,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 31,
+    id: 32,
     key: "bytes-as-text",
-    code: "CASE #031",
+    code: "CASE #032",
     title: "Bytes as Text",
     target: "memory-dump.lab",
     access: "FIELD OPERATOR",
@@ -494,9 +509,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 32,
+    id: 33,
     key: "percent-signs",
-    code: "CASE #032",
+    code: "CASE #033",
     title: "Percent Signs",
     target: "query-log.lab",
     access: "FIELD OPERATOR",
@@ -509,9 +524,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 33,
+    id: 34,
     key: "shifted",
-    code: "CASE #033",
+    code: "CASE #034",
     title: "Shifted",
     target: "notes-archive.lab",
     access: "FIELD OPERATOR",
@@ -524,9 +539,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 34,
+    id: 35,
     key: "one-byte-key",
-    code: "CASE #034",
+    code: "CASE #035",
     title: "One Byte Key",
     target: "firmware-blob.lab",
     access: "FIELD OPERATOR",
@@ -539,9 +554,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 35,
+    id: 36,
     key: "two-alphabets",
-    code: "CASE #035",
+    code: "CASE #036",
     title: "Two Alphabets",
     target: "token-store.lab",
     access: "FIELD OPERATOR",
@@ -554,9 +569,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 36,
+    id: 37,
     key: "three-parts",
-    code: "CASE #036",
+    code: "CASE #037",
     title: "Three Parts",
     target: "auth-issuer.lab",
     access: "FIELD OPERATOR",
@@ -569,9 +584,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 37,
+    id: 38,
     key: "no-signature",
-    code: "CASE #037",
+    code: "CASE #038",
     title: "Where the Signature Should Be",
     target: "legacy-issuer.lab",
     access: "FIELD OPERATOR",
@@ -584,9 +599,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 38,
+    id: 39,
     key: "wrapped-twice",
-    code: "CASE #038",
+    code: "CASE #039",
     title: "Wrapped Twice",
     target: "relay-queue.lab",
     access: "FIELD OPERATOR",
@@ -599,9 +614,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 39,
+    id: 40,
     key: "layer-by-layer",
-    code: "CASE #039",
+    code: "CASE #040",
     title: "Layer by Layer",
     target: "exfil-channel.lab",
     access: "FIELD OPERATOR",
@@ -614,9 +629,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "cipher",
   },
   {
-    id: 40,
+    id: 41,
     key: "someone-elses-order",
-    code: "CASE #040",
+    code: "CASE #041",
     title: "Someone Else's Order",
     target: "orders-api.lab",
     access: "OPERATOR",
@@ -629,9 +644,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "range",
   },
   {
-    id: 41,
+    id: 42,
     key: "negative-quantity",
-    code: "CASE #041",
+    code: "CASE #042",
     title: "Negative Quantity",
     target: "checkout-service.lab",
     access: "OPERATOR",
@@ -644,9 +659,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "range",
   },
   {
-    id: 42,
+    id: 43,
     key: "up-one-level",
-    code: "CASE #042",
+    code: "CASE #043",
     title: "Up One Level",
     target: "docs-service.lab",
     access: "OPERATOR",
@@ -659,9 +674,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "range",
   },
   {
-    id: 43,
+    id: 44,
     key: "role-in-the-token",
-    code: "CASE #043",
+    code: "CASE #044",
     title: "Role in the Token",
     target: "range-issuer.lab",
     access: "OPERATOR",
@@ -674,9 +689,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "range",
   },
   {
-    id: 44,
+    id: 45,
     key: "twice-at-once",
-    code: "CASE #044",
+    code: "CASE #045",
     title: "Twice at Once",
     target: "coupon-service.lab",
     access: "OPERATOR",
@@ -689,9 +704,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "range",
   },
   {
-    id: 45,
+    id: 46,
     key: "it-echoes-back",
-    code: "CASE #045",
+    code: "CASE #046",
     title: "It Echoes Back",
     target: "search-service.lab",
     access: "OPERATOR",
@@ -704,9 +719,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "render",
   },
   {
-    id: 46,
+    id: 47,
     key: "it-stays-there",
-    code: "CASE #046",
+    code: "CASE #047",
     title: "It Stays There",
     target: "board-service.lab",
     access: "OPERATOR",
@@ -719,9 +734,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "render",
   },
   {
-    id: 47,
+    id: 48,
     key: "always-true",
-    code: "CASE #047",
+    code: "CASE #048",
     title: "Always True",
     target: "auth-service.lab",
     access: "OPERATOR",
@@ -734,9 +749,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "query",
   },
   {
-    id: 48,
+    id: 49,
     key: "another-table",
-    code: "CASE #048",
+    code: "CASE #049",
     title: "Another Table",
     target: "lookup-service.lab",
     access: "OPERATOR",
@@ -749,9 +764,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "query",
   },
   {
-    id: 49,
+    id: 50,
     key: "yes-or-no",
-    code: "CASE #049",
+    code: "CASE #050",
     title: "Yes or No",
     target: "probe-service.lab",
     access: "OPERATOR",
@@ -764,9 +779,9 @@ export const blackTraceStages: BlackTraceStage[] = [
     surface: "query",
   },
   {
-    id: 50,
+    id: 51,
     key: "fragmented-key",
-    code: "CASE #050",
+    code: "CASE #051",
     title: "Fragmented Key",
     target: "vault-node-01.lab",
     access: "OPERATOR",
@@ -842,11 +857,11 @@ const tierNames = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as co
  * no longer derives itself and a reorder could otherwise quietly break the alignment.
  *
  *   TRAINEE         1-13   브라우저가 이미 가진 것을 읽는다 (Elements, Application)
- *   INFILTRATOR     14-29  서버와 주고받는 것을 다룬다 (주소창, Network, 요청 만들기)
- *   FIELD OPERATOR  30-39  실려 있는 값을 읽어낸다 (해독)
- *   OPERATOR        40-50  실제 결함을 다룬다 (연습장)
+ *   INFILTRATOR     14-30  서버와 주고받는 것을 다룬다 (주소창, Network, 요청 만들기)
+ *   FIELD OPERATOR  31-40  실려 있는 값을 읽어낸다 (해독)
+ *   OPERATOR        41-51  실제 결함을 다룬다 (연습장)
  */
-export const blackTraceTierStarts = [1, 14, 30, 40] as const;
+export const blackTraceTierStarts = [1, 14, 31, 41] as const;
 
 export function blackTraceTierFor(stage: number) {
   let tier = 0;
