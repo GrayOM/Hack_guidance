@@ -28,3 +28,23 @@ npx tsc /tmp/hg-play/src/*.ts --target es2022 --module es2022 \
 `db.mjs`가 Postgres 대신 선다. 중요한 제약은 그대로 둔다. 단계 상한, 사용자별 기본 키,
 원자적 쿠폰 반영, 수료증 요건. Postgres를 다시 시험하려는 것이 아니라 **배포되는 함수**를
 그대로 돌려 보려는 것이다.
+
+## 브라우저 전수 검사
+
+플레이스루는 서버가 기대하는 값과 브라우저가 만드는 값이 같은지를 본다. 그것으로는 **계기가
+실제로 화면에 값을 심는지**를 알 수 없다. `browser-sweep.mjs`가 그 부분을 본다. 심는 방식
+스물세 개를 전부 열어 보고, 흔적이 그 노드가 말한 자리에 실제로 있는지 확인한다.
+
+- DOM·저장소 노드: 마크업·입력 칸·shadow DOM·쿠키·localStorage·sessionStorage·IndexedDB·주소창
+  가운데 어딘가에서 찾아내고, 화면에 그대로 보이지는 않아야 한다.
+- 해독 노드: 평문이 **없어야** 하고, 동시에 화면의 값이 되돌리면 평문이 **되어야** 한다.
+  평문이 없다는 조건만 보면 빈 화면도 통과하므로 두 가지를 함께 본다.
+
+```
+npm run dev   # VITE_SUPABASE_URL=https://stand-in.test 로 띄운다
+node scripts/playthrough/browser-sweep.mjs
+```
+
+노드 화면은 로그인한 요청에만 자료를 받으므로, 검사 중에는 `BlackTraceStage.tsx`의
+`isAuthenticated`와 `isOpen`을 잠시 열어 두어야 한다. 되돌릴 때는 `git checkout`이 아니라
+따로 떠 둔 사본으로 되돌린다. 아직 커밋하지 않은 다른 변경까지 함께 날아간 적이 두 번 있다.
