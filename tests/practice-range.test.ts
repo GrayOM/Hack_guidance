@@ -6,6 +6,10 @@ import { parallelCount, rangeReplyLines } from "../client/src/components/instrum
 const rangeFunction = readFileSync(new URL("../supabase/functions/range/index.ts", import.meta.url), "utf8");
 const learningFunction = readFileSync(new URL("../supabase/functions/learning/index.ts", import.meta.url), "utf8");
 const consoleSource = readFileSync(new URL("../client/src/components/instruments/range.tsx", import.meta.url), "utf8");
+/** Comments stripped: a check for "this flag is absent" must not be satisfied, or defeated, by the
+ *  comment that explains why it is absent. */
+const stripComments = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+const consoleCode = stripComments(consoleSource);
 const stageSource = readFileSync(new URL("../client/src/pages/BlackTraceStage.tsx", import.meta.url), "utf8");
 const stageStyles = readFileSync(new URL("../client/src/pages/black-trace.css", import.meta.url), "utf8");
 const migrationDir = new URL("../supabase/migrations/", import.meta.url);
@@ -91,20 +95,23 @@ describe("PRACTICE RANGE", () => {
 
   it("holds every range trace on the server and none in what the browser is handed", () => {
     const traces = [...rangeFunction.matchAll(/FLAG\{[a-z_]+\}/g)].map(match => match[0]);
-    expect(traces.length).toBe(5);
+    expect(traces.length).toBe(10);
     // The submitting function has to expect exactly what the range hands out, or a correct answer
     // is refused with no error anywhere.
     for (const trace of traces) expect(learningFunction).toContain(trace);
     // The console builds requests; it never knows an answer.
-    expect(consoleSource).not.toMatch(/FLAG\{[a-z_]+\}/);
+    expect(consoleCode).not.toMatch(/FLAG\{[a-z_]+\}/);
   });
 
   it("puts a request builder on the range nodes and pre-fills it with the ordinary values", () => {
     expect(stageSource).toContain('props.surface === "range"');
     expect(stageSource).toContain("<RangeConsole");
-    const rangeNodes = blackTraceStages.filter(stage => stage.surface === "range");
+    expect(stageSource).toContain('props.surface === "render"');
+    expect(stageSource).toContain('props.surface === "query"');
+    const rangeNodes = blackTraceStages.filter(stage => ["range", "render", "query"].includes(stage.surface));
     expect(rangeNodes.map(stage => stage.key)).toEqual([
       "someone-elses-order", "role-in-the-token", "up-one-level", "twice-at-once", "negative-quantity",
+      "it-echoes-back", "it-stays-there", "always-true", "another-table", "yes-or-no",
     ]);
     // Each node's console is keyed on the node, not the surface: all five share one surface, and
     // keying on it once gave ten nodes the same instrument.
@@ -113,7 +120,10 @@ describe("PRACTICE RANGE", () => {
     // in them instead -- naming that is the answer.
     expect(consoleSource).toContain('initial: "1041"');
     expect(consoleSource).toContain('initial: "manual.txt"');
-    expect(consoleSource).not.toMatch(/1042|\.\.\/|alg.{0,4}none|private\/credentials/);
+    expect(consoleCode).not.toMatch(/1042|\.\.\/|alg.{0,4}none|private\/credentials/);
+    // Nor the answers the injection nodes turn on: the payload, the condition, the union, the
+    // value to recover. The console builds requests; the operator writes what goes in them.
+    expect(consoleCode).not.toMatch(/onerror|<script|union\s+select|or\s+'?1'?\s*=|aurora/i);
   });
 
   it("prints the range reply as it arrived, status line and body, one field per line", () => {
@@ -152,6 +162,71 @@ describe("PRACTICE RANGE", () => {
     // The private document is only reachable through the join, never by asking for it directly.
     expect(docs).not.toContain('"public/private/credentials.txt"');
     expect(rangeFunction).toContain('`public/${name}`.replace(/public\\/\\.\\.\\//g, "")');
+  });
+
+  it("renders the payload in a frame that has no access to the page around it", () => {
+    // allow-scripts makes the node teachable -- without it nothing the operator writes ever runs.
+    // allow-modals lets alert() through, which is the proof everyone reaches for. What must never
+    // appear is allow-same-origin: granted alongside allow-scripts it lets the frame reach into
+    // this page's DOM, cookies and storage, and lets it strip its own sandbox attribute.
+    expect(consoleSource).toContain('sandbox="allow-scripts allow-modals"');
+    expect(consoleCode).not.toContain("allow-same-origin");
+    expect(consoleCode).not.toContain("allow-top-navigation");
+    expect(consoleCode).not.toContain("allow-popups");
+    // The page is handed over as a document, never written into the live page.
+    expect(consoleSource).toContain("srcDoc={html}");
+    expect(consoleCode).not.toContain("dangerouslySetInnerHTML");
+    expect(consoleCode).not.toMatch(/\.innerHTML\s*=/);
+    // The frame is only ever given what the server returned, so the console cannot be talked into
+    // rendering something it assembled itself.
+    expect(consoleSource).toMatch(/if \(typeof body\.html === "string"\) return <RenderedPage html=\{body\.html\}/);
+  });
+
+  it("decides on the server whether the payload became part of the document", () => {
+    // The verdict stays here because the trace does: a browser-side check would mean the answer
+    // travelled to the browser before it was earned.
+    const reflected = rangeFunction.slice(rangeFunction.indexOf('mode === "search"'), rangeFunction.indexOf('mode === "note"'));
+    expect(reflected).toContain("executes(html)");
+    expect(reflected).toContain("rangeFlags.reflected");
+    // Writing the term into the page unescaped is the defect the node is about, so the template
+    // must not acquire an escaper by accident.
+    expect(rangeFunction).toContain("`<p>검색어: <em>${term}</em></p>`");
+    // Saving a note says nothing about whether it runs; only reading the board does. That is the
+    // whole difference between the reflected node and the stored one.
+    const saving = rangeFunction.slice(rangeFunction.indexOf('mode === "note"'), rangeFunction.indexOf('mode === "board"'));
+    expect(saving).not.toContain("trace");
+    expect(rangeFunction.slice(rangeFunction.indexOf('mode === "board"'))).toContain("rangeFlags.stored");
+  });
+
+  it("counts a payload as executing only when it really would", () => {
+    // Lifted out of the function so the judgement itself is checked rather than described. A node
+    // that pays out for plain angle brackets teaches the wrong lesson.
+    const source = rangeFunction
+      .slice(rangeFunction.indexOf("const executes ="), rangeFunction.indexOf("const searchPage"))
+      .replace("const executes =", "")
+      .replace("(html: string)", "(html)")
+      .trim()
+      .replace(/;$/, "");
+    const executes = new Function("html", `return (${source})(html)`) as (html: string) => boolean;
+    for (const inert of ["어댑터", "<b>굵게</b>", "a < b and c > d", "onerror=alert(1)", "&lt;script&gt;alert(1)&lt;/script&gt;"]) {
+      expect([inert, executes(inert)]).toEqual([inert, false]);
+    }
+    for (const live of [
+      "<script>alert(1)</script>",
+      "<img src=x onerror=alert(1)>",
+      "<svg onload=alert(1)>",
+      "<a href=\"javascript:alert(1)\">x</a>",
+      "<IMG SRC=x ONERROR=alert(1)>",
+    ]) expect([live, executes(live)]).toEqual([live, true]);
+  });
+
+  it("bounds the stored note in the database as well as in the function", () => {
+    const fifty = readFileSync(new URL("20260830000000_fifty_node_course.sql", migrationDir), "utf8");
+    expect(fifty).toContain("add column if not exists stored_note text not null default ''");
+    // The function caps the field before writing it; this makes a write that skipped that cap
+    // fail rather than store an unbounded blob.
+    expect(fifty).toContain("check (length(stored_note) <= 256)");
+    expect(rangeFunction).toContain("bounded(payload.note as string)");
   });
 
   it("requires the whole course for the certificate, in the newest migration that sets the count", () => {

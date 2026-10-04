@@ -62,6 +62,48 @@ const consoles: Record<string, ConsoleConfig> = {
     fields: [{ name: "quantity", label: "quantity", initial: "1", note: "주문 수량", numeric: true }],
     actions: [{ label: "SUBMIT ORDER", send: values => ["checkout", { method: "POST", body: { quantity: Number(values.quantity) } }] }],
   },
+  "it-echoes-back": {
+    title: "PRODUCT SEARCH",
+    endpoint: "GET /search?q=",
+    fields: [{ name: "q", label: "q", initial: "어댑터", note: "검색어", long: true }],
+    actions: [{ label: "SEARCH", send: values => ["search", { query: { q: values.q } }] }],
+  },
+  "it-stays-there": {
+    title: "OPERATIONS BOARD",
+    endpoint: "POST /notes  ·  GET /board",
+    fields: [{ name: "note", label: "note", initial: "오늘 점검 완료", note: "게시판에 남길 한 줄", long: true }],
+    actions: [
+      { label: "POST NOTE", send: values => ["note", { method: "POST", body: { note: values.note } }] },
+      { label: "OPEN BOARD", send: () => ["board", {}] },
+    ],
+  },
+  "always-true": {
+    title: "SIGN IN",
+    endpoint: "POST /login",
+    fields: [
+      { name: "user", label: "user", initial: "you", note: "아이디" },
+      { name: "pass", label: "pass", initial: "hunter2", note: "비밀번호" },
+    ],
+    actions: [{ label: "SIGN IN", send: values => ["login", { method: "POST", body: { user: values.user, pass: values.pass } }] }],
+  },
+  "another-table": {
+    title: "ACCOUNT LOOKUP",
+    endpoint: "GET /lookup?id=",
+    fields: [{ name: "id", label: "id", initial: "2", note: "계정 번호", long: true }],
+    actions: [{ label: "LOOK UP", send: values => ["lookup", { query: { id: values.id } }] }],
+  },
+  "yes-or-no": {
+    title: "ACCOUNT PROBE",
+    endpoint: "GET /probe?user=   (있음 / 없음 만 답함)",
+    fields: [
+      { name: "user", label: "user", initial: "admin", note: "확인할 아이디", long: true },
+      { name: "answer", label: "recovered_value", initial: "", note: "알아낸 값을 적어 제출합니다", placeholder: "복구 문구" },
+    ],
+    actions: [
+      { label: "PROBE", send: values => ["probe", { query: { user: values.user } }] },
+      { label: "CONFIRM", send: values => ["probe", { query: { user: values.user, answer: values.answer } }] },
+    ],
+  },
 };
 
 /** The reply the operator reads: the status line, then the body as it arrived. */
@@ -164,9 +206,67 @@ export function RangeConsole({ nodeKey, onLog, onBusy, onDone }: InstrumentProps
       {reply
         ? <>
             <span className={`bt-range__status${reply.status < 300 ? " is-ok" : " is-refused"}`}>{reply.status}</span>
-            <pre>{formatBody(reply.raw).join("\n").replace(/^ {2}/gm, "")}</pre>
+            <ReplyBody reply={reply} />
           </>
         : <p className="bt-range__idle">응답 대기 중 · 값을 넣고 요청을 보내면 서버가 돌려준 내용이 그대로 표시됩니다.</p>}
     </div>
+  </div>;
+}
+
+/** Three shapes come back from the range, and a raw JSON dump reads badly for two of them. */
+function ReplyBody({ reply }: { reply: RangeReply }) {
+  const { body } = reply;
+  if (typeof body.html === "string") return <RenderedPage html={body.html} executed={body.executed === true} />;
+  if (typeof body.query === "string") return <QueryResult query={body.query} rows={Array.isArray(body.rows) ? body.rows as Row[] : null} message={typeof body.message === "string" ? body.message : null} />;
+  return <pre>{formatBody(reply.raw).join("\n").replace(/^ {2}/gm, "")}</pre>;
+}
+
+type Row = Record<string, unknown>;
+
+/**
+ * The page the mock application built, rendered as a browser would render it.
+ *
+ * The sandbox attribute is the whole safety argument, so it is written out rather than assembled:
+ * `allow-scripts` lets the operator's payload actually run -- without that the node teaches nothing
+ * -- and `allow-modals` lets alert() through, since that is the proof everyone reaches for. What is
+ * deliberately absent is `allow-same-origin`. Without it the frame is a unique opaque origin: it
+ * cannot read this page's DOM, cookies, localStorage or session, cannot navigate the top window,
+ * and cannot make a same-origin request. The two flags together are the one combination that is
+ * never granted, because it lets the frame remove its own sandbox.
+ */
+function RenderedPage({ html, executed }: { html: string; executed: boolean }) {
+  return <div className="bt-render">
+    <p className="bt-render__label">
+      브라우저가 그린 화면
+      <span className={executed ? "is-fired" : ""}>{executed ? "SCRIPT EXECUTED" : "TEXT ONLY"}</span>
+    </p>
+    <iframe
+      className="bt-render__frame"
+      sandbox="allow-scripts allow-modals"
+      srcDoc={html}
+      title="모의 응용프로그램이 그린 화면"
+    />
+    <details className="bt-render__source">
+      <summary>서버가 돌려준 HTML</summary>
+      <pre>{html}</pre>
+    </details>
+  </div>;
+}
+
+/** The statement the server built, then what it returned. Seeing the statement is the node. */
+function QueryResult({ query, rows, message }: { query: string; rows: Row[] | null; message: string | null }) {
+  const columns = rows?.length ? Object.keys(rows[0]) : [];
+  return <div className="bt-query">
+    <p className="bt-query__label">서버가 만든 질의문</p>
+    <pre className="bt-query__sql">{query}</pre>
+    {message ? <p className="bt-query__error">{message}</p> : null}
+    {rows
+      ? rows.length
+        ? <table className="bt-query__rows">
+            <thead><tr>{columns.map(column => <th key={column}>{column}</th>)}</tr></thead>
+            <tbody>{rows.map((row, index) => <tr key={index}>{columns.map(column => <td key={column}>{String(row[column] ?? "")}</td>)}</tr>)}</tbody>
+          </table>
+        : <p className="bt-query__empty">돌아온 행이 없습니다.</p>
+      : null}
   </div>;
 }

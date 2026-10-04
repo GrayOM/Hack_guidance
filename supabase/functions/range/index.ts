@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { runSql, SqlError, sqlLimits } from "./sql.ts";
 
 /**
  * The practice range: a mock application that is wrong on purpose.
@@ -39,7 +40,59 @@ const rangeFlags = {
   path: "FLAG{it_walked_out_of_the_folder}",
   race: "FLAG{both_passed_the_check}",
   total: "FLAG{the_total_went_the_wrong_way}",
+  reflected: "FLAG{the_page_ran_your_words}",
+  stored: "FLAG{it_waited_for_the_next_reader}",
+  bypass: "FLAG{the_condition_was_yours}",
+  union: "FLAG{the_result_set_grew}",
+  blind: "FLAG{one_letter_at_a_time}",
 };
+
+/* --- Nodes 47-49: the tables the interpreter reads -------------------------------------------
+   Fixtures, like everything else here. The query the operator shapes is evaluated by the small
+   interpreter in sql.ts against these rows. It never reaches Postgres: the one real table this
+   function touches is the operator's own range state, and no operator input is ever part of that
+   statement. */
+const sqlTables = {
+  accounts: [
+    { id: 1, user: "you", pass: "hunter2", role: "viewer", name: "현장 요원" },
+    { id: 2, user: "r.kang", pass: "spring-2026", role: "viewer", name: "강 책임" },
+    { id: 3, user: "admin", pass: "ops-5f2a91c4", role: "admin", name: "관리자" },
+  ],
+  archive: [
+    { id: 1, label: "export key", secret: rangeFlags.union },
+    { id: 2, label: "rotation note", secret: "다음 교체 2026-04-01" },
+  ],
+  // Short on purpose. The blind node is recovered one letter at a time by hand, and a long value
+  // would teach nothing the sixth letter had not already taught while costing an hour.
+  signals: [{ id: 1, name: "recovery phrase", value: "aurora" }],
+};
+
+/* --- Nodes 45-46: what counts as "it executed" ------------------------------------------------
+   The operator's input is put into the page without escaping, and the server then reads its own
+   output back to decide whether that input became part of the document rather than text in it.
+   This is the judgement a scanner makes, and it keeps the trace on the server: the browser is
+   handed the page, never the answer. */
+const executes = (html: string) =>
+  /<\s*script[\s>]/i.test(html)
+  || /<\s*(img|svg|body|iframe|video|audio|details|input|object|embed)\b[^>]*\son[a-z]+\s*=/i.test(html)
+  || /<\s*a\b[^>]*\shref\s*=\s*["']?\s*javascript:/i.test(html);
+
+const searchPage = (term: string) => [
+  '<!doctype html><meta charset="utf-8">',
+  "<style>body{font:13px/1.7 system-ui;background:#06121a;color:#9dc4c8;margin:0;padding:16px}em{color:#8affd2;font-style:normal}</style>",
+  "<h3>검색 결과</h3>",
+  `<p>검색어: <em>${term}</em></p>`,
+  "<p>일치하는 품목이 없습니다.</p>",
+].join("");
+
+const boardPage = (note: string) => [
+  '<!doctype html><meta charset="utf-8">',
+  "<style>body{font:13px/1.7 system-ui;background:#06121a;color:#9dc4c8;margin:0;padding:16px}li{margin:6px 0}</style>",
+  "<h3>운영 게시판</h3><ul>",
+  "<li>점검 안내: 매주 화요일 02:00</li>",
+  `<li>${note || "(아직 남긴 메모가 없습니다)"}</li>`,
+  "</ul>",
+].join("");
 
 /* --- Node 40: ownership is never checked ----------------------------------------------------- */
 const orders: Record<string, Record<string, unknown>> = {
@@ -191,6 +244,84 @@ Deno.serve(async request => {
     return total < 0
       ? json({ status: "ok", quantity, unit, total, balance, note: "결제 후 잔액이 늘어남", trace: rangeFlags.total })
       : json({ status: "ok", quantity, unit, total, balance });
+  }
+
+  /* --- Node 45: reflected --------------------------------------------------------------------- */
+  if (mode === "search") {
+    const term = bounded(url.searchParams.get("q") ?? payload.q as string);
+    const html = searchPage(term);
+    // Not escaped on the way in, which is the defect; read back on the way out to decide whether
+    // the input stopped being text. The page goes to the browser, the verdict stays here.
+    return json({ status: "ok", term, html, executed: executes(html), ...(executes(html) ? { trace: rangeFlags.reflected } : {}) });
+  }
+
+  /* --- Node 46: stored ------------------------------------------------------------------------ */
+  if (mode === "note") {
+    const note = bounded(payload.note as string);
+    const { error } = await service().from("hg_range_state").upsert({ user_id: user.id, stored_note: note });
+    if (error) return json({ status: "error", message: "range state unavailable" }, { status: 503 });
+    // Saving says nothing about whether it runs. The difference between this node and the one
+    // before it is that nobody has to be handed a link, so the verdict belongs to the read.
+    return json({ status: "saved", note, length: note.length });
+  }
+
+  if (mode === "board") {
+    const { data } = await service().from("hg_range_state").select("stored_note").eq("user_id", user.id).maybeSingle();
+    const note = typeof data?.stored_note === "string" ? data.stored_note : "";
+    const html = boardPage(note);
+    return json({ status: "ok", html, executed: executes(html), ...(executes(html) ? { trace: rangeFlags.stored } : {}) });
+  }
+
+  /* --- Nodes 47-49: the query the operator shapes --------------------------------------------- */
+  if (mode === "login" || mode === "lookup" || mode === "probe") {
+    const query = mode === "login"
+      ? `select id, user, role from accounts where user = '${bounded(payload.user as string)}' and pass = '${bounded(payload.pass as string)}'`
+      : mode === "lookup"
+        ? `select name, role from accounts where id = ${bounded(url.searchParams.get("id") ?? payload.id as string) || "0"}`
+        : `select id from accounts where user = '${bounded(url.searchParams.get("user") ?? payload.user as string)}'`;
+    if (query.length > sqlLimits.query) return json({ status: "invalid", query, message: "query too long" }, { status: 400 });
+
+    let rows;
+    try {
+      rows = runSql(query, sqlTables);
+    } catch (error) {
+      // The engine's own complaint, shown as it is. A query that will not parse is the most
+      // ordinary thing that happens while shaping one, and hiding why teaches nothing.
+      const message = error instanceof SqlError ? error.message : "query failed";
+      return json({ status: "error", query, message }, { status: 400 });
+    }
+
+    if (mode === "login") {
+      const admin = rows.find(row => String(row.role) === "admin");
+      // Signing in as the administrator without their password is the whole of the node. Supplying
+      // it is simply signing in, and gets no trace.
+      const knewTheSecret = bounded(payload.pass as string) === "ops-5f2a91c4";
+      return json({
+        status: rows.length ? "signed_in" : "rejected", query, rows,
+        ...(admin && !knewTheSecret ? { as: admin.user, trace: rangeFlags.bypass } : admin ? { as: admin.user } : {}),
+      });
+    }
+
+    if (mode === "lookup") {
+      // The trace is in a row only the extended result set can carry, so it appears exactly when
+      // the operator has widened the query, and never from the account table alone.
+      const widened = rows.some(row => Object.values(row).some(value => String(value).includes(rangeFlags.union)));
+      return json({ status: "ok", query, rows, ...(widened ? { trace: rangeFlags.union } : {}) });
+    }
+
+    // probe: an oracle and nothing more. It says whether anything matched and never what, so the
+    // only way to a value it will not print is to ask about it a letter at a time.
+    //
+    // The trace is not handed out for a true answer -- that would make one lucky guess the whole
+    // node. It is handed out for stating the recovered value, which is what having extracted it
+    // actually means, and is how the technique pays off in the field: you leave with a credential.
+    const answer = bounded(url.searchParams.get("answer") ?? payload.answer as string).trim().toLowerCase();
+    if (answer) {
+      return answer === "aurora"
+        ? json({ status: "confirmed", answer, trace: rangeFlags.blind })
+        : json({ status: "rejected", answer, message: "복구 문구가 일치하지 않습니다." });
+    }
+    return json({ status: "ok", found: rows.length > 0 });
   }
 
   return json({ error: "Unknown range endpoint" }, { status: 404 });

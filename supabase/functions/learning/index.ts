@@ -34,7 +34,8 @@ const nodeKeys: Record<number, string> = {
   26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
   31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
   36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "someone-elses-order",
-  41: "role-in-the-token", 42: "up-one-level", 43: "twice-at-once", 44: "negative-quantity", 45: "fragmented-key",
+  41: "role-in-the-token", 42: "up-one-level", 43: "twice-at-once", 44: "negative-quantity", 45: "it-echoes-back",
+  46: "it-stays-there", 47: "always-true", 48: "another-table", 49: "yes-or-no", 50: "fragmented-key",
 };
 
 const traceLabels: Record<string, string> = {
@@ -65,7 +66,7 @@ const traceLabels: Record<string, string> = {
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 45;
+const blackTraceNodeCount = 50;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
@@ -92,6 +93,11 @@ const channelFlags: Record<string, string> = {
   "up-one-level": "FLAG{it_walked_out_of_the_folder}",
   "twice-at-once": "FLAG{both_passed_the_check}",
   "negative-quantity": "FLAG{the_total_went_the_wrong_way}",
+  "it-echoes-back": "FLAG{the_page_ran_your_words}",
+  "it-stays-there": "FLAG{it_waited_for_the_next_reader}",
+  "always-true": "FLAG{the_condition_was_yours}",
+  "another-table": "FLAG{the_result_set_grew}",
+  "yes-or-no": "FLAG{one_letter_at_a_time}",
 };
 
 // Generous enough that a shared network browsing the public pages never notices it.

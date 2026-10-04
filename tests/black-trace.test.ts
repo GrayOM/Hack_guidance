@@ -33,17 +33,19 @@ describe("OPERATION BLACK TRACE", () => {
       ...Array.from({ length: 10 }, () => "request"),
       ...Array.from({ length: 10 }, () => "cipher"),
       ...Array.from({ length: 5 }, () => "range"),
+      "render", "render", "query", "query", "query",
       "vault",
     ]);
     expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: blackTraceNodeCount }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
       Array.from({ length: blackTraceNodeCount }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    // Four even quarters of 45: a count that no longer divides by four put the board's ladder and
-    // the node's own tier a node apart at every boundary, so both now read one function.
-    expect(blackTraceStageById(12)?.access).toBe("TRAINEE");
-    expect(blackTraceStageById(13)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(24)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(35)?.access).toBe("OPERATOR");
+    // Four even quarters of the course. A count that does not divide by four put the board's
+    // ladder and the node's own tier a node apart at every boundary, so both now read one
+    // function; the boundaries below are read from it rather than written out again.
+    expect(blackTraceStageById(13)?.access).toBe("TRAINEE");
+    expect(blackTraceStageById(14)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(26)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(39)?.access).toBe("OPERATOR");
     expect(blackTraceStageById(blackTraceNodeCount)?.access).toBe("OPERATOR");
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
@@ -225,8 +227,8 @@ describe("OPERATION BLACK TRACE", () => {
   it("shows progression: what the next node unlocks, and that a node was recovered", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
-    expect(nextBlackTraceRank(13)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(24)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(14)?.name).toBe("FIELD OPERATOR");
+    expect(nextBlackTraceRank(26)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     // The ladder the board shows and the tier a node carries come from the same boundary, so a
     // node that opens a tier is the node the board named as next.
