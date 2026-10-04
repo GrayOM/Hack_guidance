@@ -27,16 +27,15 @@ const displayNamePattern = /^[가-힣A-Za-z0-9 _-]{2,24}$/;
 // anywhere; the node's number may now change freely.
 const nodeKeys: Record<number, string> = {
   1: "tooltip", 2: "wrong-destination", 3: "ghost-comment", 4: "forgotten-field", 5: "embedded-identity",
-  6: "invisible-ink", 7: "off-screen", 8: "template-tag", 9: "shadow-root", 10: "residual-trace",
-  11: "local-memory", 12: "until-you-leave", 13: "deeper-store", 14: "robot-rules", 15: "sitemap",
-  16: "source-map", 17: "silent-response", 18: "server-whisper", 19: "follow-the-trail", 20: "ask-it-yourself",
-  21: "wrong-method", 22: "cookie-flags", 23: "claimed-role", 24: "referer", 25: "etag",
-  26: "range", 27: "preflight", 28: "status-only", 29: "content-type", 30: "two-requests",
-  31: "plain-sight", 32: "bytes-as-text", 33: "percent-signs", 34: "shifted", 35: "one-byte-key",
-  36: "two-alphabets", 37: "three-parts", 38: "no-signature", 39: "wrapped-twice", 40: "layer-by-layer",
-  41: "someone-elses-order", 42: "negative-quantity", 43: "up-one-level", 44: "role-in-the-token", 45: "twice-at-once",
-  46: "it-echoes-back", 47: "it-stays-there", 48: "always-true", 49: "another-table", 50: "yes-or-no",
-  51: "fragmented-key",
+  6: "invisible-ink", 7: "template-tag", 8: "shadow-root", 9: "residual-trace", 10: "local-memory",
+  11: "until-you-leave", 12: "deeper-store", 13: "robot-rules", 14: "sitemap", 15: "source-map",
+  16: "silent-response", 17: "server-whisper", 18: "follow-the-trail", 19: "ask-it-yourself", 20: "wrong-method",
+  21: "cookie-flags", 22: "claimed-role", 23: "referer", 24: "etag", 25: "range",
+  26: "preflight", 27: "status-only", 28: "content-type", 29: "two-requests", 30: "plain-sight",
+  31: "bytes-as-text", 32: "percent-signs", 33: "shifted", 34: "one-byte-key", 35: "two-alphabets",
+  36: "three-parts", 37: "no-signature", 38: "wrapped-twice", 39: "layer-by-layer", 40: "someone-elses-order",
+  41: "negative-quantity", 42: "up-one-level", 43: "role-in-the-token", 44: "twice-at-once", 45: "it-echoes-back",
+  46: "it-stays-there", 47: "always-true", 48: "another-table", 49: "yes-or-no", 50: "fragmented-key",
 };
 
 const traceLabels: Record<string, string> = {
@@ -46,7 +45,6 @@ const traceLabels: Record<string, string> = {
   "forgotten-field": "hidden_fields_remember",
   "embedded-identity": "attributes_tell_more",
   "invisible-ink": "sent_but_not_painted",
-  "off-screen": "pushed_out_of_view",
   "template-tag": "queued_never_drawn",
   "shadow-root": "a_tree_inside_a_tree",
   "residual-trace": "cookies_leave_traces",
@@ -67,7 +65,7 @@ const traceLabels: Record<string, string> = {
 };
 const vaultTraceSuffix = "one_key}";
 const blackTraceCourseCode = "black-trace-10-node-clearance";
-const blackTraceNodeCount = 51;
+const blackTraceNodeCount = 50;
 
 // Traces the operator can only obtain by making the request, so they are not bundle-readable.
 const channelFlags: Record<string, string> = {
@@ -205,7 +203,7 @@ const accessTiers = ["TRAINEE", "INFILTRATOR", "FIELD OPERATOR", "OPERATOR"] as 
 // operator in the middle of a chapter; every boundary is now the first node of a chapter, so a
 // promotion means a kind of work is finished. Mirrors blackTraceTierStarts in
 // shared/black-trace.ts, and a test fails if the two lists drift apart.
-const accessTierStarts = [1, 14, 31, 41];
+const accessTierStarts = [1, 13, 30, 40];
 
 function blackTraceAccess(stage: number) {
   let tier = 0;

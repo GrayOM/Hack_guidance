@@ -27,7 +27,10 @@ describe("OPERATION BLACK TRACE", () => {
     // back. The order now walks address bar -> Elements -> Application -> address bar -> Network.
     expect(blackTraceStages.map(stage => stage.surface)).toEqual([
       "tooltip", "route", "comment", "field", "identity",
-      "invisible-ink", "off-screen", "template-tag", "shadow-root", "cookie",
+      // The off-screen node was dropped: it and the invisible-ink node before it taught the same
+      // thing -- the element is in the document, the page just will not show it -- and only the CSS
+      // differed. Six Elements nodes still cover six distinct places to hide something.
+      "invisible-ink", "template-tag", "shadow-root", "cookie",
       "local-memory", "until-you-leave", "deeper-store", "robots", "sitemap", "source-map",
       "response", "header", "redirect",
       // The bridge out of watching requests and into making them. It reuses the header node's

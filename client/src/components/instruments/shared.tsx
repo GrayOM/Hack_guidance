@@ -23,8 +23,6 @@ const sweeps: Record<string, SweepConfig> = {
     present: 3, painted: 3, note: "세 개 모두 그려졌다. 다만 한 라벨은 화면에 나온 글자보다 길다." },
   "invisible-ink": { title: "RENDER AUDIT", rows: ["블록 1 · 접수", "블록 2 · 검토", "블록 3 · 승인", "블록 4 · 반출"],
     present: 4, painted: 3, note: "네 개가 왔고 세 개가 그려졌다. 나머지 하나는 버려진 것이 아니다." },
-  "off-screen": { title: "LAYOUT PROBE", rows: ["요소 1 · 좌측 패널", "요소 2 · 본문", "요소 3 · ???"],
-    present: 3, painted: 2, note: "세 번째 요소는 자리를 차지하고 있다. 그 자리가 화면 안이 아닐 뿐이다." },
   "template-tag": { title: "RENDER QUEUE", rows: ["대기 1 · 승인 안내", "대기 2 · 반려 안내", "대기 3 · 관리자 안내"],
     present: 3, painted: 0, note: "세 조각 모두 아직 그려지지 않았다. 그려지지 않았다는 것이 오지 않았다는 뜻은 아니다." },
   "shadow-root": { title: "COMPONENT TREE", rows: ["호스트 · widget-host", "자식 · (문서에서 조회 불가)"],
