@@ -175,6 +175,24 @@ describe("OPERATION BLACK TRACE", () => {
     expect(robots).toContain("FLAG{robots_know_the_way}");
   });
 
+  it("looks every node table up by the node's name, never by its number", () => {
+    // traceLabels, channelFlags and nodeKeys are keyed by name; only nodeKeys takes a number. One
+    // call site asked traceLabels for a number, which is always undefined, so trace issuance
+    // returned a null token for every node and returned before the progress gate below it ever
+    // ran. With the secret set the browser then composed FLAG{label} while this function expected
+    // FLAG{label_<token>}, and every planted node refused a correct answer. Nobody had reached a
+    // planted node since, so nothing reported it.
+    const byNumber = [...learningFunction.matchAll(/(traceLabels|channelFlags)\[\s*(\w+)\s*\]/g)]
+      .filter(match => !/Key|key/.test(match[2]));
+    expect(byNumber.map(match => match[0])).toEqual([]);
+    // The surface action derives its token from the same key it validated, so the two cannot drift.
+    const surface = learningFunction.slice(learningFunction.indexOf('action === "blackTraceSurface"'));
+    expect(surface).toContain("const surfaceKey = nodeKeys[stage]");
+    expect(surface).toContain("deriveTraceToken(user.id, surfaceKey)");
+    // The gate has to be reachable: an early return above it would make it dead code.
+    expect(surface.indexOf("firstOpenStage(completedStages)")).toBeLessThan(surface.indexOf("deriveTraceToken"));
+  });
+
   it("keeps flag submission, trace issuance, and sequential progress validation on the learning edge function", () => {
     expect(learningFunction).toContain('action === "blackTraceSubmit"');
     expect(learningFunction).toContain('action === "blackTraceProgress"');

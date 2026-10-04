@@ -369,7 +369,12 @@ Deno.serve(async request => {
 
   if (action === "blackTraceSurface") {
     const stage = typeof payload?.stage === "number" ? payload.stage : 0;
-    if (!traceLabels[stage]) return json({ stage, token: null });
+    // traceLabels is keyed by the node's name, not its number. Looking it up by number was always
+    // undefined, so this returned token: null for every node and returned before the progress gate
+    // below ever ran. With BLACK_TRACE_SECRET set the browser then composed FLAG{label} while this
+    // function expected FLAG{label_<token>}, and every planted node refused a correct answer.
+    const surfaceKey = nodeKeys[stage];
+    if (!surfaceKey || !traceLabels[surfaceKey]) return json({ stage, token: null });
     const completedStages = await completedStagesFor(service, user.id);
     if (!completedStages) return json({ error: "Unable to verify operation progress" }, 500);
     // A trace is never handed out for a node the operator has not reached, so future answers
@@ -377,7 +382,7 @@ Deno.serve(async request => {
     if (stage > firstOpenStage(completedStages) && !completedStages.includes(stage)) {
       return json({ error: "Clear the previous node first" }, 409);
     }
-    return json({ stage, token: traceSecret && nodeKeys[stage] ? await deriveTraceToken(user.id, nodeKeys[stage]) : null });
+    return json({ stage, token: traceSecret ? await deriveTraceToken(user.id, surfaceKey) : null });
   }
 
   if (action === "blackTraceProgress") {
