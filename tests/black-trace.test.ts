@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { blackTraceNodeCount, blackTraceRanks, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
+import { blackTraceNodeCount, blackTraceRanks, blackTraceTierStarts, blackTraceStageById, blackTraceStages, composeTrace, nextBlackTraceRank, traceLabels, vaultTraceSuffix } from "../shared/black-trace";
 import { keyShapeProblem, submissionFailureLines } from "../client/src/pages/BlackTraceStage";
 import { cipherBenches } from "../client/src/components/instruments/shared";
 
@@ -39,14 +39,32 @@ describe("OPERATION BLACK TRACE", () => {
     expect(blackTraceStages.map(stage => stage.id)).toEqual(Array.from({ length: blackTraceNodeCount }, (_, index) => index + 1));
     expect(blackTraceStages.map(stage => stage.code)).toEqual(
       Array.from({ length: blackTraceNodeCount }, (_, index) => `CASE #${String(index + 1).padStart(3, "0")}`));
-    // Four even quarters of the course. A count that does not divide by four put the board's
-    // ladder and the node's own tier a node apart at every boundary, so both now read one
-    // function; the boundaries below are read from it rather than written out again.
+    // A promotion means a kind of work is finished, so every tier boundary is the first node of a
+    // chapter. Even quarters of the node count used to promote an operator mid-chapter -- once on
+    // a chapter's last node -- which read as a counter rather than as progress.
+    // Named outright rather than derived from where the surface changes: the first nineteen nodes
+    // each carry their own surface, so that derivation called half the course a chapter start and
+    // the check passed without meaning anything. The full surface sequence is pinned above, so a
+    // reorder that moved a chapter boundary fails there; this pins the ladder to those boundaries.
+    expect(blackTraceTierStarts.map(id => blackTraceStageById(id)?.surface)).toEqual([
+      "tooltip",  // 브라우저가 가진 것을 읽는다
+      "robots",   // 서버가 흘리는 것을 찾는다
+      "cipher",   // 실려 있는 값을 읽어낸다
+      "range",    // 실제 결함을 다룬다
+    ]);
+    // And the node before each promotion belongs to the previous chapter, so no tier opens mid-run.
+    for (const start of blackTraceTierStarts.slice(1)) {
+      expect(blackTraceStageById(start - 1)?.surface).not.toBe(blackTraceStageById(start)?.surface);
+    }
     expect(blackTraceStageById(13)?.access).toBe("TRAINEE");
     expect(blackTraceStageById(14)?.access).toBe("INFILTRATOR");
-    expect(blackTraceStageById(26)?.access).toBe("FIELD OPERATOR");
-    expect(blackTraceStageById(39)?.access).toBe("OPERATOR");
+    expect(blackTraceStageById(29)?.access).toBe("INFILTRATOR");
+    expect(blackTraceStageById(30)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(39)?.access).toBe("FIELD OPERATOR");
+    expect(blackTraceStageById(40)?.access).toBe("OPERATOR");
     expect(blackTraceStageById(blackTraceNodeCount)?.access).toBe("OPERATOR");
+    // The server reports the tier a submission earns, so its copy of the list has to match.
+    expect(learningFunction).toContain(`const accessTierStarts = [${blackTraceTierStarts.join(", ")}]`);
     // Every node carries a key, and no two share one.
     expect(new Set(blackTraceStages.map(stage => stage.key)).size).toBe(blackTraceNodeCount);
   });
@@ -228,7 +246,7 @@ describe("OPERATION BLACK TRACE", () => {
     // The ladder scales with the course: four tiers across however many nodes it holds.
     expect(nextBlackTraceRank(1)?.name).toBe("INFILTRATOR");
     expect(nextBlackTraceRank(14)?.name).toBe("FIELD OPERATOR");
-    expect(nextBlackTraceRank(26)?.name).toBe("OPERATOR");
+    expect(nextBlackTraceRank(30)?.name).toBe("OPERATOR");
     expect(nextBlackTraceRank(blackTraceNodeCount)).toBeNull();
     // The ladder the board shows and the tier a node carries come from the same boundary, so a
     // node that opens a tier is the node the board named as next.

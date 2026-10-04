@@ -109,8 +109,12 @@ describe("PRACTICE RANGE", () => {
     expect(stageSource).toContain('props.surface === "render"');
     expect(stageSource).toContain('props.surface === "query"');
     const rangeNodes = blackTraceStages.filter(stage => ["range", "render", "query"].includes(stage.surface));
+    // Ordered by what the node demands, not by when it was written. The chapter used to open with
+    // its hardest node second and drop to its easiest fifth, right after the hardest: ownership and
+    // an unbounded number need nothing new, the path needs one idea, the token re-uses what chapter
+    // four taught, and the race needs an insight no earlier node gives.
     expect(rangeNodes.map(stage => stage.key)).toEqual([
-      "someone-elses-order", "role-in-the-token", "up-one-level", "twice-at-once", "negative-quantity",
+      "someone-elses-order", "negative-quantity", "up-one-level", "role-in-the-token", "twice-at-once",
       "it-echoes-back", "it-stays-there", "always-true", "another-table", "yes-or-no",
     ]);
     // Each node's console is keyed on the node, not the surface: all five share one surface, and
