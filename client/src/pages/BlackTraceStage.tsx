@@ -267,8 +267,19 @@ function Instrument(props: InstrumentProps) {
     case "redirect": return <HopTrace {...props} />;
     case "header": return <HeaderList {...props} />;
     case "robots": return <CrawlerDialog {...props} />;
-    default: return <VaultAssembly {...props} />;
+    case "vault": return <VaultAssembly {...props} />;
+    // A surface with no branch used to fall through to the vault, so a node added without an
+    // instrument showed a two-part key panel and looked like a different node rather than like a
+    // mistake. Twice now a defect here survived because it failed quietly; this one says so.
+    default: return <MissingInstrument surface={props.surface} />;
   }
+}
+
+function MissingInstrument({ surface }: { surface: string }) {
+  return <div className="bt-missing">
+    <p className="bt-missing__title">NO INSTRUMENT</p>
+    <p className="bt-missing__body">이 노드에 연결된 계기가 없습니다. surface <code>{surface}</code> 에 해당하는 분기를 추가해야 합니다.</p>
+  </div>;
 }
 
 
