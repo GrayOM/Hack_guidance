@@ -25,7 +25,7 @@ export default function BlackTraceDirectory() {
       <section className="bt-directory__intro"><p className="bt-kicker">AUTHORIZED RED TEAM OPERATION</p><h1>대상 연구망 안으로 들어갑니다.</h1><p>승인된 범위 안의 작전입니다. 브라우저가 이미 받아 둔 것과 서버가 무심코 내준 것으로 거점을 하나씩 넘으세요.</p><div className="bt-directory__access"><span>ACCESS LEVEL</span><strong>{progress.data?.accessLevel ?? "GUEST"}</strong>{nextRank ? <small>다음 등급 {nextRank.name} · 노드 {Math.max(1, nextRank.at - current)}개 남음</small> : <small>최고 등급에 도달했습니다</small>}</div></section>
       <section className="bt-directory__stages"><FieldBriefing solved={completed.length} /><div className="bt-progress"><div><span>OPERATION PROGRESS</span><strong>{completed.length} / {blackTraceNodeCount} NODES BREACHED</strong></div><div className="bt-progress__track"><i style={{ width: `${percent}%` }} /></div></div>
         {!isAuthenticated ? <div className="bt-login-callout"><ShieldCheck size={19} /><div><strong>진행 상황을 저장하려면 로그인하세요.</strong><span>문제는 로그인 없이도 볼 수 있습니다. 다만 제출과 해금 기록은 로그인해야 남습니다.</span></div><button onClick={startPlatformLogin}>로그인</button></div> : null}
-        <div className="bt-stage-list">{blackTraceStages.map(stage => {
+        <p className="bt-stage-prompt" aria-hidden="true"><span>root@blacktrace:~$</span> ls ./nodes --status<i /></p><div className="bt-stage-list">{blackTraceStages.map(stage => {
           const done = completed.includes(stage.id);
           const open = unlocked(stage.id);
           // A locked node shows its slot but not its contents. Nine rows of plain grey titles read
@@ -65,7 +65,7 @@ function FieldBriefing({ solved }: { solved: number }) {
   ];
   return <section className={`bt-briefing${open ? " is-open" : ""}`}>
     <button type="button" onClick={() => setOpen(value => !value)}>
-      <ShieldCheck size={15} /> FIELD BRIEFING — 브라우저 개발자도구
+      <ShieldCheck size={15} /> FIELD BRIEFING / 브라우저 개발자도구
       <ChevronDown size={15} className="bt-briefing__chevron" />
     </button>
     {open ? <div className="bt-briefing__body">
