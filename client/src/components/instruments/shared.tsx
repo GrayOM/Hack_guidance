@@ -77,7 +77,7 @@ export function SurfaceSweep({ surface, trace, actionLabel, onLog, onBusy, onDon
     await delay(360);
     setShown(config.rows.length);
     onLog([`> sweeping ${surface}...`, `> present: ${config.present}`, `> painted: ${config.painted}`,
-      config.present === config.painted ? "[!] COUNT MATCHES — CONTENT DOES NOT" : "[!] COUNT MISMATCH"]);
+      config.present === config.painted ? "[!] COUNT MATCHES / CONTENT DOES NOT" : "[!] COUNT MISMATCH"]);
     onDone();
   };
 

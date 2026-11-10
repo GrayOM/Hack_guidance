@@ -18,11 +18,11 @@ export default function Certificate() {
     return (
       <Shell>
         <section className="max-w-md text-center">
-          <Award className="mx-auto h-9 w-9 text-teal-300" />
-          <p className="mt-5 font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">CLEARANCE ARCHIVE</p>
+          <Award className="mx-auto h-9 w-9 text-green-300" />
+          <p className="mt-5 font-mono-ui text-[10px] tracking-[0.2em] text-green-300">CLEARANCE ARCHIVE</p>
           <h1 className="mt-3 text-2xl font-semibold">수료 기록은 로그인 후 확인할 수 있습니다.</h1>
           <p className="mt-3 text-sm leading-6 text-slate-400">BLACK TRACE의 거점 20개를 모두 장악하면 수료증을 발급할 수 있습니다.</p>
-          <button onClick={startPlatformLogin} className="mt-6 bg-teal-300 px-4 py-2.5 text-sm font-semibold text-[#092024]">로그인</button>
+          <button onClick={startPlatformLogin} className="mt-6 bg-green-300 px-4 py-2.5 text-sm font-semibold text-[#0b1326]">로그인</button>
         </section>
       </Shell>
     );
@@ -39,54 +39,54 @@ export default function Certificate() {
 
   return (
     <Shell wide>
-      <p className="font-mono-ui text-[10px] tracking-[0.2em] text-teal-300">CLEARANCE ARCHIVE // BLACK TRACE</p>
+      <p className="font-mono-ui text-[10px] tracking-[0.2em] text-green-300">CLEARANCE ARCHIVE // BLACK TRACE</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">수료증</h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
         거점 20개를 모두 장악하면 수료증이 발급됩니다. 발급된 인증번호는 로그인 없이도 공개 검증 화면에서 확인할 수 있습니다.
       </p>
 
-      <section className="hnet-panel mt-8 border border-[#315057] p-6 sm:p-8">
+      <section className="hnet-panel mt-8 border border-[#30583f] p-6 sm:p-8">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="font-mono-ui text-[10px] tracking-[0.16em] text-slate-500">RECOVERED NODES</p>
-            <p className="mt-2 font-mono-ui text-2xl text-teal-200">{solved} <span className="text-slate-600">/ {TOTAL_NODES}</span></p>
+            <p className="mt-2 font-mono-ui text-2xl text-green-200">{solved} <span className="text-slate-600">/ {TOTAL_NODES}</span></p>
           </div>
-          {certificate ? <BadgeCheck className="h-9 w-9 text-teal-300" /> : eligible ? <Award className="h-9 w-9 text-amber-200" /> : <LockKeyhole className="h-8 w-8 text-slate-600" />}
+          {certificate ? <BadgeCheck className="h-9 w-9 text-green-300" /> : eligible ? <Award className="h-9 w-9 text-amber-200" /> : <LockKeyhole className="h-8 w-8 text-slate-600" />}
         </div>
-        <div className="mt-5 h-1.5 w-full bg-[#0c1b1e]">
-          <div className="h-full bg-teal-300 transition-[width] duration-500" style={{ width: `${(solved / TOTAL_NODES) * 100}%` }} />
+        <div className="mt-5 h-1.5 w-full bg-[#0d1320]">
+          <div className="h-full bg-green-300 transition-[width] duration-500" style={{ width: `${(solved / TOTAL_NODES) * 100}%` }} />
         </div>
 
         {certificate ? (
-          <div className="mt-7 border-t border-[#294247] pt-6">
-            <p className="font-mono-ui text-[10px] tracking-[0.16em] text-teal-300">VERIFICATION CODE</p>
-            <p className="mt-2 break-all font-mono-ui text-lg tracking-[0.06em] text-teal-100">{certificate.certificateCode}</p>
+          <div className="mt-7 border-t border-[#2c364d] pt-6">
+            <p className="font-mono-ui text-[10px] tracking-[0.16em] text-green-300">VERIFICATION CODE</p>
+            <p className="mt-2 break-all font-mono-ui text-lg tracking-[0.06em] text-green-100">{certificate.certificateCode}</p>
             <p className="mt-2 text-xs text-slate-500">발급일 {new Date(certificate.issuedAt).toLocaleDateString("ko-KR")}</p>
             <button
               onClick={() => setLocation(`/certificate/print/${encodeURIComponent(certificate.certificateCode)}`)}
-              className="mt-6 inline-flex items-center gap-2 bg-teal-300 px-4 py-2.5 text-sm font-semibold text-[#092024] transition hover:bg-teal-200"
+              className="mt-6 inline-flex items-center gap-2 bg-green-300 px-4 py-2.5 text-sm font-semibold text-[#0b1326] transition hover:bg-green-200"
             >
               수료증 보기 · 인쇄 <ExternalLink className="h-4 w-4" />
             </button>
           </div>
         ) : eligible ? (
-          <div className="mt-7 border-t border-[#294247] pt-6">
+          <div className="mt-7 border-t border-[#2c364d] pt-6">
             <p className="text-sm leading-6 text-slate-300">모든 거점을 장악했습니다. 수료증을 발급할 수 있습니다.</p>
             <button
               onClick={() => issue.mutate(undefined)}
               disabled={issue.isPending}
-              className="mt-5 inline-flex items-center gap-2 bg-teal-300 px-4 py-2.5 text-sm font-semibold text-[#092024] transition hover:bg-teal-200 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 inline-flex items-center gap-2 bg-green-300 px-4 py-2.5 text-sm font-semibold text-[#0b1326] transition hover:bg-green-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {issue.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />발급 중</> : <><Award className="h-4 w-4" />수료증 발급</>}
             </button>
             {issue.isError ? <p role="alert" className="mt-3 text-xs text-rose-300">수료증을 발급하지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : null}
           </div>
         ) : (
-          <div className="mt-7 border-t border-[#294247] pt-6">
+          <div className="mt-7 border-t border-[#2c364d] pt-6">
             <p className="text-sm leading-6 text-slate-400">노드 {remaining}개를 더 장악하면 수료증을 발급할 수 있습니다.</p>
             <button
               onClick={() => setLocation("/black-trace")}
-              className="mt-5 inline-flex items-center gap-2 border border-teal-300/40 px-4 py-2.5 text-sm text-teal-100 transition hover:border-teal-300 hover:bg-teal-300/[0.08]"
+              className="mt-5 inline-flex items-center gap-2 border border-green-300/40 px-4 py-2.5 text-sm text-green-100 transition hover:border-green-300 hover:bg-green-300/[0.08]"
             >
               작전 보드 열기
             </button>
@@ -103,7 +103,7 @@ export default function Certificate() {
 
 function Shell({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="hacknet-shell min-h-screen bg-[#060b0d] text-[#e7f2ef]">
+    <div className="hacknet-shell min-h-screen bg-[#06090e] text-[#e7f2eb]">
       <ConsoleNav />
       {wide
         ? <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">{children}</main>

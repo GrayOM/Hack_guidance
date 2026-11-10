@@ -22,21 +22,21 @@ export default function Home() {
     `> nodes discovered: ${blackTraceNodeCount}`,
     `> clearance: ${clearance}`,
     solved > 0 ? `> breached: ${solved} / ${blackTraceNodeCount}` : "> footholds: none",
-    isAuthenticated ? "> operator session active" : "> no operator session — progress will not be stored",
+    isAuthenticated ? "> operator session active" : "> no operator session. progress will not be stored",
     "> awaiting operator",
   ], [clearance, solved, isAuthenticated]);
   const { view: bootLines } = useTypedLog(boot, 18);
 
-  return <div className="hacknet-shell hg-home min-h-screen bg-[#060b0d] text-[#e7f2ef]">
+  return <div className="hacknet-shell hg-home min-h-screen bg-[#06090e] text-[#e7f2eb]">
     <ConsoleNav />
     <main className="relative mx-auto max-w-[1180px] px-4 py-10 lg:px-6 lg:py-14">
-      <section className="hg-hero hnet-panel relative overflow-hidden border border-[#34535a]">
+      <section className="hg-hero hnet-panel relative overflow-hidden border border-[#335b42]">
         <HomeTelemetry solved={solved} clearance={clearance} />
         <div className="hnet-node-map absolute inset-0 opacity-40" />
         <div className="hg-hero__body">
           <div>
             <p className="hg-eyebrow"><ScrambleText value="OPERATION AVAILABLE // BLACK TRACE" /></p>
-            <h1 className="hg-hero__title">접근 키는 이미<br />당신의 브라우저에 있습니다.</h1>
+            <h1 className="hg-hero__title hg-glitch">접근 키는 이미<br />당신의 브라우저에 있습니다.</h1>
             <p className="hg-hero__lead">승인된 범위 안에서 대상 연구망에 침투합니다. 서버가 이미 내려보낸 HTML·저장소·응답을 읽어 거점을 하나씩 넘고, 마지막 금고의 MASTER ACCESS KEY를 확보하세요.</p>
             <button onClick={() => setLocation("/black-trace")} className="hg-cta">
               {solved > 0 ? "작전 이어서" : "작전 시작"} <ArrowRight className="h-4 w-4" />
@@ -60,9 +60,9 @@ export default function Home() {
       <section className="mt-10">
         <p className="hg-section-label">ATTACK SURFACE</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Surface number="01" title="화면 밖 읽기" text="서버가 보냈지만 화면이 그리지 않은 것을 꺼냅니다." nodes="NODE 01 — 09" />
-          <Surface number="02" title="남은 기록" text="브라우저가 보관한 것과 서버가 무심코 공개한 파일을 씁니다." nodes="NODE 10 — 16" />
-          <Surface number="03" title="통신 장악" text="요청과 응답을 직접 보며 마지막 금고를 엽니다." nodes="NODE 17 — 20" />
+          <Surface number="01" title="화면 밖 읽기" text="서버가 보냈지만 화면이 그리지 않은 것을 꺼냅니다." nodes="NODE 01-09" />
+          <Surface number="02" title="남은 기록" text="브라우저가 보관한 것과 서버가 무심코 공개한 파일을 씁니다." nodes="NODE 10-16" />
+          <Surface number="03" title="통신 장악" text="요청과 응답을 직접 보며 마지막 금고를 엽니다." nodes="NODE 17-20" />
         </div>
       </section>
 

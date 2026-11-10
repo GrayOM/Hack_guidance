@@ -152,7 +152,7 @@ describe("PRACTICE RANGE", () => {
     // The reply panel scrolls rather than pushing the node screen out of shape.
     expect(stageStyles).toContain(".bt-range__reply pre{margin:0;max-height:200px;overflow:auto");
     // Hangul in the console's prose breaks between words, as everywhere else on the node screens.
-    expect(stageStyles).toContain(".bt-range__idle{margin:0;color:#4e7d82;font:11px/1.7 \"IBM Plex Sans KR\"");
+    expect(stageStyles).toContain(".bt-range__idle{margin:0;color:#4d8361;font:11px/1.7 \"IBM Plex Sans KR\"");
     expect(stageStyles).toMatch(/\.bt-range__idle\{[^}]*word-break:keep-all/);
   });
 

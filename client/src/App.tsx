@@ -19,7 +19,7 @@ import { PointerAmbient } from "./components/PointerAmbient";
 import { SecurityBackdrop } from "./components/SecurityBackdrop";
 
 /**
- * Design reminder — Signal Room Console: dark analytical workspace, not a game interface.
+ * Design: hacker terminal on deep navy with code green (UI UX Pro Max, Dark Mode OLED). Effects stay brief and stop under reduced motion.
  */
 function Routes() {
   // make sure to consider if you need authentication for certain routes

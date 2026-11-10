@@ -75,7 +75,7 @@ export function VaultAssembly({ trace, actionLabel, onLog, onRemote, onBusy, onD
 
 /** 01 — the record is rebuilt block by block and one index never draws. */
 export function RecordRestore({ actionLabel, onLog, onBusy, onDone }: InstrumentProps) {
-  const blocks = ["SYSTEM LOG — ROUTINE", "NO ANOMALY DETECTED", "TERMINAL IDLE"];
+  const blocks = ["SYSTEM LOG / ROUTINE", "NO ANOMALY DETECTED", "TERMINAL IDLE"];
   const [shown, setShown] = useState(-1);
   const restore = async () => {
     if (shown >= 0) return;
