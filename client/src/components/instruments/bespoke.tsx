@@ -41,7 +41,7 @@ export function StorageProbe({ onLog, onDone }: { onLog: (lines: string[]) => vo
           : <button type="button" onClick={() => probe(store.id)}>PROBE</button>}
       </div>;
     })}
-    <p className="bt-probe__note">{probed.length < stores.length ? `${probed.length} / ${stores.length} 검사함` : "하나만 살아남았다. 값은 이 화면에 없다."}</p>
+    <p className="bt-probe__note">{probed.length < stores.length ? `${probed.length} / ${stores.length} 검사함` : "남아 있는 저장소는 하나뿐이다. 값은 이 화면에 표시되지 않는다."}</p>
   </div>;
 }
 
@@ -156,7 +156,7 @@ export function IdentityCard({ actionLabel, trace, onLog, onBusy, onDone }: Inst
         : <><span>PERSONNEL FILE</span><strong>NAME: UNKNOWN</strong><strong>CLEARANCE: REVOKED</strong><strong>STATUS: MISSING</strong></>}
     </div>
     {flipped
-      ? <p className="bt-identity-note">인쇄된 칸은 3개, 카드가 든 값은 4개.</p>
+      ? <p className="bt-identity-note">카드에 인쇄된 칸은 3개인데 실제 값은 4개다.</p>
       : <button type="button" className="bt-action-button" onClick={flip}>{actionLabel} <ChevronRight size={18} /></button>}
   </div>;
 }

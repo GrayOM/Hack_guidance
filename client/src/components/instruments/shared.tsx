@@ -20,13 +20,13 @@ type SweepConfig = { title: string; rows: string[]; present: number; painted: nu
 
 const sweeps: Record<string, SweepConfig> = {
   tooltip: { title: "LABEL INSPECTOR", rows: ["라벨 1 · 접수 단말기", "라벨 2 · 반출 기록", "라벨 3 · 폐기 대기"],
-    present: 3, painted: 3, note: "세 개 모두 그려졌다. 다만 한 라벨은 화면에 나온 글자보다 길다." },
+    present: 3, painted: 3, note: "3개 모두 화면에 나왔다. 그중 한 라벨은 화면에 보이는 글자보다 내용이 길다." },
   "invisible-ink": { title: "RENDER AUDIT", rows: ["블록 1 · 접수", "블록 2 · 검토", "블록 3 · 승인", "블록 4 · 반출"],
-    present: 4, painted: 3, note: "네 개가 왔고 세 개가 그려졌다. 나머지 하나는 버려진 것이 아니다." },
+    present: 4, painted: 3, note: "4개를 받았고 화면에는 3개만 나왔다. 나머지 1개도 페이지 안에 남아 있다." },
   "template-tag": { title: "RENDER QUEUE", rows: ["대기 1 · 승인 안내", "대기 2 · 반려 안내", "대기 3 · 관리자 안내"],
-    present: 3, painted: 0, note: "세 조각 모두 아직 그려지지 않았다. 그려지지 않았다는 것이 오지 않았다는 뜻은 아니다." },
+    present: 3, painted: 0, note: "3개 모두 화면에 나오지 않았지만, 페이지에는 이미 들어와 있다." },
   "shadow-root": { title: "COMPONENT TREE", rows: ["호스트 · widget-host", "자식 · (문서에서 조회 불가)"],
-    present: 2, painted: 1, note: "이 구성요소는 자기 안쪽을 따로 들고 있다. 바깥 문서에서 찾으면 걸리지 않는다." },
+    present: 2, painted: 1, note: "이 구성요소는 내부 구조를 따로 갖고 있어서, 바깥 문서에서 검색하면 나오지 않는다." },
 };
 
 export function SurfaceSweep({ surface, trace, actionLabel, onLog, onBusy, onDone }: Common & { surface: string }) {
@@ -98,11 +98,11 @@ export function SurfaceSweep({ surface, trace, actionLabel, onLog, onBusy, onDon
 type StoreConfig = { title: string; stores: { id: string; entries: number; key: string | null }[]; closing: string };
 
 const probes: Record<string, StoreConfig> = {
-  "local-memory": { title: "PERSISTENT STORE", closing: "탭을 닫아도 남는 자리다. 값은 이 화면에 없다.",
+  "local-memory": { title: "PERSISTENT STORE", closing: "탭을 닫아도 유지되는 저장소다. 값은 이 화면에 표시되지 않는다.",
     stores: [{ id: "sessionStorage", entries: 0, key: null }, { id: "localStorage", entries: 1, key: "profile_hint" }, { id: "cookie", entries: 0, key: null }] },
-  "until-you-leave": { title: "VOLATILE STORE", closing: "이 탭이 닫히면 사라진다. 아직 닫히지 않았다.",
+  "until-you-leave": { title: "VOLATILE STORE", closing: "탭을 닫으면 지워지는 저장소다. 지금은 탭이 열려 있으니 값도 남아 있다.",
     stores: [{ id: "localStorage", entries: 0, key: null }, { id: "sessionStorage", entries: 1, key: "draft_note" }, { id: "cookie", entries: 0, key: null }] },
-  "deeper-store": { title: "OBJECT STORE", closing: "열쇠-값 한 쌍보다 깊은 저장 수단이 있다.",
+  "deeper-store": { title: "OBJECT STORE", closing: "키-값 저장소 말고도 더 큰 데이터를 담는 저장소가 있다.",
     stores: [{ id: "localStorage", entries: 0, key: null }, { id: "sessionStorage", entries: 0, key: null }, { id: "IndexedDB", entries: 1, key: "offline_notes" }] },
 };
 
@@ -161,9 +161,9 @@ export function StoreProbe({ surface, trace, onLog, onDone }: Common & { surface
    entry nothing on the site links to. */
 
 const indexes: Record<string, { title: string; path: string; files: string[]; note: string }> = {
-  sitemap: { title: "INDEX FILE", path: "sitemap.xml", note: "목록에 화면 어디에서도 연결되지 않은 주소가 하나 섞여 있다.",
+  sitemap: { title: "INDEX FILE", path: "sitemap.xml", note: "목록에 있는 주소 중 하나는 화면 어디에서도 링크되지 않는다.",
     files: ["/", "/black-trace", "/ranking", "/certificate", "/internal/… (링크 없음)"] },
-  "source-map": { title: "BUILD OUTPUT", path: "legacy/report.js", note: "압축된 파일 옆에 원본으로 되돌릴 안내서가 함께 올라가 있다.",
+  "source-map": { title: "BUILD OUTPUT", path: "legacy/report.js", note: "압축된 파일 옆에 원본 복원용 파일도 함께 공개되어 있다.",
     files: ["report.js  (압축됨)", "report.js.map  (원본 복원용)"] },
 };
 
@@ -198,25 +198,25 @@ type RigConfig = { title: string; mode: string; method?: string; probe: string; 
 
 const rigs: Record<string, RigConfig> = {
   "wrong-method": { title: "INTAKE API", mode: "method", probe: "GET /intake", refusal: "405 METHOD NOT ALLOWED",
-    note: "창구는 열려 있다. 두드리는 방식이 이 방식은 아니다." },
+    note: "주소는 정상 동작한다. 다만 지금 보낸 요청 방식은 받지 않는다." },
   "cookie-flags": { title: "SESSION ISSUER", mode: "cookie", probe: "GET /session", refusal: "200 · 세션 발급됨",
-    note: "값은 평범하다. 값과 함께 나온 것이 평범하지 않다." },
+    note: "세션 값 자체에는 특별한 것이 없다. 값과 함께 붙어 온 설정을 살펴봐야 한다." },
   "claimed-role": { title: "CONTENT GATE", mode: "role", probe: "GET /gate", refusal: "200 · public summary only",
-    note: "서버가 요구하는 것이 응답에 적혀 있다. 그것을 적어 보내는 쪽은 당신이다." },
+    note: "서버가 무엇을 요구하는지 응답에 나와 있다. 그 내용을 요청에 직접 담아 보내면 된다." },
   referer: { title: "PARTNER PORTAL", mode: "referer", probe: "GET /portal", refusal: "403 INTERNAL REFERRAL REQUIRED",
-    note: "내부에서 넘어온 요청만 받는다. 어디서 왔는지는 요청에 적힌다." },
+    note: "내부 페이지에서 넘어온 요청만 받는다. 요청이 어디서 왔는지는 요청 안에 기록된다." },
   etag: { title: "ASSET CACHE", mode: "etag", probe: "GET /asset", refusal: "200 · size 2048",
-    note: "본문은 평범하다. 같은 파일임을 알아보는 표가 따로 붙어 나온다." },
+    note: "본문에는 특별한 것이 없다. 응답에는 같은 파일인지 확인하는 식별값이 따로 붙어 온다." },
   range: { title: "ARCHIVE STORE", mode: "range", probe: "GET /archive", refusal: "200 · FULL TRANSFER REFUSED",
-    note: "통째로는 주지 않는다. 어디부터 어디까지인지 말하면 다르다." },
+    note: "파일 전체는 내려주지 않는다. 받을 구간을 지정하면 응답이 달라진다." },
   preflight: { title: "CROSS ORIGIN", mode: "preflight", method: "OPTIONS", probe: "OPTIONS /resource", refusal: "204 · 본문 없음",
-    note: "본 요청 전에 오가는 대화가 따로 있다. 그 답에 서버의 사정이 적힌다." },
+    note: "실제 요청 전에 먼저 오가는 확인 요청이 있다. 그 응답에 서버 정보가 담겨 있다." },
   "status-only": { title: "ACK NODE", mode: "ack", probe: "GET /ack", refusal: "204 NO CONTENT",
-    note: "본문이 없다. 응답이 없는 것과는 다르다." },
+    note: "본문은 비어 있지만 응답은 왔다. 본문 말고 다른 곳을 봐야 한다." },
   "content-type": { title: "REPORT EXPORT", mode: "export", probe: "GET /export", refusal: "200 · 화면에 열리지 않음",
-    note: "내용이 잘못된 것이 아니다. 종류를 잘못 적어 보냈을 뿐이다." },
+    note: "내용에는 문제가 없다. 서버가 응답 종류를 잘못 표시해서 화면에 열리지 않는다." },
   "two-requests": { title: "DISPATCH NODE", mode: "dispatch", probe: "GET /dispatch", refusal: "200 · STAGED",
-    note: "첫 응답은 답이 아니다. 다음에 어디로 물어야 하는지를 알려줄 뿐이다." },
+    note: "첫 응답에는 값이 없다. 대신 다음에 요청할 위치가 들어 있다." },
 };
 
 export function RequestRig({ nodeKey, actionLabel, onLog, onBusy, onDone, onRemote }: Common & { surface: string }) {
@@ -277,19 +277,19 @@ type BenchConfig = { title: string; label: string; encode: (trace: string) => st
 const benches: Record<string, BenchConfig> = {
   "plain-sight": { title: "CONFIG STORE", label: "stored_value", encode: b64,
     observed: value => [`길이 ${value.length}`, "A–Z a–z 0–9 + / 와 끝의 = 만 사용", "열쇠 없이 되돌아감"],
-    note: "포장을 벗기는 데 아무것도 필요하지 않았다." },
+    note: "키 없이 바로 원래 값으로 되돌릴 수 있다." },
   "bytes-as-text": { title: "MEMORY DUMP", label: "dump_slice", encode: hex,
     observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "두 글자가 한 덩어리"],
-    note: "두 글자씩 한 바이트다." },
+    note: "두 글자가 1바이트를 나타낸다." },
   "percent-signs": { title: "ACCESS LOG", label: "query_value", encode: percentAll,
     observed: value => [`길이 ${value.length}`, "% 뒤에 두 글자가 따라붙음", "주소에 실려 기록된 형태"],
-    note: "주소에 실릴 때 자리를 바꿔 적은 글자다." },
+    note: "주소에 넣을 수 있게 글자를 다른 표기로 바꿔 적은 형태다." },
   shifted: { title: "OPERATOR NOTE", label: "note_body", encode: rot13,
     observed: value => [`길이 ${value.length}`, "글자 종류가 원문과 같음", "중괄호와 밑줄은 그대로"],
-    note: "모양은 그대로다. 자리만 밀렸다." },
+    note: "글자 모양은 그대로이고, 글자 위치만 일정하게 밀려 있다." },
   "one-byte-key": { title: "FIRMWARE BLOB", label: "blob_slice", encode: text => xorHex(text, 0x2a),
     observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "앞머리가 늘 같은 네 덩어리로 시작"],
-    note: "앞머리는 어느 흔적이나 같다. 그 네 글자가 열쇠를 알려 준다." },
+    note: "앞부분은 어떤 흔적이든 같다. 이 앞 네 글자로 키를 알아낼 수 있다." },
   // The node is about the variant alphabet, so the value has to actually use it — and base64 of
   // plain ASCII essentially never does. Reaching 111110 or 111111 in a six-bit group needs a byte
   // above 0x7F in every position but the last, so a trace made of letters and braces encodes to a
@@ -298,21 +298,21 @@ const benches: Record<string, BenchConfig> = {
   "two-alphabets": { title: "TOKEN STORE", label: "token_value",
     encode: trace => b64urlBytes([...toBytes(trace), 0xff, 0xfe, 0xfd]),
     observed: value => [`길이 ${value.length}`, "- 또는 _ 가 섞여 있음", "끝에 = 가 없음", "벗기면 뒤쪽에 글자가 아닌 것이 붙어 있음"],
-    note: "익숙한 포장인데 쓰인 글자 둘이 다르다. 표준 해독기는 여기서 막힌다." },
+    note: "흔한 인코딩과 비슷하지만 쓰는 글자 2개가 다르다. 일반 디코더로는 풀리지 않는다." },
   "three-parts": { title: "AUTH ISSUER", label: "access_token",
     encode: trace => jwt({ sub: "op-7f21", role: "operator", note: trace }, { alg: "HS256", typ: "JWT" }, "c2lnbmF0dXJlLXdpdGhoZWxk"),
     observed: value => [`점으로 나뉜 ${value.split(".").length} 조각`, "앞 두 조각만 글자 종류가 같음", "서명이 붙어 있음"],
-    note: "서명은 위조를 막는다. 가리지는 않는다." },
+    note: "서명이 있어도 내용은 암호화되지 않는다. 누구나 읽을 수 있다." },
   "no-signature": { title: "LEGACY ISSUER", label: "access_token",
     encode: trace => jwt({ sub: "op-0004", role: "operator" }, { alg: "none", typ: "JWT" }, b64url(trace)),
     observed: value => [`점으로 나뉜 ${value.split(".").length} 조각`, "첫 조각이 서명 방식을 선언함", "세 조각 모두 같은 글자 종류"],
-    note: "서명이 있어야 할 자리가 서명이 아니다." },
+    note: "서명이 들어가야 할 마지막 조각에 다른 값이 들어 있다." },
   "wrapped-twice": { title: "RELAY QUEUE", label: "message_body", encode: trace => b64(percentAll(trace)),
     observed: value => [`길이 ${value.length}`, "A–Z a–z 0–9 + / 와 끝의 =", "한 겹을 벗겨도 아직 읽히지 않음"],
-    note: "한 겹 아래에 또 한 겹이 있다." },
+    note: "한 번 풀어도 또 다른 인코딩이 남아 있다." },
   "layer-by-layer": { title: "EXFIL CAPTURE", label: "captured_chunk", encode: trace => hex(b64(rot13(trace))),
     observed: value => [`길이 ${value.length} (짝수)`, "0–9 a–f 만 사용", "벗길 때마다 글자 종류가 달라짐"],
-    note: "겹마다 방식이 다르다. 벗긴 뒤 무엇이 남는지를 보고 다음을 정한다." },
+    note: "단계마다 방식이 다르다. 하나를 푼 결과를 보고 다음 방식을 고르면 된다." },
 };
 
 export function CipherBench({ nodeKey, trace, actionLabel, onLog, onBusy, onDone }: Common & { surface: string }) {
